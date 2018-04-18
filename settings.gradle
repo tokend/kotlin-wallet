@@ -1,0 +1,4 @@
+rootProject.name = 'wallet'
+
+include ':crypto-ecdsa'
+project(':crypto-ecdsa').projectDir = file('../crypto/crypto-ecdsa')
