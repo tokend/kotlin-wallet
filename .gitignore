@@ -1,0 +1,40 @@
+.project
+.classpath
+.settings
+*.chain
+*.spvchain
+.jar
+
+# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
+!gradle-wrapper.jar
+
+# Build output directies
+/target
+*/target
+/build
+*/build
+/out
+*/out
+
+# Cache of project
+.gradletasknamecache
+
+# # Work around https://youtrack.jetbrains.com/issue/IDEA-116898
+# gradle/wrapper/gradle-wrapper.properties
+
+# Java class files
+*.class
+
+# Intellij project files
+*.iml
+*.ipr
+*.iws
+.idea/
+/local.properties
+
+# Gradle
+.gradle
+build
+
+# Mac
+.DS_Store
