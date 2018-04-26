@@ -20,7 +20,7 @@ class AccountTest {
     @Test
     fun verifyValid() {
         val sig = "1B0EBBAE618B267668A8122ECCCD2A20480BC81951EB401E0F92B613483B798763D36AEB4B0404BC2A31FA1EAD47522BBA08705AB51BA205020E67D09AE87D0E"
-        val account = Account.fromSecretSeed(SEED)
+        val account = Account.fromAccountId(ACCOUNT_ID)
         val data = "TokenD is awesome"
         Assert.assertTrue(account.verifySignature(data.toByteArray(), BaseEncoding.base16().decode(sig)))
     }
