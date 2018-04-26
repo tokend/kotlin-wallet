@@ -23,7 +23,8 @@ internal object StrKey {
         ACCOUNT_ID((6 shl 3).toByte()), // G
         SEED((18 shl 3).toByte()), // S
         PRE_AUTH_TX((19 shl 3).toByte()), // T
-        SHA256_HASH((23 shl 3).toByte());
+        SHA256_HASH((23 shl 3).toByte()),
+        BALANCE_ID((1 shl 3).toByte()); // B
 
         fun getValue(): Int {
             return value.toInt()
@@ -60,6 +61,14 @@ internal object StrKey {
 
     fun decodeSha256Hash(data: String): ByteArray {
         return decodeCheck(VersionByte.SHA256_HASH, data.toCharArray())
+    }
+
+    fun encodeBalanceId(data: ByteArray): String {
+        return String(encodeCheck(VersionByte.BALANCE_ID, data))
+    }
+
+    fun decodeBalanceId(data: String): ByteArray {
+        return decodeCheck(VersionByte.BALANCE_ID, data.toCharArray())
     }
 
     fun encodeCheck(versionByte: VersionByte, data: ByteArray): CharArray {
