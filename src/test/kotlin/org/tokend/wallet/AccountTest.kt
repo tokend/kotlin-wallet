@@ -3,17 +3,19 @@ package org.tokend.wallet
 import com.google.common.io.BaseEncoding
 import org.junit.Assert
 import org.junit.Test
+import org.tokend.wallet.xdr.PublicKey
 
 class AccountTest {
     private val SEED = "SBUFJEEK7FMWXPE4HGOWQZPHZ4V5TFKGSF664RAGT24NS662MKTQ7J6S"
     private val ACCOUNT_ID = "GB6ZRRKDAHUFQAGSJWMLCXL4W7OIEQNJL4NOISQUA6G23WK3OR3MGC4L"
+    private val XDR_PUBLIC_KEY = "AAAAAH2YxUMB6FgA0k2YsV18t9yCQalfGuRKFAeNrdlbdHbD"
+    private val DATA = "TokenD is awesome".toByteArray()
 
     @Test
     fun sign() {
         val expectedSig = "1B0EBBAE618B267668A8122ECCCD2A20480BC81951EB401E0F92B613483B798763D36AEB4B0404BC2A31FA1EAD47522BBA08705AB51BA205020E67D09AE87D0E"
         val account = Account.fromSecretSeed(SEED)
-        val data = "TokenD is awesome"
-        val sig = account.sign(data.toByteArray())
+        val sig = account.sign(DATA)
         Assert.assertArrayEquals(BaseEncoding.base16().decode(expectedSig), sig)
     }
 
@@ -21,8 +23,7 @@ class AccountTest {
     fun verifyValid() {
         val sig = "1B0EBBAE618B267668A8122ECCCD2A20480BC81951EB401E0F92B613483B798763D36AEB4B0404BC2A31FA1EAD47522BBA08705AB51BA205020E67D09AE87D0E"
         val account = Account.fromAccountId(ACCOUNT_ID)
-        val data = "TokenD is awesome"
-        Assert.assertTrue(account.verifySignature(data.toByteArray(), BaseEncoding.base16().decode(sig)))
+        Assert.assertTrue(account.verifySignature(DATA, BaseEncoding.base16().decode(sig)))
     }
 
     @Test
@@ -54,6 +55,28 @@ class AccountTest {
     @Test
     fun accountId() {
         val account = Account.fromSecretSeed(SEED)
+        Assert.assertEquals(ACCOUNT_ID, account.accountId)
+    }
+
+    @Test
+    fun signDecorated() {
+        val account = Account.fromSecretSeed(SEED)
+        val expectedSig = "W3R2wwAAAEAbDruuYYsmdmioEi7MzSogSAvIGVHrQB4PkrYTSDt5h2PTautLBAS8KjH6Hq1HUiu6CHBatRuiBQIOZ9Ca6H0O"
+        val decoratedSignature = account.signDecorated(DATA)
+        Assert.assertEquals(expectedSig, decoratedSignature.toBase64())
+    }
+
+    @Test
+    fun xdrPublicKey() {
+        val account = Account.fromAccountId(ACCOUNT_ID)
+        val xdrPubKey = account.xdrPublicKey
+        Assert.assertEquals(XDR_PUBLIC_KEY, xdrPubKey.toBase64())
+    }
+
+    @Test
+    fun fromXdrPublicKey() {
+        val account = Account.fromXdrPublicKey(
+                Account.fromAccountId(ACCOUNT_ID).xdrPublicKey as PublicKey.KeyTypeEd25519)
         Assert.assertEquals(ACCOUNT_ID, account.accountId)
     }
 }
