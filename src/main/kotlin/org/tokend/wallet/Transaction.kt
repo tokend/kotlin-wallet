@@ -12,7 +12,7 @@ import java.util.*
  * Represents TokenD transaction - a set of operations that changes the state of the system.
  */
 class Transaction {
-    val network: Network
+    val networkParams: NetworkParams
     val sourceAccountId: AccountID
     val memo: Memo
     val operations: List<Operation>
@@ -26,7 +26,7 @@ class Transaction {
     /**
      * Creates Transaction instance.
      *
-     * @param network network specification
+     * @param networkParams network specification
      * @param sourceAccountId account ID of transaction initiator
      * @param memo optional transaction payload
      * @param timeBounds unixtime range during which the
@@ -36,7 +36,7 @@ class Transaction {
      * @throws IllegalAccessException if no operations were added.
      */
     @JvmOverloads
-    constructor(network: Network,
+    constructor(networkParams: NetworkParams,
                 sourceAccountId: AccountID,
                 operations: List<Operation>,
                 memo: Memo? = null,
@@ -46,7 +46,7 @@ class Transaction {
             throw IllegalStateException("Transaction must contain at least one operation")
         }
 
-        this.network = network
+        this.networkParams = networkParams
         this.sourceAccountId = sourceAccountId
         this.operations = operations
 
@@ -80,7 +80,7 @@ class Transaction {
     private fun getSignatureBase(): ByteArray {
         val outputStream = ByteArrayOutputStream()
 
-        outputStream.write(network.getId())
+        outputStream.write(networkParams.networkId)
         outputStream.write(ByteBuffer.allocate(4).putInt(EnvelopeType.TX.value).array())
 
         val txOutputStream = ByteArrayOutputStream()

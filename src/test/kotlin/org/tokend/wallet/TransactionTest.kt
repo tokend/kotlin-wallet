@@ -6,7 +6,7 @@ import org.tokend.wallet.xdr.*
 
 class TransactionTest {
     val SOURCE_ACCOUNT_ID = "GDVJSBSBSERR3YP3LKLHTODWEFGCSLDWDIODER3CKLZXUMVPZOPT4MHY"
-    val NETWORK = Network("Example Test Network")
+    val NETWORK = NetworkParams("Example Test Network")
 
     @Test
     fun encoding() {

@@ -8,7 +8,7 @@ import org.tokend.wallet.xdr.TimeBounds
 /**
  * Builds a [Transaction] object.
  */
-class TransactionBuilder(private val network: Network,
+class TransactionBuilder(private val networkParams: NetworkParams,
                          private val sourceAccountId: AccountID) {
     private val operations = mutableListOf<Operation>()
     private var memo: Memo? = null
@@ -59,7 +59,7 @@ class TransactionBuilder(private val network: Network,
      */
     fun build(): Transaction {
         return Transaction(
-                network,
+                networkParams,
                 sourceAccountId,
                 operations,
                 memo,

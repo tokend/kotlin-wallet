@@ -7,7 +7,7 @@ import org.tokend.wallet.xdr.*
 class TransactionBuilderTest {
     val SOURCE_ACCOUNT_ID = "GDVJSBSBSERR3YP3LKLHTODWEFGCSLDWDIODER3CKLZXUMVPZOPT4MHY"
     val SOURCE_ACCOUNT_PUBKEY = PublicKeyFactory.fromAccountId(SOURCE_ACCOUNT_ID)
-    val NETWORK = Network("Example Test Network")
+    val NETWORK = NetworkParams("Example Test Network")
     val SIMPLE_OP = ManageBalanceOp(
             ManageBalanceAction.CREATE,
             SOURCE_ACCOUNT_PUBKEY,
@@ -23,7 +23,7 @@ class TransactionBuilderTest {
                 .build()
 
         Assert.assertEquals(SOURCE_ACCOUNT_PUBKEY, transaction.sourceAccountId)
-        Assert.assertEquals(NETWORK.passphrase, transaction.network.passphrase)
+        Assert.assertEquals(NETWORK.passphrase, transaction.networkParams.passphrase)
         Assert.assertEquals(operationBody.toBase64(),
                 transaction.operations[0].body.toBase64())
     }
