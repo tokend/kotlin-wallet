@@ -21,7 +21,7 @@ public typealias Value = ByteArray
 //  };
 
 //  ===========================================================================
-public class SCPBallot(
+open class SCPBallot(
     var counter: Uint32,
     var value: Value
   ) : XdrEncodable {
@@ -65,7 +65,7 @@ public enum class SCPStatementType(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class SCPNomination(
+open class SCPNomination(
     var quorumSetHash: Hash,
     var votes: Array<Value>,
     var accepted: Array<Value>
@@ -126,7 +126,7 @@ public class SCPNomination(
 //  };
 
 //  ===========================================================================
-public class SCPStatement(
+open class SCPStatement(
     var nodeID: NodeID,
     var slotIndex: Uint64,
     var pledges: SCPStatementPledges
@@ -143,35 +143,35 @@ public class SCPStatement(
         discriminant.toXdr(stream)
     }
 
-    public class Prepare(var prepare: SCPStatementPrepare): SCPStatementPledges(SCPStatementType.PREPARE) {
+    open class Prepare(var prepare: SCPStatementPrepare): SCPStatementPledges(SCPStatementType.PREPARE) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         prepare.toXdr(stream)
       }
     }
 
-    public class Confirm(var confirm: SCPStatementConfirm): SCPStatementPledges(SCPStatementType.CONFIRM) {
+    open class Confirm(var confirm: SCPStatementConfirm): SCPStatementPledges(SCPStatementType.CONFIRM) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         confirm.toXdr(stream)
       }
     }
 
-    public class Externalize(var externalize: SCPStatementExternalize): SCPStatementPledges(SCPStatementType.EXTERNALIZE) {
+    open class Externalize(var externalize: SCPStatementExternalize): SCPStatementPledges(SCPStatementType.EXTERNALIZE) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         externalize.toXdr(stream)
       }
     }
 
-    public class Nominate(var nominate: SCPNomination): SCPStatementPledges(SCPStatementType.NOMINATE) {
+    open class Nominate(var nominate: SCPNomination): SCPStatementPledges(SCPStatementType.NOMINATE) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         nominate.toXdr(stream)
       }
     }
 
-    public class SCPStatementPrepare(
+    open class SCPStatementPrepare(
         var quorumSetHash: Hash,
         var ballot: SCPBallot,
         var prepared: SCPBallot?,
@@ -199,7 +199,7 @@ public class SCPStatement(
         nH.toXdr(stream)
       }
     }
-    public class SCPStatementConfirm(
+    open class SCPStatementConfirm(
         var ballot: SCPBallot,
         var nPrepared: Uint32,
         var nCommit: Uint32,
@@ -215,7 +215,7 @@ public class SCPStatement(
         quorumSetHash.toXdr(stream)
       }
     }
-    public class SCPStatementExternalize(
+    open class SCPStatementExternalize(
         var commit: SCPBallot,
         var nH: Uint32,
         var commitQuorumSetHash: Hash
@@ -239,7 +239,7 @@ public class SCPStatement(
 //  };
 
 //  ===========================================================================
-public class SCPEnvelope(
+open class SCPEnvelope(
     var statement: SCPStatement,
     var signature: Signature
   ) : XdrEncodable {
@@ -260,7 +260,7 @@ public class SCPEnvelope(
 //  };
 
 //  ===========================================================================
-public class SCPQuorumSet(
+open class SCPQuorumSet(
     var threshold: Uint32,
     var validators: Array<PublicKey>,
     var innerSets: Array<SCPQuorumSet>
@@ -296,7 +296,7 @@ public class SCPQuorumSet(
 //  };
 
 //  ===========================================================================
-public class AccountKYCEntry(
+open class AccountKYCEntry(
     var accountID: AccountID,
     var KYCData: Longstring,
     var ext: AccountKYCEntryExt
@@ -313,7 +313,7 @@ public class AccountKYCEntry(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: AccountKYCEntryExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: AccountKYCEntryExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -333,7 +333,7 @@ public class AccountKYCEntry(
 //  };
 
 //  ===========================================================================
-public class AccountLimitsEntry(
+open class AccountLimitsEntry(
     var accountID: AccountID,
     var limits: Limits,
     var ext: AccountLimitsEntryExt
@@ -350,7 +350,7 @@ public class AccountLimitsEntry(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: AccountLimitsEntryExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: AccountLimitsEntryExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -371,7 +371,7 @@ public class AccountLimitsEntry(
 //  };
 
 //  ===========================================================================
-public class AccountTypeLimitsEntry(
+open class AccountTypeLimitsEntry(
     var accountType: AccountType,
     var limits: Limits,
     var ext: AccountTypeLimitsEntryExt
@@ -388,7 +388,7 @@ public class AccountTypeLimitsEntry(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: AccountTypeLimitsEntryExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: AccountTypeLimitsEntryExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -479,7 +479,7 @@ public enum class SignerType(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class Signer(
+open class Signer(
     var pubKey: AccountID,
     var weight: Uint32,
     var signerType: Uint32,
@@ -502,7 +502,7 @@ public class Signer(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: SignerExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: SignerExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -523,7 +523,7 @@ public class Signer(
 //  };
 
 //  ===========================================================================
-public class TrustEntry(
+open class TrustEntry(
     var allowedAccount: AccountID,
     var balanceToUse: BalanceID,
     var ext: TrustEntryExt
@@ -540,7 +540,7 @@ public class TrustEntry(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: TrustEntryExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: TrustEntryExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -564,7 +564,7 @@ public class TrustEntry(
 //  };
 
 //  ===========================================================================
-public class Limits(
+open class Limits(
     var dailyOut: Int64,
     var weeklyOut: Int64,
     var monthlyOut: Int64,
@@ -585,7 +585,7 @@ public class Limits(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: LimitsExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: LimitsExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -695,7 +695,7 @@ public enum class BlockReasons(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class AccountEntry(
+open class AccountEntry(
     var accountID: AccountID,
     var recoveryID: AccountID,
     var thresholds: Thresholds,
@@ -739,9 +739,9 @@ public class AccountEntry(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: AccountEntryExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: AccountEntryExt(LedgerVersion.EMPTY_VERSION)
 
-    public class UseKycLevel(var kycLevel: Uint32): AccountEntryExt(LedgerVersion.USE_KYC_LEVEL) {
+    open class UseKycLevel(var kycLevel: Uint32): AccountEntryExt(LedgerVersion.USE_KYC_LEVEL) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         kycLevel.toXdr(stream)
@@ -797,7 +797,7 @@ public enum class AssetPairPolicy(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class AssetPairEntry(
+open class AssetPairEntry(
     var base: AssetCode,
     var quote: AssetCode,
     var currentPrice: Int64,
@@ -824,7 +824,7 @@ public class AssetPairEntry(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: AssetPairEntryExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: AssetPairEntryExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -898,7 +898,7 @@ public enum class AssetSystemPolicies(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class AssetEntry(
+open class AssetEntry(
     var code: AssetCode,
     var owner: AccountID,
     var preissuedAssetSigner: AccountID,
@@ -929,7 +929,7 @@ public class AssetEntry(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: AssetEntryExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: AssetEntryExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -953,7 +953,7 @@ public class AssetEntry(
 //  };
 
 //  ===========================================================================
-public class BalanceEntry(
+open class BalanceEntry(
     var balanceID: BalanceID,
     var asset: AssetCode,
     var accountID: AccountID,
@@ -976,7 +976,7 @@ public class BalanceEntry(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: BalanceEntryExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: BalanceEntryExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -1019,7 +1019,7 @@ public enum class ExternalSystemType(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class ExternalSystemAccountID(
+open class ExternalSystemAccountID(
     var accountID: AccountID,
     var externalSystemType: ExternalSystemType,
     var data: Longstring,
@@ -1038,7 +1038,7 @@ public class ExternalSystemAccountID(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: ExternalSystemAccountIDExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: ExternalSystemAccountIDExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -1113,7 +1113,7 @@ public enum class EmissionFeeType(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class FeeEntry(
+open class FeeEntry(
     var feeType: FeeType,
     var asset: AssetCode,
     var fixedFee: Int64,
@@ -1156,7 +1156,7 @@ public class FeeEntry(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: FeeEntryExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: FeeEntryExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -1201,7 +1201,7 @@ public enum class InvoiceState(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class InvoiceEntry(
+open class InvoiceEntry(
     var invoiceID: Uint64,
     var receiverAccount: AccountID,
     var receiverBalance: BalanceID,
@@ -1226,7 +1226,7 @@ public class InvoiceEntry(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: InvoiceEntryExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: InvoiceEntryExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -1262,7 +1262,7 @@ public class InvoiceEntry(
 //  };
 
 //  ===========================================================================
-public class OfferEntry(
+open class OfferEntry(
     var offerID: Uint64,
     var orderBookID: Uint64,
     var ownerID: AccountID,
@@ -1303,7 +1303,7 @@ public class OfferEntry(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: OfferEntryExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: OfferEntryExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -1355,7 +1355,7 @@ public enum class RequestType(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class PaymentRequestEntry(
+open class PaymentRequestEntry(
     var paymentID: Uint64,
     var sourceBalance: BalanceID,
     var destinationBalance: BalanceID?,
@@ -1394,7 +1394,7 @@ public class PaymentRequestEntry(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: PaymentRequestEntryExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: PaymentRequestEntryExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -1415,7 +1415,7 @@ public class PaymentRequestEntry(
 //  };
 
 //  ===========================================================================
-public class ReferenceEntry(
+open class ReferenceEntry(
     var sender: AccountID,
     var reference: String64,
     var ext: ReferenceEntryExt
@@ -1432,7 +1432,7 @@ public class ReferenceEntry(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: ReferenceEntryExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: ReferenceEntryExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -1515,7 +1515,7 @@ public enum class ReviewableRequestType(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class ReviewableRequestEntry(
+open class ReviewableRequestEntry(
     var requestID: Uint64,
     var hash: Hash,
     var requestor: AccountID,
@@ -1549,70 +1549,70 @@ public class ReviewableRequestEntry(
         discriminant.toXdr(stream)
     }
 
-    public class AssetCreate(var assetCreationRequest: AssetCreationRequest): ReviewableRequestEntryBody(ReviewableRequestType.ASSET_CREATE) {
+    open class AssetCreate(var assetCreationRequest: AssetCreationRequest): ReviewableRequestEntryBody(ReviewableRequestType.ASSET_CREATE) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         assetCreationRequest.toXdr(stream)
       }
     }
 
-    public class AssetUpdate(var assetUpdateRequest: AssetUpdateRequest): ReviewableRequestEntryBody(ReviewableRequestType.ASSET_UPDATE) {
+    open class AssetUpdate(var assetUpdateRequest: AssetUpdateRequest): ReviewableRequestEntryBody(ReviewableRequestType.ASSET_UPDATE) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         assetUpdateRequest.toXdr(stream)
       }
     }
 
-    public class PreIssuanceCreate(var preIssuanceRequest: PreIssuanceRequest): ReviewableRequestEntryBody(ReviewableRequestType.PRE_ISSUANCE_CREATE) {
+    open class PreIssuanceCreate(var preIssuanceRequest: PreIssuanceRequest): ReviewableRequestEntryBody(ReviewableRequestType.PRE_ISSUANCE_CREATE) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         preIssuanceRequest.toXdr(stream)
       }
     }
 
-    public class IssuanceCreate(var issuanceRequest: IssuanceRequest): ReviewableRequestEntryBody(ReviewableRequestType.ISSUANCE_CREATE) {
+    open class IssuanceCreate(var issuanceRequest: IssuanceRequest): ReviewableRequestEntryBody(ReviewableRequestType.ISSUANCE_CREATE) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         issuanceRequest.toXdr(stream)
       }
     }
 
-    public class Withdraw(var withdrawalRequest: WithdrawalRequest): ReviewableRequestEntryBody(ReviewableRequestType.WITHDRAW) {
+    open class Withdraw(var withdrawalRequest: WithdrawalRequest): ReviewableRequestEntryBody(ReviewableRequestType.WITHDRAW) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         withdrawalRequest.toXdr(stream)
       }
     }
 
-    public class Sale(var saleCreationRequest: SaleCreationRequest): ReviewableRequestEntryBody(ReviewableRequestType.SALE) {
+    open class Sale(var saleCreationRequest: SaleCreationRequest): ReviewableRequestEntryBody(ReviewableRequestType.SALE) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         saleCreationRequest.toXdr(stream)
       }
     }
 
-    public class LimitsUpdate(var limitsUpdateRequest: LimitsUpdateRequest): ReviewableRequestEntryBody(ReviewableRequestType.LIMITS_UPDATE) {
+    open class LimitsUpdate(var limitsUpdateRequest: LimitsUpdateRequest): ReviewableRequestEntryBody(ReviewableRequestType.LIMITS_UPDATE) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         limitsUpdateRequest.toXdr(stream)
       }
     }
 
-    public class TwoStepWithdrawal(var twoStepWithdrawalRequest: WithdrawalRequest): ReviewableRequestEntryBody(ReviewableRequestType.TWO_STEP_WITHDRAWAL) {
+    open class TwoStepWithdrawal(var twoStepWithdrawalRequest: WithdrawalRequest): ReviewableRequestEntryBody(ReviewableRequestType.TWO_STEP_WITHDRAWAL) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         twoStepWithdrawalRequest.toXdr(stream)
       }
     }
 
-    public class AmlAlert(var amlAlertRequest: AMLAlertRequest): ReviewableRequestEntryBody(ReviewableRequestType.AML_ALERT) {
+    open class AmlAlert(var amlAlertRequest: AMLAlertRequest): ReviewableRequestEntryBody(ReviewableRequestType.AML_ALERT) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         amlAlertRequest.toXdr(stream)
       }
     }
 
-    public class UpdateKyc(var updateKYCRequest: UpdateKYCRequest): ReviewableRequestEntryBody(ReviewableRequestType.UPDATE_KYC) {
+    open class UpdateKyc(var updateKYCRequest: UpdateKYCRequest): ReviewableRequestEntryBody(ReviewableRequestType.UPDATE_KYC) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         updateKYCRequest.toXdr(stream)
@@ -1624,7 +1624,7 @@ public class ReviewableRequestEntry(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: ReviewableRequestEntryExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: ReviewableRequestEntryExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -1659,7 +1659,7 @@ public enum class SaleType(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class CrowdFundingSale(
+open class CrowdFundingSale(
     var ext: CrowdFundingSaleExt
   ) : XdrEncodable {
 
@@ -1672,7 +1672,7 @@ public class CrowdFundingSale(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: CrowdFundingSaleExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: CrowdFundingSaleExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -1688,7 +1688,7 @@ public class CrowdFundingSale(
 //  };
 
 //  ===========================================================================
-public class BasicSale(
+open class BasicSale(
     var ext: BasicSaleExt
   ) : XdrEncodable {
 
@@ -1701,7 +1701,7 @@ public class BasicSale(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: BasicSaleExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: BasicSaleExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -1719,7 +1719,7 @@ public class BasicSale(
 //  };
 
 //  ===========================================================================
-public class SaleTypeExt(
+open class SaleTypeExt(
     var typedSale: SaleTypeExtTypedSale
   ) : XdrEncodable {
 
@@ -1732,14 +1732,14 @@ public class SaleTypeExt(
         discriminant.toXdr(stream)
     }
 
-    public class BasicSale(var basicSale: BasicSale): SaleTypeExtTypedSale(SaleType.BASIC_SALE) {
+    open class BasicSale(var basicSale: BasicSale): SaleTypeExtTypedSale(SaleType.BASIC_SALE) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         basicSale.toXdr(stream)
       }
     }
 
-    public class CrowdFunding(var crowdFundingSale: CrowdFundingSale): SaleTypeExtTypedSale(SaleType.CROWD_FUNDING) {
+    open class CrowdFunding(var crowdFundingSale: CrowdFundingSale): SaleTypeExtTypedSale(SaleType.CROWD_FUNDING) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         crowdFundingSale.toXdr(stream)
@@ -1764,7 +1764,7 @@ public class SaleTypeExt(
 //  };
 
 //  ===========================================================================
-public class SaleQuoteAsset(
+open class SaleQuoteAsset(
     var quoteAsset: AssetCode,
     var price: Uint64,
     var quoteBalance: BalanceID,
@@ -1785,7 +1785,7 @@ public class SaleQuoteAsset(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: SaleQuoteAssetExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: SaleQuoteAssetExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -1819,7 +1819,7 @@ public class SaleQuoteAsset(
 //  };
 
 //  ===========================================================================
-public class SaleEntry(
+open class SaleEntry(
     var saleID: Uint64,
     var ownerID: AccountID,
     var baseAsset: AssetCode,
@@ -1861,9 +1861,9 @@ public class SaleEntry(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: SaleEntryExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: SaleEntryExt(LedgerVersion.EMPTY_VERSION)
 
-    public class TypedSale(var saleTypeExt: SaleTypeExt): SaleEntryExt(LedgerVersion.TYPED_SALE) {
+    open class TypedSale(var saleTypeExt: SaleTypeExt): SaleEntryExt(LedgerVersion.TYPED_SALE) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         saleTypeExt.toXdr(stream)
@@ -1895,7 +1895,7 @@ public class SaleEntry(
 //  };
 
 //  ===========================================================================
-public class StatisticsEntry(
+open class StatisticsEntry(
     var accountID: AccountID,
     var dailyOutcome: Uint64,
     var weeklyOutcome: Uint64,
@@ -1920,7 +1920,7 @@ public class StatisticsEntry(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: StatisticsEntryExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: StatisticsEntryExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -2051,7 +2051,7 @@ public enum class LedgerEntryType(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class LedgerEntry(
+open class LedgerEntry(
     var lastModifiedLedgerSeq: Uint32,
     var data: LedgerEntryData,
     var ext: LedgerEntryExt
@@ -2068,119 +2068,119 @@ public class LedgerEntry(
         discriminant.toXdr(stream)
     }
 
-    public class Account(var account: AccountEntry): LedgerEntryData(LedgerEntryType.ACCOUNT) {
+    open class Account(var account: AccountEntry): LedgerEntryData(LedgerEntryType.ACCOUNT) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         account.toXdr(stream)
       }
     }
 
-    public class Fee(var feeState: FeeEntry): LedgerEntryData(LedgerEntryType.FEE) {
+    open class Fee(var feeState: FeeEntry): LedgerEntryData(LedgerEntryType.FEE) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         feeState.toXdr(stream)
       }
     }
 
-    public class Balance(var balance: BalanceEntry): LedgerEntryData(LedgerEntryType.BALANCE) {
+    open class Balance(var balance: BalanceEntry): LedgerEntryData(LedgerEntryType.BALANCE) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         balance.toXdr(stream)
       }
     }
 
-    public class PaymentRequest(var paymentRequest: PaymentRequestEntry): LedgerEntryData(LedgerEntryType.PAYMENT_REQUEST) {
+    open class PaymentRequest(var paymentRequest: PaymentRequestEntry): LedgerEntryData(LedgerEntryType.PAYMENT_REQUEST) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         paymentRequest.toXdr(stream)
       }
     }
 
-    public class Asset(var asset: AssetEntry): LedgerEntryData(LedgerEntryType.ASSET) {
+    open class Asset(var asset: AssetEntry): LedgerEntryData(LedgerEntryType.ASSET) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         asset.toXdr(stream)
       }
     }
 
-    public class ReferenceEntry(var reference: ReferenceEntry): LedgerEntryData(LedgerEntryType.REFERENCE_ENTRY) {
+    open class ReferenceEntry(var reference: ReferenceEntry): LedgerEntryData(LedgerEntryType.REFERENCE_ENTRY) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         reference.toXdr(stream)
       }
     }
 
-    public class AccountTypeLimits(var accountTypeLimits: AccountTypeLimitsEntry): LedgerEntryData(LedgerEntryType.ACCOUNT_TYPE_LIMITS) {
+    open class AccountTypeLimits(var accountTypeLimits: AccountTypeLimitsEntry): LedgerEntryData(LedgerEntryType.ACCOUNT_TYPE_LIMITS) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         accountTypeLimits.toXdr(stream)
       }
     }
 
-    public class Statistics(var stats: StatisticsEntry): LedgerEntryData(LedgerEntryType.STATISTICS) {
+    open class Statistics(var stats: StatisticsEntry): LedgerEntryData(LedgerEntryType.STATISTICS) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         stats.toXdr(stream)
       }
     }
 
-    public class Trust(var trust: TrustEntry): LedgerEntryData(LedgerEntryType.TRUST) {
+    open class Trust(var trust: TrustEntry): LedgerEntryData(LedgerEntryType.TRUST) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         trust.toXdr(stream)
       }
     }
 
-    public class AccountLimits(var accountLimits: AccountLimitsEntry): LedgerEntryData(LedgerEntryType.ACCOUNT_LIMITS) {
+    open class AccountLimits(var accountLimits: AccountLimitsEntry): LedgerEntryData(LedgerEntryType.ACCOUNT_LIMITS) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         accountLimits.toXdr(stream)
       }
     }
 
-    public class AssetPair(var assetPair: AssetPairEntry): LedgerEntryData(LedgerEntryType.ASSET_PAIR) {
+    open class AssetPair(var assetPair: AssetPairEntry): LedgerEntryData(LedgerEntryType.ASSET_PAIR) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         assetPair.toXdr(stream)
       }
     }
 
-    public class OfferEntry(var offer: OfferEntry): LedgerEntryData(LedgerEntryType.OFFER_ENTRY) {
+    open class OfferEntry(var offer: OfferEntry): LedgerEntryData(LedgerEntryType.OFFER_ENTRY) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         offer.toXdr(stream)
       }
     }
 
-    public class Invoice(var invoice: InvoiceEntry): LedgerEntryData(LedgerEntryType.INVOICE) {
+    open class Invoice(var invoice: InvoiceEntry): LedgerEntryData(LedgerEntryType.INVOICE) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         invoice.toXdr(stream)
       }
     }
 
-    public class ReviewableRequest(var reviewableRequest: ReviewableRequestEntry): LedgerEntryData(LedgerEntryType.REVIEWABLE_REQUEST) {
+    open class ReviewableRequest(var reviewableRequest: ReviewableRequestEntry): LedgerEntryData(LedgerEntryType.REVIEWABLE_REQUEST) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         reviewableRequest.toXdr(stream)
       }
     }
 
-    public class ExternalSystemAccountId(var externalSystemAccountID: ExternalSystemAccountID): LedgerEntryData(LedgerEntryType.EXTERNAL_SYSTEM_ACCOUNT_ID) {
+    open class ExternalSystemAccountId(var externalSystemAccountID: ExternalSystemAccountID): LedgerEntryData(LedgerEntryType.EXTERNAL_SYSTEM_ACCOUNT_ID) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         externalSystemAccountID.toXdr(stream)
       }
     }
 
-    public class Sale(var sale: SaleEntry): LedgerEntryData(LedgerEntryType.SALE) {
+    open class Sale(var sale: SaleEntry): LedgerEntryData(LedgerEntryType.SALE) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         sale.toXdr(stream)
       }
     }
 
-    public class AccountKyc(var accountKYC: AccountKYCEntry): LedgerEntryData(LedgerEntryType.ACCOUNT_KYC) {
+    open class AccountKyc(var accountKYC: AccountKYCEntry): LedgerEntryData(LedgerEntryType.ACCOUNT_KYC) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         accountKYC.toXdr(stream)
@@ -2192,7 +2192,7 @@ public class LedgerEntry(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: LedgerEntryExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: LedgerEntryExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -2266,7 +2266,7 @@ public typealias UpgradeType = ByteArray
 //  };
 
 //  ===========================================================================
-public class StellarValue(
+open class StellarValue(
     var txSetHash: Hash,
     var closeTime: Uint64,
     var upgrades: Array<UpgradeType>,
@@ -2288,7 +2288,7 @@ public class StellarValue(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: StellarValueExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: StellarValueExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -2300,7 +2300,7 @@ public class StellarValue(
 //  };
 
 //  ===========================================================================
-public class IdGenerator(
+open class IdGenerator(
     var entryType: LedgerEntryType,
     var idPool: Uint64
   ) : XdrEncodable {
@@ -2349,7 +2349,7 @@ public class IdGenerator(
 //  };
 
 //  ===========================================================================
-public class LedgerHeader(
+open class LedgerHeader(
     var ledgerVersion: Uint32,
     var previousLedgerHash: Hash,
     var scpValue: StellarValue,
@@ -2396,7 +2396,7 @@ public class LedgerHeader(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: LedgerHeaderExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: LedgerHeaderExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -2443,21 +2443,21 @@ abstract class LedgerUpgrade(val discriminant: LedgerUpgradeType): XdrEncodable 
       discriminant.toXdr(stream)
   }
 
-  public class Version(var newLedgerVersion: Uint32): LedgerUpgrade(LedgerUpgradeType.VERSION) {
+  open class Version(var newLedgerVersion: Uint32): LedgerUpgrade(LedgerUpgradeType.VERSION) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       newLedgerVersion.toXdr(stream)
     }
   }
 
-  public class MaxTxSetSize(var newMaxTxSetSize: Uint32): LedgerUpgrade(LedgerUpgradeType.MAX_TX_SET_SIZE) {
+  open class MaxTxSetSize(var newMaxTxSetSize: Uint32): LedgerUpgrade(LedgerUpgradeType.MAX_TX_SET_SIZE) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       newMaxTxSetSize.toXdr(stream)
     }
   }
 
-  public class ExternalSystemIdGenerator(var newExternalSystemIDGenerators: Array<ExternalSystemIDGeneratorType>): LedgerUpgrade(LedgerUpgradeType.EXTERNAL_SYSTEM_ID_GENERATOR) {
+  open class ExternalSystemIdGenerator(var newExternalSystemIDGenerators: Array<ExternalSystemIDGeneratorType>): LedgerUpgrade(LedgerUpgradeType.EXTERNAL_SYSTEM_ID_GENERATOR) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       newExternalSystemIDGenerators.size.toXdr(stream)
@@ -2467,7 +2467,7 @@ abstract class LedgerUpgrade(val discriminant: LedgerUpgradeType): XdrEncodable 
     }
   }
 
-  public class TxExpirationPeriod(var newTxExpirationPeriod: Int64): LedgerUpgrade(LedgerUpgradeType.TX_EXPIRATION_PERIOD) {
+  open class TxExpirationPeriod(var newTxExpirationPeriod: Int64): LedgerUpgrade(LedgerUpgradeType.TX_EXPIRATION_PERIOD) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       newTxExpirationPeriod.toXdr(stream)
@@ -2663,126 +2663,126 @@ abstract class LedgerKey(val discriminant: LedgerEntryType): XdrEncodable {
       discriminant.toXdr(stream)
   }
 
-  public class Account(var account: LedgerKeyAccount): LedgerKey(LedgerEntryType.ACCOUNT) {
+  open class Account(var account: LedgerKeyAccount): LedgerKey(LedgerEntryType.ACCOUNT) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       account.toXdr(stream)
     }
   }
 
-  public class Fee(var feeState: LedgerKeyFeeState): LedgerKey(LedgerEntryType.FEE) {
+  open class Fee(var feeState: LedgerKeyFeeState): LedgerKey(LedgerEntryType.FEE) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       feeState.toXdr(stream)
     }
   }
 
-  public class Balance(var balance: LedgerKeyBalance): LedgerKey(LedgerEntryType.BALANCE) {
+  open class Balance(var balance: LedgerKeyBalance): LedgerKey(LedgerEntryType.BALANCE) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       balance.toXdr(stream)
     }
   }
 
-  public class PaymentRequest(var paymentRequest: LedgerKeyPaymentRequest): LedgerKey(LedgerEntryType.PAYMENT_REQUEST) {
+  open class PaymentRequest(var paymentRequest: LedgerKeyPaymentRequest): LedgerKey(LedgerEntryType.PAYMENT_REQUEST) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       paymentRequest.toXdr(stream)
     }
   }
 
-  public class Asset(var asset: LedgerKeyAsset): LedgerKey(LedgerEntryType.ASSET) {
+  open class Asset(var asset: LedgerKeyAsset): LedgerKey(LedgerEntryType.ASSET) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       asset.toXdr(stream)
     }
   }
 
-  public class ReferenceEntry(var reference: LedgerKeyReference): LedgerKey(LedgerEntryType.REFERENCE_ENTRY) {
+  open class ReferenceEntry(var reference: LedgerKeyReference): LedgerKey(LedgerEntryType.REFERENCE_ENTRY) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       reference.toXdr(stream)
     }
   }
 
-  public class AccountTypeLimits(var accountTypeLimits: LedgerKeyAccountTypeLimits): LedgerKey(LedgerEntryType.ACCOUNT_TYPE_LIMITS) {
+  open class AccountTypeLimits(var accountTypeLimits: LedgerKeyAccountTypeLimits): LedgerKey(LedgerEntryType.ACCOUNT_TYPE_LIMITS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       accountTypeLimits.toXdr(stream)
     }
   }
 
-  public class Statistics(var stats: LedgerKeyStats): LedgerKey(LedgerEntryType.STATISTICS) {
+  open class Statistics(var stats: LedgerKeyStats): LedgerKey(LedgerEntryType.STATISTICS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       stats.toXdr(stream)
     }
   }
 
-  public class Trust(var trust: LedgerKeyTrust): LedgerKey(LedgerEntryType.TRUST) {
+  open class Trust(var trust: LedgerKeyTrust): LedgerKey(LedgerEntryType.TRUST) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       trust.toXdr(stream)
     }
   }
 
-  public class AccountLimits(var accountLimits: LedgerKeyAccountLimits): LedgerKey(LedgerEntryType.ACCOUNT_LIMITS) {
+  open class AccountLimits(var accountLimits: LedgerKeyAccountLimits): LedgerKey(LedgerEntryType.ACCOUNT_LIMITS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       accountLimits.toXdr(stream)
     }
   }
 
-  public class AssetPair(var assetPair: LedgerKeyAssetPair): LedgerKey(LedgerEntryType.ASSET_PAIR) {
+  open class AssetPair(var assetPair: LedgerKeyAssetPair): LedgerKey(LedgerEntryType.ASSET_PAIR) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       assetPair.toXdr(stream)
     }
   }
 
-  public class OfferEntry(var offer: LedgerKeyOffer): LedgerKey(LedgerEntryType.OFFER_ENTRY) {
+  open class OfferEntry(var offer: LedgerKeyOffer): LedgerKey(LedgerEntryType.OFFER_ENTRY) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       offer.toXdr(stream)
     }
   }
 
-  public class Invoice(var invoice: LedgerKeyInvoice): LedgerKey(LedgerEntryType.INVOICE) {
+  open class Invoice(var invoice: LedgerKeyInvoice): LedgerKey(LedgerEntryType.INVOICE) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       invoice.toXdr(stream)
     }
   }
 
-  public class ReviewableRequest(var reviewableRequest: LedgerKeyReviewableRequest): LedgerKey(LedgerEntryType.REVIEWABLE_REQUEST) {
+  open class ReviewableRequest(var reviewableRequest: LedgerKeyReviewableRequest): LedgerKey(LedgerEntryType.REVIEWABLE_REQUEST) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       reviewableRequest.toXdr(stream)
     }
   }
 
-  public class ExternalSystemAccountId(var externalSystemAccountID: LedgerKeyExternalSystemAccountID): LedgerKey(LedgerEntryType.EXTERNAL_SYSTEM_ACCOUNT_ID) {
+  open class ExternalSystemAccountId(var externalSystemAccountID: LedgerKeyExternalSystemAccountID): LedgerKey(LedgerEntryType.EXTERNAL_SYSTEM_ACCOUNT_ID) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       externalSystemAccountID.toXdr(stream)
     }
   }
 
-  public class Sale(var sale: LedgerKeySale): LedgerKey(LedgerEntryType.SALE) {
+  open class Sale(var sale: LedgerKeySale): LedgerKey(LedgerEntryType.SALE) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       sale.toXdr(stream)
     }
   }
 
-  public class AccountKyc(var accountKYC: LedgerKeyAccountKYC): LedgerKey(LedgerEntryType.ACCOUNT_KYC) {
+  open class AccountKyc(var accountKYC: LedgerKeyAccountKYC): LedgerKey(LedgerEntryType.ACCOUNT_KYC) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       accountKYC.toXdr(stream)
     }
   }
 
-  public class LedgerKeyAccount(
+  open class LedgerKeyAccount(
       var accountID: AccountID,
       var ext: LedgerKeyAccountExt
     ) : XdrEncodable {
@@ -2797,10 +2797,10 @@ abstract class LedgerKey(val discriminant: LedgerEntryType): XdrEncodable {
           discriminant.toXdr(stream)
       }
 
-      public class EmptyVersion: LedgerKeyAccountExt(LedgerVersion.EMPTY_VERSION)
+      open class EmptyVersion: LedgerKeyAccountExt(LedgerVersion.EMPTY_VERSION)
     }
   }
-  public class LedgerKeyFeeState(
+  open class LedgerKeyFeeState(
       var hash: Hash,
       var lowerBound: Int64,
       var upperBound: Int64,
@@ -2819,10 +2819,10 @@ abstract class LedgerKey(val discriminant: LedgerEntryType): XdrEncodable {
           discriminant.toXdr(stream)
       }
 
-      public class EmptyVersion: LedgerKeyFeeStateExt(LedgerVersion.EMPTY_VERSION)
+      open class EmptyVersion: LedgerKeyFeeStateExt(LedgerVersion.EMPTY_VERSION)
     }
   }
-  public class LedgerKeyBalance(
+  open class LedgerKeyBalance(
       var balanceID: BalanceID,
       var ext: LedgerKeyBalanceExt
     ) : XdrEncodable {
@@ -2837,10 +2837,10 @@ abstract class LedgerKey(val discriminant: LedgerEntryType): XdrEncodable {
           discriminant.toXdr(stream)
       }
 
-      public class EmptyVersion: LedgerKeyBalanceExt(LedgerVersion.EMPTY_VERSION)
+      open class EmptyVersion: LedgerKeyBalanceExt(LedgerVersion.EMPTY_VERSION)
     }
   }
-  public class LedgerKeyPaymentRequest(
+  open class LedgerKeyPaymentRequest(
       var paymentID: Uint64,
       var ext: LedgerKeyPaymentRequestExt
     ) : XdrEncodable {
@@ -2855,10 +2855,10 @@ abstract class LedgerKey(val discriminant: LedgerEntryType): XdrEncodable {
           discriminant.toXdr(stream)
       }
 
-      public class EmptyVersion: LedgerKeyPaymentRequestExt(LedgerVersion.EMPTY_VERSION)
+      open class EmptyVersion: LedgerKeyPaymentRequestExt(LedgerVersion.EMPTY_VERSION)
     }
   }
-  public class LedgerKeyAsset(
+  open class LedgerKeyAsset(
       var code: AssetCode,
       var ext: LedgerKeyAssetExt
     ) : XdrEncodable {
@@ -2873,10 +2873,10 @@ abstract class LedgerKey(val discriminant: LedgerEntryType): XdrEncodable {
           discriminant.toXdr(stream)
       }
 
-      public class EmptyVersion: LedgerKeyAssetExt(LedgerVersion.EMPTY_VERSION)
+      open class EmptyVersion: LedgerKeyAssetExt(LedgerVersion.EMPTY_VERSION)
     }
   }
-  public class LedgerKeyReference(
+  open class LedgerKeyReference(
       var sender: AccountID,
       var reference: String64,
       var ext: LedgerKeyReferenceExt
@@ -2893,10 +2893,10 @@ abstract class LedgerKey(val discriminant: LedgerEntryType): XdrEncodable {
           discriminant.toXdr(stream)
       }
 
-      public class EmptyVersion: LedgerKeyReferenceExt(LedgerVersion.EMPTY_VERSION)
+      open class EmptyVersion: LedgerKeyReferenceExt(LedgerVersion.EMPTY_VERSION)
     }
   }
-  public class LedgerKeyAccountTypeLimits(
+  open class LedgerKeyAccountTypeLimits(
       var accountType: AccountType,
       var ext: LedgerKeyAccountTypeLimitsExt
     ) : XdrEncodable {
@@ -2911,10 +2911,10 @@ abstract class LedgerKey(val discriminant: LedgerEntryType): XdrEncodable {
           discriminant.toXdr(stream)
       }
 
-      public class EmptyVersion: LedgerKeyAccountTypeLimitsExt(LedgerVersion.EMPTY_VERSION)
+      open class EmptyVersion: LedgerKeyAccountTypeLimitsExt(LedgerVersion.EMPTY_VERSION)
     }
   }
-  public class LedgerKeyStats(
+  open class LedgerKeyStats(
       var accountID: AccountID,
       var ext: LedgerKeyStatsExt
     ) : XdrEncodable {
@@ -2929,10 +2929,10 @@ abstract class LedgerKey(val discriminant: LedgerEntryType): XdrEncodable {
           discriminant.toXdr(stream)
       }
 
-      public class EmptyVersion: LedgerKeyStatsExt(LedgerVersion.EMPTY_VERSION)
+      open class EmptyVersion: LedgerKeyStatsExt(LedgerVersion.EMPTY_VERSION)
     }
   }
-  public class LedgerKeyTrust(
+  open class LedgerKeyTrust(
       var allowedAccount: AccountID,
       var balanceToUse: BalanceID,
       var ext: LedgerKeyTrustExt
@@ -2949,10 +2949,10 @@ abstract class LedgerKey(val discriminant: LedgerEntryType): XdrEncodable {
           discriminant.toXdr(stream)
       }
 
-      public class EmptyVersion: LedgerKeyTrustExt(LedgerVersion.EMPTY_VERSION)
+      open class EmptyVersion: LedgerKeyTrustExt(LedgerVersion.EMPTY_VERSION)
     }
   }
-  public class LedgerKeyAccountLimits(
+  open class LedgerKeyAccountLimits(
       var accountID: AccountID,
       var ext: LedgerKeyAccountLimitsExt
     ) : XdrEncodable {
@@ -2967,10 +2967,10 @@ abstract class LedgerKey(val discriminant: LedgerEntryType): XdrEncodable {
           discriminant.toXdr(stream)
       }
 
-      public class EmptyVersion: LedgerKeyAccountLimitsExt(LedgerVersion.EMPTY_VERSION)
+      open class EmptyVersion: LedgerKeyAccountLimitsExt(LedgerVersion.EMPTY_VERSION)
     }
   }
-  public class LedgerKeyAssetPair(
+  open class LedgerKeyAssetPair(
       var base: AssetCode,
       var quote: AssetCode,
       var ext: LedgerKeyAssetPairExt
@@ -2987,10 +2987,10 @@ abstract class LedgerKey(val discriminant: LedgerEntryType): XdrEncodable {
           discriminant.toXdr(stream)
       }
 
-      public class EmptyVersion: LedgerKeyAssetPairExt(LedgerVersion.EMPTY_VERSION)
+      open class EmptyVersion: LedgerKeyAssetPairExt(LedgerVersion.EMPTY_VERSION)
     }
   }
-  public class LedgerKeyOffer(
+  open class LedgerKeyOffer(
       var offerID: Uint64,
       var ownerID: AccountID
     ) : XdrEncodable {
@@ -3000,7 +3000,7 @@ abstract class LedgerKey(val discriminant: LedgerEntryType): XdrEncodable {
       ownerID.toXdr(stream)
     }
   }
-  public class LedgerKeyInvoice(
+  open class LedgerKeyInvoice(
       var invoiceID: Uint64,
       var ext: LedgerKeyInvoiceExt
     ) : XdrEncodable {
@@ -3015,10 +3015,10 @@ abstract class LedgerKey(val discriminant: LedgerEntryType): XdrEncodable {
           discriminant.toXdr(stream)
       }
 
-      public class EmptyVersion: LedgerKeyInvoiceExt(LedgerVersion.EMPTY_VERSION)
+      open class EmptyVersion: LedgerKeyInvoiceExt(LedgerVersion.EMPTY_VERSION)
     }
   }
-  public class LedgerKeyReviewableRequest(
+  open class LedgerKeyReviewableRequest(
       var requestID: Uint64,
       var ext: LedgerKeyReviewableRequestExt
     ) : XdrEncodable {
@@ -3033,10 +3033,10 @@ abstract class LedgerKey(val discriminant: LedgerEntryType): XdrEncodable {
           discriminant.toXdr(stream)
       }
 
-      public class EmptyVersion: LedgerKeyReviewableRequestExt(LedgerVersion.EMPTY_VERSION)
+      open class EmptyVersion: LedgerKeyReviewableRequestExt(LedgerVersion.EMPTY_VERSION)
     }
   }
-  public class LedgerKeyExternalSystemAccountID(
+  open class LedgerKeyExternalSystemAccountID(
       var accountID: AccountID,
       var externalSystemType: ExternalSystemType,
       var ext: LedgerKeyExternalSystemAccountIDExt
@@ -3053,10 +3053,10 @@ abstract class LedgerKey(val discriminant: LedgerEntryType): XdrEncodable {
           discriminant.toXdr(stream)
       }
 
-      public class EmptyVersion: LedgerKeyExternalSystemAccountIDExt(LedgerVersion.EMPTY_VERSION)
+      open class EmptyVersion: LedgerKeyExternalSystemAccountIDExt(LedgerVersion.EMPTY_VERSION)
     }
   }
-  public class LedgerKeySale(
+  open class LedgerKeySale(
       var saleID: Uint64,
       var ext: LedgerKeySaleExt
     ) : XdrEncodable {
@@ -3071,10 +3071,10 @@ abstract class LedgerKey(val discriminant: LedgerEntryType): XdrEncodable {
           discriminant.toXdr(stream)
       }
 
-      public class EmptyVersion: LedgerKeySaleExt(LedgerVersion.EMPTY_VERSION)
+      open class EmptyVersion: LedgerKeySaleExt(LedgerVersion.EMPTY_VERSION)
     }
   }
-  public class LedgerKeyAccountKYC(
+  open class LedgerKeyAccountKYC(
       var accountID: AccountID,
       var ext: LedgerKeyAccountKYCExt
     ) : XdrEncodable {
@@ -3089,7 +3089,7 @@ abstract class LedgerKey(val discriminant: LedgerEntryType): XdrEncodable {
           discriminant.toXdr(stream)
       }
 
-      public class EmptyVersion: LedgerKeyAccountKYCExt(LedgerVersion.EMPTY_VERSION)
+      open class EmptyVersion: LedgerKeyAccountKYCExt(LedgerVersion.EMPTY_VERSION)
     }
   }
 }
@@ -3130,14 +3130,14 @@ abstract class BucketEntry(val discriminant: BucketEntryType): XdrEncodable {
       discriminant.toXdr(stream)
   }
 
-  public class Liveentry(var liveEntry: LedgerEntry): BucketEntry(BucketEntryType.LIVEENTRY) {
+  open class Liveentry(var liveEntry: LedgerEntry): BucketEntry(BucketEntryType.LIVEENTRY) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       liveEntry.toXdr(stream)
     }
   }
 
-  public class Deadentry(var deadEntry: LedgerKey): BucketEntry(BucketEntryType.DEADENTRY) {
+  open class Deadentry(var deadEntry: LedgerKey): BucketEntry(BucketEntryType.DEADENTRY) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       deadEntry.toXdr(stream)
@@ -3154,7 +3154,7 @@ abstract class BucketEntry(val discriminant: BucketEntryType): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class TransactionSet(
+open class TransactionSet(
     var previousLedgerHash: Hash,
     var txs: Array<TransactionEnvelope>
   ) : XdrEncodable {
@@ -3177,7 +3177,7 @@ public class TransactionSet(
 //  };
 
 //  ===========================================================================
-public class TransactionResultPair(
+open class TransactionResultPair(
     var transactionHash: Hash,
     var result: TransactionResult
   ) : XdrEncodable {
@@ -3196,7 +3196,7 @@ public class TransactionResultPair(
 //  };
 
 //  ===========================================================================
-public class TransactionResultSet(
+open class TransactionResultSet(
     var results: Array<TransactionResultPair>
   ) : XdrEncodable {
 
@@ -3225,7 +3225,7 @@ public class TransactionResultSet(
 //  };
 
 //  ===========================================================================
-public class TransactionHistoryEntry(
+open class TransactionHistoryEntry(
     var ledgerSeq: Uint32,
     var txSet: TransactionSet,
     var ext: TransactionHistoryEntryExt
@@ -3242,7 +3242,7 @@ public class TransactionHistoryEntry(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: TransactionHistoryEntryExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: TransactionHistoryEntryExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -3263,7 +3263,7 @@ public class TransactionHistoryEntry(
 //  };
 
 //  ===========================================================================
-public class TransactionHistoryResultEntry(
+open class TransactionHistoryResultEntry(
     var ledgerSeq: Uint32,
     var txResultSet: TransactionResultSet,
     var ext: TransactionHistoryResultEntryExt
@@ -3280,7 +3280,7 @@ public class TransactionHistoryResultEntry(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: TransactionHistoryResultEntryExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: TransactionHistoryResultEntryExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -3301,7 +3301,7 @@ public class TransactionHistoryResultEntry(
 //  };
 
 //  ===========================================================================
-public class LedgerHeaderHistoryEntry(
+open class LedgerHeaderHistoryEntry(
     var hash: Hash,
     var header: LedgerHeader,
     var ext: LedgerHeaderHistoryEntryExt
@@ -3318,7 +3318,7 @@ public class LedgerHeaderHistoryEntry(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: LedgerHeaderHistoryEntryExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: LedgerHeaderHistoryEntryExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -3331,7 +3331,7 @@ public class LedgerHeaderHistoryEntry(
 //  };
 
 //  ===========================================================================
-public class LedgerSCPMessages(
+open class LedgerSCPMessages(
     var ledgerSeq: Uint32,
     var messages: Array<SCPEnvelope>
   ) : XdrEncodable {
@@ -3354,7 +3354,7 @@ public class LedgerSCPMessages(
 //  };
 
 //  ===========================================================================
-public class SCPHistoryEntryV0(
+open class SCPHistoryEntryV0(
     var quorumSets: Array<SCPQuorumSet>,
     var ledgerMessages: LedgerSCPMessages
   ) : XdrEncodable {
@@ -3382,7 +3382,7 @@ abstract class SCPHistoryEntry(val discriminant: LedgerVersion): XdrEncodable {
       discriminant.toXdr(stream)
   }
 
-  public class EmptyVersion(var v0: SCPHistoryEntryV0): SCPHistoryEntry(LedgerVersion.EMPTY_VERSION) {
+  open class EmptyVersion(var v0: SCPHistoryEntryV0): SCPHistoryEntry(LedgerVersion.EMPTY_VERSION) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       v0.toXdr(stream)
@@ -3433,28 +3433,28 @@ abstract class LedgerEntryChange(val discriminant: LedgerEntryChangeType): XdrEn
       discriminant.toXdr(stream)
   }
 
-  public class Created(var created: LedgerEntry): LedgerEntryChange(LedgerEntryChangeType.CREATED) {
+  open class Created(var created: LedgerEntry): LedgerEntryChange(LedgerEntryChangeType.CREATED) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       created.toXdr(stream)
     }
   }
 
-  public class Updated(var updated: LedgerEntry): LedgerEntryChange(LedgerEntryChangeType.UPDATED) {
+  open class Updated(var updated: LedgerEntry): LedgerEntryChange(LedgerEntryChangeType.UPDATED) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       updated.toXdr(stream)
     }
   }
 
-  public class Removed(var removed: LedgerKey): LedgerEntryChange(LedgerEntryChangeType.REMOVED) {
+  open class Removed(var removed: LedgerKey): LedgerEntryChange(LedgerEntryChangeType.REMOVED) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       removed.toXdr(stream)
     }
   }
 
-  public class State(var state: LedgerEntry): LedgerEntryChange(LedgerEntryChangeType.STATE) {
+  open class State(var state: LedgerEntry): LedgerEntryChange(LedgerEntryChangeType.STATE) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       state.toXdr(stream)
@@ -3468,6 +3468,7 @@ abstract class LedgerEntryChange(val discriminant: LedgerEntryChangeType): XdrEn
 
 //  ===========================================================================
 public typealias LedgerEntryChanges = Array<LedgerEntryChange>
+
 fun LedgerEntryChanges.toXdr(stream: XdrDataOutputStream) {
   this.size.toXdr(stream)
   this.forEach {
@@ -3483,7 +3484,7 @@ fun LedgerEntryChanges.toXdr(stream: XdrDataOutputStream) {
 //  };
 
 //  ===========================================================================
-public class OperationMeta(
+open class OperationMeta(
     var changes: LedgerEntryChanges
   ) : XdrEncodable {
 
@@ -3506,7 +3507,7 @@ abstract class TransactionMeta(val discriminant: LedgerVersion): XdrEncodable {
       discriminant.toXdr(stream)
   }
 
-  public class EmptyVersion(var operations: Array<OperationMeta>): TransactionMeta(LedgerVersion.EMPTY_VERSION) {
+  open class EmptyVersion(var operations: Array<OperationMeta>): TransactionMeta(LedgerVersion.EMPTY_VERSION) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       operations.size.toXdr(stream)
@@ -3532,7 +3533,7 @@ abstract class TransactionMeta(val discriminant: LedgerVersion): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class CheckSaleStateOp(
+open class CheckSaleStateOp(
     var saleID: Uint64,
     var ext: CheckSaleStateOpExt
   ) : XdrEncodable {
@@ -3547,7 +3548,7 @@ public class CheckSaleStateOp(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: CheckSaleStateOpExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: CheckSaleStateOpExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -3608,7 +3609,7 @@ public enum class CheckSaleStateEffect(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class SaleCanceled(
+open class SaleCanceled(
     var ext: SaleCanceledExt
   ) : XdrEncodable {
 
@@ -3621,7 +3622,7 @@ public class SaleCanceled(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: SaleCanceledExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: SaleCanceledExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -3638,7 +3639,7 @@ public class SaleCanceled(
 //  };
 
 //  ===========================================================================
-public class SaleUpdated(
+open class SaleUpdated(
     var ext: SaleUpdatedExt
   ) : XdrEncodable {
 
@@ -3651,7 +3652,7 @@ public class SaleUpdated(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: SaleUpdatedExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: SaleUpdatedExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -3671,7 +3672,7 @@ public class SaleUpdated(
 //  };
 
 //  ===========================================================================
-public class CheckSubSaleClosedResult(
+open class CheckSubSaleClosedResult(
     var saleBaseBalance: BalanceID,
     var saleQuoteBalance: BalanceID,
     var saleDetails: ManageOfferSuccessResult,
@@ -3690,7 +3691,7 @@ public class CheckSubSaleClosedResult(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: CheckSubSaleClosedResultExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: CheckSubSaleClosedResultExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -3709,7 +3710,7 @@ public class CheckSubSaleClosedResult(
 //  };
 
 //  ===========================================================================
-public class CheckSaleClosedResult(
+open class CheckSaleClosedResult(
     var saleOwner: AccountID,
     var results: Array<CheckSubSaleClosedResult>,
     var ext: CheckSaleClosedResultExt
@@ -3729,7 +3730,7 @@ public class CheckSaleClosedResult(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: CheckSaleClosedResultExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: CheckSaleClosedResultExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -3758,7 +3759,7 @@ public class CheckSaleClosedResult(
 //  };
 
 //  ===========================================================================
-public class CheckSaleStateSuccess(
+open class CheckSaleStateSuccess(
     var saleID: Uint64,
     var effect: CheckSaleStateSuccessEffect,
     var ext: CheckSaleStateSuccessExt
@@ -3775,21 +3776,21 @@ public class CheckSaleStateSuccess(
         discriminant.toXdr(stream)
     }
 
-    public class Canceled(var saleCanceled: SaleCanceled): CheckSaleStateSuccessEffect(CheckSaleStateEffect.CANCELED) {
+    open class Canceled(var saleCanceled: SaleCanceled): CheckSaleStateSuccessEffect(CheckSaleStateEffect.CANCELED) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         saleCanceled.toXdr(stream)
       }
     }
 
-    public class Closed(var saleClosed: CheckSaleClosedResult): CheckSaleStateSuccessEffect(CheckSaleStateEffect.CLOSED) {
+    open class Closed(var saleClosed: CheckSaleClosedResult): CheckSaleStateSuccessEffect(CheckSaleStateEffect.CLOSED) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         saleClosed.toXdr(stream)
       }
     }
 
-    public class Updated(var saleUpdated: SaleUpdated): CheckSaleStateSuccessEffect(CheckSaleStateEffect.UPDATED) {
+    open class Updated(var saleUpdated: SaleUpdated): CheckSaleStateSuccessEffect(CheckSaleStateEffect.UPDATED) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         saleUpdated.toXdr(stream)
@@ -3801,7 +3802,7 @@ public class CheckSaleStateSuccess(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: CheckSaleStateSuccessExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: CheckSaleStateSuccessExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -3821,7 +3822,7 @@ abstract class CheckSaleStateResult(val discriminant: CheckSaleStateResultCode):
       discriminant.toXdr(stream)
   }
 
-  public class Success(var success: CheckSaleStateSuccess): CheckSaleStateResult(CheckSaleStateResultCode.SUCCESS) {
+  open class Success(var success: CheckSaleStateSuccess): CheckSaleStateResult(CheckSaleStateResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
@@ -3846,7 +3847,7 @@ abstract class CheckSaleStateResult(val discriminant: CheckSaleStateResultCode):
 //  };
 
 //  ===========================================================================
-public class CreateAMLAlertRequestOp(
+open class CreateAMLAlertRequestOp(
     var reference: String64,
     var amlAlertRequest: AMLAlertRequest,
     var ext: CreateAMLAlertRequestOpExt
@@ -3863,7 +3864,7 @@ public class CreateAMLAlertRequestOp(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: CreateAMLAlertRequestOpExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: CreateAMLAlertRequestOpExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -3911,7 +3912,7 @@ public enum class CreateAMLAlertRequestResultCode(val value: Int): XdrEncodable 
 //  };
 
 //  ===========================================================================
-public class CreateAMLAlertRequestSuccess(
+open class CreateAMLAlertRequestSuccess(
     var requestID: Uint64,
     var ext: CreateAMLAlertRequestSuccessExt
   ) : XdrEncodable {
@@ -3926,7 +3927,7 @@ public class CreateAMLAlertRequestSuccess(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: CreateAMLAlertRequestSuccessExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: CreateAMLAlertRequestSuccessExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -3946,7 +3947,7 @@ abstract class CreateAMLAlertRequestResult(val discriminant: CreateAMLAlertReque
       discriminant.toXdr(stream)
   }
 
-  public class Success(var success: CreateAMLAlertRequestSuccess): CreateAMLAlertRequestResult(CreateAMLAlertRequestResultCode.SUCCESS) {
+  open class Success(var success: CreateAMLAlertRequestSuccess): CreateAMLAlertRequestResult(CreateAMLAlertRequestResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
@@ -3973,7 +3974,7 @@ abstract class CreateAMLAlertRequestResult(val discriminant: CreateAMLAlertReque
 //  };
 
 //  ===========================================================================
-public class UpdateKYCRequestData(
+open class UpdateKYCRequestData(
     var accountToUpdateKYC: AccountID,
     var accountTypeToSet: AccountType,
     var kycLevelToSet: Uint32,
@@ -4001,7 +4002,7 @@ public class UpdateKYCRequestData(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: UpdateKYCRequestDataExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: UpdateKYCRequestDataExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -4019,7 +4020,7 @@ public class UpdateKYCRequestData(
 //  };
 
 //  ===========================================================================
-public class CreateUpdateKYCRequestOp(
+open class CreateUpdateKYCRequestOp(
     var requestID: Uint64,
     var updateKYCRequestData: UpdateKYCRequestData,
     var ext: CreateUpdateKYCRequestOpExt
@@ -4036,7 +4037,7 @@ public class CreateUpdateKYCRequestOp(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: CreateUpdateKYCRequestOpExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: CreateUpdateKYCRequestOpExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -4102,14 +4103,14 @@ abstract class CreateUpdateKYCRequestResult(val discriminant: CreateUpdateKYCReq
       discriminant.toXdr(stream)
   }
 
-  public class Success(var success: CreateUpdateKYCRequestResultSuccess): CreateUpdateKYCRequestResult(CreateUpdateKYCRequestResultCode.SUCCESS) {
+  open class Success(var success: CreateUpdateKYCRequestResultSuccess): CreateUpdateKYCRequestResult(CreateUpdateKYCRequestResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
     }
   }
 
-  public class CreateUpdateKYCRequestResultSuccess(
+  open class CreateUpdateKYCRequestResultSuccess(
       var requestID: Uint64,
       var fulfilled: Boolean,
       var ext: CreateUpdateKYCRequestResultSuccessExt
@@ -4126,7 +4127,7 @@ abstract class CreateUpdateKYCRequestResult(val discriminant: CreateUpdateKYCReq
           discriminant.toXdr(stream)
       }
 
-      public class EmptyVersion: CreateUpdateKYCRequestResultSuccessExt(LedgerVersion.EMPTY_VERSION)
+      open class EmptyVersion: CreateUpdateKYCRequestResultSuccessExt(LedgerVersion.EMPTY_VERSION)
     }
   }
 }
@@ -4153,7 +4154,7 @@ abstract class CreateUpdateKYCRequestResult(val discriminant: CreateUpdateKYCReq
 //  };
 
 //  ===========================================================================
-public class CreateAccountOp(
+open class CreateAccountOp(
     var destination: AccountID,
     var recoveryKey: AccountID,
     var referrer: AccountID?,
@@ -4181,9 +4182,9 @@ public class CreateAccountOp(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: CreateAccountOpExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: CreateAccountOpExt(LedgerVersion.EMPTY_VERSION)
 
-    public class PassExternalSysAccIdInCreateAcc(var externalSystemIDs: Array<ExternalSystemAccountID>): CreateAccountOpExt(LedgerVersion.PASS_EXTERNAL_SYS_ACC_ID_IN_CREATE_ACC) {
+    open class PassExternalSysAccIdInCreateAcc(var externalSystemIDs: Array<ExternalSystemAccountID>): CreateAccountOpExt(LedgerVersion.PASS_EXTERNAL_SYS_ACC_ID_IN_CREATE_ACC) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         externalSystemIDs.size.toXdr(stream)
@@ -4248,7 +4249,7 @@ public enum class CreateAccountResultCode(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class CreateAccountSuccess(
+open class CreateAccountSuccess(
     var externalSystemIDs: Array<ExternalSystemAccountID>,
     var ext: CreateAccountSuccessExt
   ) : XdrEncodable {
@@ -4266,7 +4267,7 @@ public class CreateAccountSuccess(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: CreateAccountSuccessExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: CreateAccountSuccessExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -4286,7 +4287,7 @@ abstract class CreateAccountResult(val discriminant: CreateAccountResultCode): X
       discriminant.toXdr(stream)
   }
 
-  public class Success(var success: CreateAccountSuccess): CreateAccountResult(CreateAccountResultCode.SUCCESS) {
+  open class Success(var success: CreateAccountSuccess): CreateAccountResult(CreateAccountResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
@@ -4310,7 +4311,7 @@ abstract class CreateAccountResult(val discriminant: CreateAccountResultCode): X
 //  };
 
 //  ===========================================================================
-public class CreateIssuanceRequestOp(
+open class CreateIssuanceRequestOp(
     var request: IssuanceRequest,
     var reference: String64,
     var ext: CreateIssuanceRequestOpExt
@@ -4327,7 +4328,7 @@ public class CreateIssuanceRequestOp(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: CreateIssuanceRequestOpExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: CreateIssuanceRequestOpExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -4387,7 +4388,7 @@ public enum class CreateIssuanceRequestResultCode(val value: Int): XdrEncodable 
 //  };
 
 //  ===========================================================================
-public class CreateIssuanceRequestSuccess(
+open class CreateIssuanceRequestSuccess(
     var requestID: Uint64,
     var receiver: AccountID,
     var fulfilled: Boolean,
@@ -4408,7 +4409,7 @@ public class CreateIssuanceRequestSuccess(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: CreateIssuanceRequestSuccessExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: CreateIssuanceRequestSuccessExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -4428,7 +4429,7 @@ abstract class CreateIssuanceRequestResult(val discriminant: CreateIssuanceReque
       discriminant.toXdr(stream)
   }
 
-  public class Success(var success: CreateIssuanceRequestSuccess): CreateIssuanceRequestResult(CreateIssuanceRequestResultCode.SUCCESS) {
+  open class Success(var success: CreateIssuanceRequestSuccess): CreateIssuanceRequestResult(CreateIssuanceRequestResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
@@ -4451,7 +4452,7 @@ abstract class CreateIssuanceRequestResult(val discriminant: CreateIssuanceReque
 //  };
 
 //  ===========================================================================
-public class CreatePreIssuanceRequestOp(
+open class CreatePreIssuanceRequestOp(
     var request: PreIssuanceRequest,
     var ext: CreatePreIssuanceRequestOpExt
   ) : XdrEncodable {
@@ -4466,7 +4467,7 @@ public class CreatePreIssuanceRequestOp(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: CreatePreIssuanceRequestOpExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: CreatePreIssuanceRequestOpExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -4530,14 +4531,14 @@ abstract class CreatePreIssuanceRequestResult(val discriminant: CreatePreIssuanc
       discriminant.toXdr(stream)
   }
 
-  public class Success(var success: CreatePreIssuanceRequestResultSuccess): CreatePreIssuanceRequestResult(CreatePreIssuanceRequestResultCode.SUCCESS) {
+  open class Success(var success: CreatePreIssuanceRequestResultSuccess): CreatePreIssuanceRequestResult(CreatePreIssuanceRequestResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
     }
   }
 
-  public class CreatePreIssuanceRequestResultSuccess(
+  open class CreatePreIssuanceRequestResultSuccess(
       var requestID: Uint64,
       var fulfilled: Boolean,
       var ext: CreatePreIssuanceRequestResultSuccessExt
@@ -4554,7 +4555,7 @@ abstract class CreatePreIssuanceRequestResult(val discriminant: CreatePreIssuanc
           discriminant.toXdr(stream)
       }
 
-      public class EmptyVersion: CreatePreIssuanceRequestResultSuccessExt(LedgerVersion.EMPTY_VERSION)
+      open class EmptyVersion: CreatePreIssuanceRequestResultSuccessExt(LedgerVersion.EMPTY_VERSION)
     }
   }
 }
@@ -4576,7 +4577,7 @@ abstract class CreatePreIssuanceRequestResult(val discriminant: CreatePreIssuanc
 //  };
 
 //  ===========================================================================
-public class CreateSaleCreationRequestOp(
+open class CreateSaleCreationRequestOp(
     var requestID: Uint64,
     var request: SaleCreationRequest,
     var ext: CreateSaleCreationRequestOpExt
@@ -4593,7 +4594,7 @@ public class CreateSaleCreationRequestOp(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: CreateSaleCreationRequestOpExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: CreateSaleCreationRequestOpExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -4657,7 +4658,7 @@ public enum class CreateSaleCreationRequestResultCode(val value: Int): XdrEncoda
 //  };
 
 //  ===========================================================================
-public class CreateSaleCreationSuccess(
+open class CreateSaleCreationSuccess(
     var requestID: Uint64,
     var ext: CreateSaleCreationSuccessExt
   ) : XdrEncodable {
@@ -4672,7 +4673,7 @@ public class CreateSaleCreationSuccess(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: CreateSaleCreationSuccessExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: CreateSaleCreationSuccessExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -4692,7 +4693,7 @@ abstract class CreateSaleCreationRequestResult(val discriminant: CreateSaleCreat
       discriminant.toXdr(stream)
   }
 
-  public class Success(var success: CreateSaleCreationSuccess): CreateSaleCreationRequestResult(CreateSaleCreationRequestResultCode.SUCCESS) {
+  open class Success(var success: CreateSaleCreationSuccess): CreateSaleCreationRequestResult(CreateSaleCreationRequestResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
@@ -4716,7 +4717,7 @@ abstract class CreateSaleCreationRequestResult(val discriminant: CreateSaleCreat
 //  };
 
 //  ===========================================================================
-public class CreateWithdrawalRequestOp(
+open class CreateWithdrawalRequestOp(
     var request: WithdrawalRequest,
     var ext: CreateWithdrawalRequestOpExt
   ) : XdrEncodable {
@@ -4731,7 +4732,7 @@ public class CreateWithdrawalRequestOp(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: CreateWithdrawalRequestOpExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: CreateWithdrawalRequestOpExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -4797,7 +4798,7 @@ public enum class CreateWithdrawalRequestResultCode(val value: Int): XdrEncodabl
 //  };
 
 //  ===========================================================================
-public class CreateWithdrawalSuccess(
+open class CreateWithdrawalSuccess(
     var requestID: Uint64,
     var ext: CreateWithdrawalSuccessExt
   ) : XdrEncodable {
@@ -4812,7 +4813,7 @@ public class CreateWithdrawalSuccess(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: CreateWithdrawalSuccessExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: CreateWithdrawalSuccessExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -4832,7 +4833,7 @@ abstract class CreateWithdrawalRequestResult(val discriminant: CreateWithdrawalR
       discriminant.toXdr(stream)
   }
 
-  public class Success(var success: CreateWithdrawalSuccess): CreateWithdrawalRequestResult(CreateWithdrawalRequestResultCode.SUCCESS) {
+  open class Success(var success: CreateWithdrawalSuccess): CreateWithdrawalRequestResult(CreateWithdrawalRequestResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
@@ -4856,7 +4857,7 @@ abstract class CreateWithdrawalRequestResult(val discriminant: CreateWithdrawalR
 //  };
 
 //  ===========================================================================
-public class DirectDebitOp(
+open class DirectDebitOp(
     var from: AccountID,
     var paymentOp: PaymentOp,
     var ext: DirectDebitOpExt
@@ -4873,7 +4874,7 @@ public class DirectDebitOp(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: DirectDebitOpExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: DirectDebitOpExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -4937,7 +4938,7 @@ public enum class DirectDebitResultCode(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class DirectDebitSuccess(
+open class DirectDebitSuccess(
     var paymentResponse: PaymentResponse,
     var ext: DirectDebitSuccessExt
   ) : XdrEncodable {
@@ -4952,7 +4953,7 @@ public class DirectDebitSuccess(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: DirectDebitSuccessExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: DirectDebitSuccessExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -4972,7 +4973,7 @@ abstract class DirectDebitResult(val discriminant: DirectDebitResultCode): XdrEn
       discriminant.toXdr(stream)
   }
 
-  public class Success(var success: DirectDebitSuccess): DirectDebitResult(DirectDebitResultCode.SUCCESS) {
+  open class Success(var success: DirectDebitSuccess): DirectDebitResult(DirectDebitResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
@@ -4998,7 +4999,7 @@ abstract class DirectDebitResult(val discriminant: DirectDebitResultCode): XdrEn
 //  };
 
 //  ===========================================================================
-public class ManageAccountOp(
+open class ManageAccountOp(
     var account: AccountID,
     var accountType: AccountType,
     var blockReasonsToAdd: Uint32,
@@ -5019,7 +5020,7 @@ public class ManageAccountOp(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: ManageAccountOpExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: ManageAccountOpExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -5065,7 +5066,7 @@ public enum class ManageAccountResultCode(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class ManageAccountSuccess(
+open class ManageAccountSuccess(
     var blockReasons: Uint32,
     var ext: ManageAccountSuccessExt
   ) : XdrEncodable {
@@ -5080,7 +5081,7 @@ public class ManageAccountSuccess(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: ManageAccountSuccessExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: ManageAccountSuccessExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -5100,7 +5101,7 @@ abstract class ManageAccountResult(val discriminant: ManageAccountResultCode): X
       discriminant.toXdr(stream)
   }
 
-  public class Success(var success: ManageAccountSuccess): ManageAccountResult(ManageAccountResultCode.SUCCESS) {
+  open class Success(var success: ManageAccountSuccess): ManageAccountResult(ManageAccountResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
@@ -5154,7 +5155,7 @@ public enum class ManageAssetPairAction(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class ManageAssetPairOp(
+open class ManageAssetPairOp(
     var action: ManageAssetPairAction,
     var base: AssetCode,
     var quote: AssetCode,
@@ -5181,7 +5182,7 @@ public class ManageAssetPairOp(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: ManageAssetPairOpExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: ManageAssetPairOpExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -5234,7 +5235,7 @@ public enum class ManageAssetPairResultCode(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class ManageAssetPairSuccess(
+open class ManageAssetPairSuccess(
     var currentPrice: Int64,
     var ext: ManageAssetPairSuccessExt
   ) : XdrEncodable {
@@ -5249,7 +5250,7 @@ public class ManageAssetPairSuccess(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: ManageAssetPairSuccessExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: ManageAssetPairSuccessExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -5269,7 +5270,7 @@ abstract class ManageAssetPairResult(val discriminant: ManageAssetPairResultCode
       discriminant.toXdr(stream)
   }
 
-  public class Success(var success: ManageAssetPairSuccess): ManageAssetPairResult(ManageAssetPairResultCode.SUCCESS) {
+  open class Success(var success: ManageAssetPairSuccess): ManageAssetPairResult(ManageAssetPairResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
@@ -5314,7 +5315,7 @@ public enum class ManageAssetAction(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class CancelAssetRequest(
+open class CancelAssetRequest(
     var ext: CancelAssetRequestExt
   ) : XdrEncodable {
 
@@ -5327,7 +5328,7 @@ public class CancelAssetRequest(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: CancelAssetRequestExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: CancelAssetRequestExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -5358,7 +5359,7 @@ public class CancelAssetRequest(
 //  };
 
 //  ===========================================================================
-public class ManageAssetOp(
+open class ManageAssetOp(
     var requestID: Uint64,
     var request: ManageAssetOpRequest,
     var ext: ManageAssetOpExt
@@ -5375,28 +5376,28 @@ public class ManageAssetOp(
         discriminant.toXdr(stream)
     }
 
-    public class CreateAssetCreationRequest(var createAsset: AssetCreationRequest): ManageAssetOpRequest(ManageAssetAction.CREATE_ASSET_CREATION_REQUEST) {
+    open class CreateAssetCreationRequest(var createAsset: AssetCreationRequest): ManageAssetOpRequest(ManageAssetAction.CREATE_ASSET_CREATION_REQUEST) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         createAsset.toXdr(stream)
       }
     }
 
-    public class CreateAssetUpdateRequest(var updateAsset: AssetUpdateRequest): ManageAssetOpRequest(ManageAssetAction.CREATE_ASSET_UPDATE_REQUEST) {
+    open class CreateAssetUpdateRequest(var updateAsset: AssetUpdateRequest): ManageAssetOpRequest(ManageAssetAction.CREATE_ASSET_UPDATE_REQUEST) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         updateAsset.toXdr(stream)
       }
     }
 
-    public class CancelAssetRequest(var cancelRequest: CancelAssetRequest): ManageAssetOpRequest(ManageAssetAction.CANCEL_ASSET_REQUEST) {
+    open class CancelAssetRequest(var cancelRequest: CancelAssetRequest): ManageAssetOpRequest(ManageAssetAction.CANCEL_ASSET_REQUEST) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         cancelRequest.toXdr(stream)
       }
     }
 
-    public class ChangePreissuedAssetSigner(var changePreissuedSigner: AssetChangePreissuedSigner): ManageAssetOpRequest(ManageAssetAction.CHANGE_PREISSUED_ASSET_SIGNER) {
+    open class ChangePreissuedAssetSigner(var changePreissuedSigner: AssetChangePreissuedSigner): ManageAssetOpRequest(ManageAssetAction.CHANGE_PREISSUED_ASSET_SIGNER) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         changePreissuedSigner.toXdr(stream)
@@ -5408,7 +5409,7 @@ public class ManageAssetOp(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: ManageAssetOpExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: ManageAssetOpExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -5468,7 +5469,7 @@ public enum class ManageAssetResultCode(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class ManageAssetSuccess(
+open class ManageAssetSuccess(
     var requestID: Uint64,
     var fulfilled: Boolean,
     var ext: ManageAssetSuccessExt
@@ -5485,7 +5486,7 @@ public class ManageAssetSuccess(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: ManageAssetSuccessExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: ManageAssetSuccessExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -5505,7 +5506,7 @@ abstract class ManageAssetResult(val discriminant: ManageAssetResultCode): XdrEn
       discriminant.toXdr(stream)
   }
 
-  public class Success(var success: ManageAssetSuccess): ManageAssetResult(ManageAssetResultCode.SUCCESS) {
+  open class Success(var success: ManageAssetSuccess): ManageAssetResult(ManageAssetResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
@@ -5550,7 +5551,7 @@ public enum class ManageBalanceAction(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class ManageBalanceOp(
+open class ManageBalanceOp(
     var action: ManageBalanceAction,
     var destination: AccountID,
     var asset: AssetCode,
@@ -5569,7 +5570,7 @@ public class ManageBalanceOp(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: ManageBalanceOpExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: ManageBalanceOpExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -5621,7 +5622,7 @@ public enum class ManageBalanceResultCode(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class ManageBalanceSuccess(
+open class ManageBalanceSuccess(
     var balanceID: BalanceID,
     var ext: ManageBalanceSuccessExt
   ) : XdrEncodable {
@@ -5636,7 +5637,7 @@ public class ManageBalanceSuccess(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: ManageBalanceSuccessExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: ManageBalanceSuccessExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -5656,7 +5657,7 @@ abstract class ManageBalanceResult(val discriminant: ManageBalanceResultCode): X
       discriminant.toXdr(stream)
   }
 
-  public class Success(var success: ManageBalanceSuccess): ManageBalanceResult(ManageBalanceResultCode.SUCCESS) {
+  open class Success(var success: ManageBalanceSuccess): ManageBalanceResult(ManageBalanceResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
@@ -5685,7 +5686,7 @@ abstract class ManageBalanceResult(val discriminant: ManageBalanceResultCode): X
 //  };
 
 //  ===========================================================================
-public class ManageInvoiceOp(
+open class ManageInvoiceOp(
     var receiverBalance: BalanceID,
     var sender: AccountID,
     var amount: Int64,
@@ -5706,7 +5707,7 @@ public class ManageInvoiceOp(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: ManageInvoiceOpExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: ManageInvoiceOpExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -5760,7 +5761,7 @@ public enum class ManageInvoiceResultCode(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class ManageInvoiceSuccessResult(
+open class ManageInvoiceSuccessResult(
     var invoiceID: Uint64,
     var asset: AssetCode,
     var senderBalance: BalanceID,
@@ -5779,7 +5780,7 @@ public class ManageInvoiceSuccessResult(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: ManageInvoiceSuccessResultExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: ManageInvoiceSuccessResultExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -5799,7 +5800,7 @@ abstract class ManageInvoiceResult(val discriminant: ManageInvoiceResultCode): X
       discriminant.toXdr(stream)
   }
 
-  public class Success(var success: ManageInvoiceSuccessResult): ManageInvoiceResult(ManageInvoiceResultCode.SUCCESS) {
+  open class Success(var success: ManageInvoiceSuccessResult): ManageInvoiceResult(ManageInvoiceResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
@@ -5832,7 +5833,7 @@ abstract class ManageInvoiceResult(val discriminant: ManageInvoiceResultCode): X
 //  };
 
 //  ===========================================================================
-public class ManageOfferOp(
+open class ManageOfferOp(
     var baseBalance: BalanceID,
     var quoteBalance: BalanceID,
     var isBuy: Boolean,
@@ -5861,7 +5862,7 @@ public class ManageOfferOp(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: ManageOfferOpExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: ManageOfferOpExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -5980,7 +5981,7 @@ public enum class ManageOfferEffect(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class ClaimOfferAtom(
+open class ClaimOfferAtom(
     var bAccountID: AccountID,
     var offerID: Uint64,
     var baseAmount: Int64,
@@ -6011,7 +6012,7 @@ public class ClaimOfferAtom(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: ClaimOfferAtomExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: ClaimOfferAtomExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -6044,7 +6045,7 @@ public class ClaimOfferAtom(
 //  };
 
 //  ===========================================================================
-public class ManageOfferSuccessResult(
+open class ManageOfferSuccessResult(
     var offersClaimed: Array<ClaimOfferAtom>,
     var baseAsset: AssetCode,
     var quoteAsset: AssetCode,
@@ -6068,14 +6069,14 @@ public class ManageOfferSuccessResult(
         discriminant.toXdr(stream)
     }
 
-    public class Created(var offer: OfferEntry): ManageOfferSuccessResultOffer(ManageOfferEffect.CREATED) {
+    open class Created(var offer: OfferEntry): ManageOfferSuccessResultOffer(ManageOfferEffect.CREATED) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         offer.toXdr(stream)
       }
     }
 
-    public class Updated(var offer: OfferEntry): ManageOfferSuccessResultOffer(ManageOfferEffect.UPDATED) {
+    open class Updated(var offer: OfferEntry): ManageOfferSuccessResultOffer(ManageOfferEffect.UPDATED) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         offer.toXdr(stream)
@@ -6087,7 +6088,7 @@ public class ManageOfferSuccessResult(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: ManageOfferSuccessResultExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: ManageOfferSuccessResultExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -6128,28 +6129,28 @@ abstract class ManageOfferResult(val discriminant: ManageOfferResultCode): XdrEn
       discriminant.toXdr(stream)
   }
 
-  public class Success(var success: ManageOfferSuccessResult): ManageOfferResult(ManageOfferResultCode.SUCCESS) {
+  open class Success(var success: ManageOfferSuccessResult): ManageOfferResult(ManageOfferResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
     }
   }
 
-  public class PhysicalPriceRestriction(var physicalPriceRestriction: ManageOfferResultPhysicalPriceRestriction): ManageOfferResult(ManageOfferResultCode.PHYSICAL_PRICE_RESTRICTION) {
+  open class PhysicalPriceRestriction(var physicalPriceRestriction: ManageOfferResultPhysicalPriceRestriction): ManageOfferResult(ManageOfferResultCode.PHYSICAL_PRICE_RESTRICTION) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       physicalPriceRestriction.toXdr(stream)
     }
   }
 
-  public class CurrentPriceRestriction(var currentPriceRestriction: ManageOfferResultCurrentPriceRestriction): ManageOfferResult(ManageOfferResultCode.CURRENT_PRICE_RESTRICTION) {
+  open class CurrentPriceRestriction(var currentPriceRestriction: ManageOfferResultCurrentPriceRestriction): ManageOfferResult(ManageOfferResultCode.CURRENT_PRICE_RESTRICTION) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       currentPriceRestriction.toXdr(stream)
     }
   }
 
-  public class ManageOfferResultPhysicalPriceRestriction(
+  open class ManageOfferResultPhysicalPriceRestriction(
       var physicalPrice: Int64,
       var ext: ManageOfferResultPhysicalPriceRestrictionExt
     ) : XdrEncodable {
@@ -6164,10 +6165,10 @@ abstract class ManageOfferResult(val discriminant: ManageOfferResultCode): XdrEn
           discriminant.toXdr(stream)
       }
 
-      public class EmptyVersion: ManageOfferResultPhysicalPriceRestrictionExt(LedgerVersion.EMPTY_VERSION)
+      open class EmptyVersion: ManageOfferResultPhysicalPriceRestrictionExt(LedgerVersion.EMPTY_VERSION)
     }
   }
-  public class ManageOfferResultCurrentPriceRestriction(
+  open class ManageOfferResultCurrentPriceRestriction(
       var currentPrice: Int64,
       var ext: ManageOfferResultCurrentPriceRestrictionExt
     ) : XdrEncodable {
@@ -6182,7 +6183,7 @@ abstract class ManageOfferResult(val discriminant: ManageOfferResultCode): XdrEn
           discriminant.toXdr(stream)
       }
 
-      public class EmptyVersion: ManageOfferResultCurrentPriceRestrictionExt(LedgerVersion.EMPTY_VERSION)
+      open class EmptyVersion: ManageOfferResultCurrentPriceRestrictionExt(LedgerVersion.EMPTY_VERSION)
     }
   }
 }
@@ -6202,7 +6203,7 @@ abstract class ManageOfferResult(val discriminant: ManageOfferResultCode): XdrEn
 //  };
 
 //  ===========================================================================
-public class InvoiceReference(
+open class InvoiceReference(
     var invoiceID: Uint64,
     var accept: Boolean,
     var ext: InvoiceReferenceExt
@@ -6219,7 +6220,7 @@ public class InvoiceReference(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: InvoiceReferenceExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: InvoiceReferenceExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -6238,7 +6239,7 @@ public class InvoiceReference(
 //  };
 
 //  ===========================================================================
-public class FeeData(
+open class FeeData(
     var paymentFee: Int64,
     var fixedFee: Int64,
     var ext: FeeDataExt
@@ -6255,7 +6256,7 @@ public class FeeData(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: FeeDataExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: FeeDataExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -6275,7 +6276,7 @@ public class FeeData(
 //  };
 
 //  ===========================================================================
-public class PaymentFeeData(
+open class PaymentFeeData(
     var sourceFee: FeeData,
     var destinationFee: FeeData,
     var sourcePaysForDest: Boolean,
@@ -6294,7 +6295,7 @@ public class PaymentFeeData(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: PaymentFeeDataExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: PaymentFeeDataExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -6323,7 +6324,7 @@ public class PaymentFeeData(
 //  };
 
 //  ===========================================================================
-public class PaymentOp(
+open class PaymentOp(
     var sourceBalanceID: BalanceID,
     var destinationBalanceID: BalanceID,
     var amount: Int64,
@@ -6355,7 +6356,7 @@ public class PaymentOp(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: PaymentOpExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: PaymentOpExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -6429,7 +6430,7 @@ public enum class PaymentResultCode(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class PaymentResponse(
+open class PaymentResponse(
     var destination: AccountID,
     var paymentID: Uint64,
     var asset: AssetCode,
@@ -6448,7 +6449,7 @@ public class PaymentResponse(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: PaymentResponseExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: PaymentResponseExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -6468,7 +6469,7 @@ abstract class PaymentResult(val discriminant: PaymentResultCode): XdrEncodable 
       discriminant.toXdr(stream)
   }
 
-  public class Success(var paymentResponse: PaymentResponse): PaymentResult(PaymentResultCode.SUCCESS) {
+  open class Success(var paymentResponse: PaymentResponse): PaymentResult(PaymentResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       paymentResponse.toXdr(stream)
@@ -6494,7 +6495,7 @@ abstract class PaymentResult(val discriminant: PaymentResultCode): XdrEncodable 
 //  };
 
 //  ===========================================================================
-public class ReviewPaymentRequestOp(
+open class ReviewPaymentRequestOp(
     var paymentID: Uint64,
     var accept: Boolean,
     var rejectReason: String256?,
@@ -6518,7 +6519,7 @@ public class ReviewPaymentRequestOp(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: ReviewPaymentRequestOpExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: ReviewPaymentRequestOpExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -6583,7 +6584,7 @@ public enum class PaymentState(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class ReviewPaymentResponse(
+open class ReviewPaymentResponse(
     var state: PaymentState,
     var relatedInvoiceID: Uint64?,
     var ext: ReviewPaymentResponseExt
@@ -6605,7 +6606,7 @@ public class ReviewPaymentResponse(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: ReviewPaymentResponseExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: ReviewPaymentResponseExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -6625,7 +6626,7 @@ abstract class ReviewPaymentRequestResult(val discriminant: ReviewPaymentRequest
       discriminant.toXdr(stream)
   }
 
-  public class Success(var reviewPaymentResponse: ReviewPaymentResponse): ReviewPaymentRequestResult(ReviewPaymentRequestResultCode.SUCCESS) {
+  open class Success(var reviewPaymentResponse: ReviewPaymentResponse): ReviewPaymentRequestResult(ReviewPaymentRequestResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       reviewPaymentResponse.toXdr(stream)
@@ -6666,7 +6667,7 @@ public enum class ReviewRequestOpAction(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class LimitsUpdateDetails(
+open class LimitsUpdateDetails(
     var newLimits: Limits,
     var ext: LimitsUpdateDetailsExt
   ) : XdrEncodable {
@@ -6681,7 +6682,7 @@ public class LimitsUpdateDetails(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: LimitsUpdateDetailsExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: LimitsUpdateDetailsExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -6699,7 +6700,7 @@ public class LimitsUpdateDetails(
 //  };
 
 //  ===========================================================================
-public class WithdrawalDetails(
+open class WithdrawalDetails(
     var externalDetails: String,
     var ext: WithdrawalDetailsExt
   ) : XdrEncodable {
@@ -6714,7 +6715,7 @@ public class WithdrawalDetails(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: WithdrawalDetailsExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: WithdrawalDetailsExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -6732,7 +6733,7 @@ public class WithdrawalDetails(
 //  };
 
 //  ===========================================================================
-public class AMLAlertDetails(
+open class AMLAlertDetails(
     var comment: String,
     var ext: AMLAlertDetailsExt
   ) : XdrEncodable {
@@ -6747,7 +6748,7 @@ public class AMLAlertDetails(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: AMLAlertDetailsExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: AMLAlertDetailsExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -6767,7 +6768,7 @@ public class AMLAlertDetails(
 //  };
 
 //  ===========================================================================
-public class UpdateKYCDetails(
+open class UpdateKYCDetails(
     var tasksToAdd: Uint32,
     var tasksToRemove: Uint32,
     var externalDetails: String,
@@ -6786,7 +6787,7 @@ public class UpdateKYCDetails(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: UpdateKYCDetailsExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: UpdateKYCDetailsExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -6822,7 +6823,7 @@ public class UpdateKYCDetails(
 //  };
 
 //  ===========================================================================
-public class ReviewRequestOp(
+open class ReviewRequestOp(
     var requestID: Uint64,
     var requestHash: Hash,
     var requestDetails: ReviewRequestOpRequestDetails,
@@ -6845,35 +6846,35 @@ public class ReviewRequestOp(
         discriminant.toXdr(stream)
     }
 
-    public class Withdraw(var withdrawal: WithdrawalDetails): ReviewRequestOpRequestDetails(ReviewableRequestType.WITHDRAW) {
+    open class Withdraw(var withdrawal: WithdrawalDetails): ReviewRequestOpRequestDetails(ReviewableRequestType.WITHDRAW) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         withdrawal.toXdr(stream)
       }
     }
 
-    public class LimitsUpdate(var limitsUpdate: LimitsUpdateDetails): ReviewRequestOpRequestDetails(ReviewableRequestType.LIMITS_UPDATE) {
+    open class LimitsUpdate(var limitsUpdate: LimitsUpdateDetails): ReviewRequestOpRequestDetails(ReviewableRequestType.LIMITS_UPDATE) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         limitsUpdate.toXdr(stream)
       }
     }
 
-    public class TwoStepWithdrawal(var twoStepWithdrawal: WithdrawalDetails): ReviewRequestOpRequestDetails(ReviewableRequestType.TWO_STEP_WITHDRAWAL) {
+    open class TwoStepWithdrawal(var twoStepWithdrawal: WithdrawalDetails): ReviewRequestOpRequestDetails(ReviewableRequestType.TWO_STEP_WITHDRAWAL) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         twoStepWithdrawal.toXdr(stream)
       }
     }
 
-    public class AmlAlert(var amlAlertDetails: AMLAlertDetails): ReviewRequestOpRequestDetails(ReviewableRequestType.AML_ALERT) {
+    open class AmlAlert(var amlAlertDetails: AMLAlertDetails): ReviewRequestOpRequestDetails(ReviewableRequestType.AML_ALERT) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         amlAlertDetails.toXdr(stream)
       }
     }
 
-    public class UpdateKyc(var updateKYC: UpdateKYCDetails): ReviewRequestOpRequestDetails(ReviewableRequestType.UPDATE_KYC) {
+    open class UpdateKyc(var updateKYC: UpdateKYCDetails): ReviewRequestOpRequestDetails(ReviewableRequestType.UPDATE_KYC) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         updateKYC.toXdr(stream)
@@ -6885,7 +6886,7 @@ public class ReviewRequestOp(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: ReviewRequestOpExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: ReviewRequestOpExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -6977,14 +6978,14 @@ abstract class ReviewRequestResult(val discriminant: ReviewRequestResultCode): X
       discriminant.toXdr(stream)
   }
 
-  public class Success(var success: ReviewRequestResultSuccess): ReviewRequestResult(ReviewRequestResultCode.SUCCESS) {
+  open class Success(var success: ReviewRequestResultSuccess): ReviewRequestResult(ReviewRequestResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
     }
   }
 
-  public class ReviewRequestResultSuccess(
+  open class ReviewRequestResultSuccess(
       var ext: ReviewRequestResultSuccessExt
     ) : XdrEncodable {
 
@@ -6997,7 +6998,7 @@ abstract class ReviewRequestResult(val discriminant: ReviewRequestResultCode): X
           discriminant.toXdr(stream)
       }
 
-      public class EmptyVersion: ReviewRequestResultSuccessExt(LedgerVersion.EMPTY_VERSION)
+      open class EmptyVersion: ReviewRequestResultSuccessExt(LedgerVersion.EMPTY_VERSION)
     }
   }
 }
@@ -7018,7 +7019,7 @@ abstract class ReviewRequestResult(val discriminant: ReviewRequestResultCode): X
 //      };
 
 //  ===========================================================================
-public class SetFeesOp(
+open class SetFeesOp(
     var fee: FeeEntry?,
     var isDelete: Boolean,
     var ext: SetFeesOpExt
@@ -7040,7 +7041,7 @@ public class SetFeesOp(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: SetFeesOpExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: SetFeesOpExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -7106,14 +7107,14 @@ abstract class SetFeesResult(val discriminant: SetFeesResultCode): XdrEncodable 
       discriminant.toXdr(stream)
   }
 
-  public class Success(var success: SetFeesResultSuccess): SetFeesResult(SetFeesResultCode.SUCCESS) {
+  open class Success(var success: SetFeesResultSuccess): SetFeesResult(SetFeesResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
     }
   }
 
-  public class SetFeesResultSuccess(
+  open class SetFeesResultSuccess(
       var ext: SetFeesResultSuccessExt
     ) : XdrEncodable {
 
@@ -7126,7 +7127,7 @@ abstract class SetFeesResult(val discriminant: SetFeesResultCode): XdrEncodable 
           discriminant.toXdr(stream)
       }
 
-      public class EmptyVersion: SetFeesResultSuccessExt(LedgerVersion.EMPTY_VERSION)
+      open class EmptyVersion: SetFeesResultSuccessExt(LedgerVersion.EMPTY_VERSION)
     }
   }
 }
@@ -7149,7 +7150,7 @@ abstract class SetFeesResult(val discriminant: SetFeesResultCode): XdrEncodable 
 //  };
 
 //  ===========================================================================
-public class SetLimitsOp(
+open class SetLimitsOp(
     var account: AccountID?,
     var accountType: AccountType?,
     var limits: Limits,
@@ -7178,7 +7179,7 @@ public class SetLimitsOp(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: SetLimitsOpExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: SetLimitsOpExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -7227,14 +7228,14 @@ abstract class SetLimitsResult(val discriminant: SetLimitsResultCode): XdrEncoda
       discriminant.toXdr(stream)
   }
 
-  public class Success(var success: SetLimitsResultSuccess): SetLimitsResult(SetLimitsResultCode.SUCCESS) {
+  open class Success(var success: SetLimitsResultSuccess): SetLimitsResult(SetLimitsResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
     }
   }
 
-  public class SetLimitsResultSuccess(
+  open class SetLimitsResultSuccess(
       var ext: SetLimitsResultSuccessExt
     ) : XdrEncodable {
 
@@ -7247,7 +7248,7 @@ abstract class SetLimitsResult(val discriminant: SetLimitsResultCode): XdrEncoda
           discriminant.toXdr(stream)
       }
 
-      public class EmptyVersion: SetLimitsResultSuccessExt(LedgerVersion.EMPTY_VERSION)
+      open class EmptyVersion: SetLimitsResultSuccessExt(LedgerVersion.EMPTY_VERSION)
     }
   }
 }
@@ -7286,7 +7287,7 @@ public enum class ManageTrustAction(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class TrustData(
+open class TrustData(
     var trust: TrustEntry,
     var action: ManageTrustAction,
     var ext: TrustDataExt
@@ -7303,7 +7304,7 @@ public class TrustData(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: TrustDataExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: TrustDataExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -7320,7 +7321,7 @@ public class TrustData(
 //  };
 
 //  ===========================================================================
-public class LimitsUpdateRequestData(
+open class LimitsUpdateRequestData(
     var documentHash: Hash,
     var ext: LimitsUpdateRequestDataExt
   ) : XdrEncodable {
@@ -7335,7 +7336,7 @@ public class LimitsUpdateRequestData(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: LimitsUpdateRequestDataExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: LimitsUpdateRequestDataExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -7369,7 +7370,7 @@ public class LimitsUpdateRequestData(
 //  };
 
 //  ===========================================================================
-public class SetOptionsOp(
+open class SetOptionsOp(
     var masterWeight: Uint32?,
     var lowThreshold: Uint32?,
     var medThreshold: Uint32?,
@@ -7431,7 +7432,7 @@ public class SetOptionsOp(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: SetOptionsOpExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: SetOptionsOpExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -7495,14 +7496,14 @@ abstract class SetOptionsResult(val discriminant: SetOptionsResultCode): XdrEnco
       discriminant.toXdr(stream)
   }
 
-  public class Success(var success: SetOptionsResultSuccess): SetOptionsResult(SetOptionsResultCode.SUCCESS) {
+  open class Success(var success: SetOptionsResultSuccess): SetOptionsResult(SetOptionsResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
     }
   }
 
-  public class SetOptionsResultSuccess(
+  open class SetOptionsResultSuccess(
       var limitsUpdateRequestID: Uint64,
       var ext: SetOptionsResultSuccessExt
     ) : XdrEncodable {
@@ -7517,7 +7518,7 @@ abstract class SetOptionsResult(val discriminant: SetOptionsResultCode): XdrEnco
           discriminant.toXdr(stream)
       }
 
-      public class EmptyVersion: SetOptionsResultSuccessExt(LedgerVersion.EMPTY_VERSION)
+      open class EmptyVersion: SetOptionsResultSuccessExt(LedgerVersion.EMPTY_VERSION)
     }
   }
 }
@@ -7556,7 +7557,7 @@ public enum class ErrorCode(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class Error(
+open class Error(
     var code: ErrorCode,
     var msg: String
   ) : XdrEncodable {
@@ -7577,7 +7578,7 @@ public class Error(
 //  };
 
 //  ===========================================================================
-public class AuthCert(
+open class AuthCert(
     var pubkey: Curve25519Public,
     var expiration: Uint64,
     var sig: Signature
@@ -7606,7 +7607,7 @@ public class AuthCert(
 //  };
 
 //  ===========================================================================
-public class Hello(
+open class Hello(
     var ledgerVersion: Uint32,
     var overlayVersion: Uint32,
     var overlayMinVersion: Uint32,
@@ -7641,7 +7642,7 @@ public class Hello(
 //  };
 
 //  ===========================================================================
-public class Auth(
+open class Auth(
     var unused: Int
   ) : XdrEncodable {
 
@@ -7686,7 +7687,7 @@ public enum class IPAddrType(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class PeerAddress(
+open class PeerAddress(
     var ip: PeerAddressIp,
     var port: Uint32,
     var numFailures: Uint32
@@ -7703,14 +7704,14 @@ public class PeerAddress(
         discriminant.toXdr(stream)
     }
 
-    public class Ipv4(var ipv4: XdrByteArrayFixed4): PeerAddressIp(IPAddrType.IPv4) {
+    open class Ipv4(var ipv4: XdrByteArrayFixed4): PeerAddressIp(IPAddrType.IPv4) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         ipv4.toXdr(stream)
       }
     }
 
-    public class Ipv6(var ipv6: XdrByteArrayFixed16): PeerAddressIp(IPAddrType.IPv6) {
+    open class Ipv6(var ipv6: XdrByteArrayFixed16): PeerAddressIp(IPAddrType.IPv6) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         ipv6.toXdr(stream)
@@ -7776,7 +7777,7 @@ public enum class MessageType(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class DontHave(
+open class DontHave(
     var type: MessageType,
     var reqHash: Uint256
   ) : XdrEncodable {
@@ -7829,37 +7830,37 @@ abstract class StellarMessage(val discriminant: MessageType): XdrEncodable {
       discriminant.toXdr(stream)
   }
 
-  public class ErrorMsg(var error: Error): StellarMessage(MessageType.ERROR_MSG) {
+  open class ErrorMsg(var error: Error): StellarMessage(MessageType.ERROR_MSG) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       error.toXdr(stream)
     }
   }
 
-  public class Hello(var hello: Hello): StellarMessage(MessageType.HELLO) {
+  open class Hello(var hello: Hello): StellarMessage(MessageType.HELLO) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       hello.toXdr(stream)
     }
   }
 
-  public class Auth(var auth: Auth): StellarMessage(MessageType.AUTH) {
+  open class Auth(var auth: Auth): StellarMessage(MessageType.AUTH) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       auth.toXdr(stream)
     }
   }
 
-  public class DontHave(var dontHave: DontHave): StellarMessage(MessageType.DONT_HAVE) {
+  open class DontHave(var dontHave: DontHave): StellarMessage(MessageType.DONT_HAVE) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       dontHave.toXdr(stream)
     }
   }
 
-  public class GetPeers: StellarMessage(MessageType.GET_PEERS)
+  open class GetPeers: StellarMessage(MessageType.GET_PEERS)
 
-  public class Peers(var peers: Array<PeerAddress>): StellarMessage(MessageType.PEERS) {
+  open class Peers(var peers: Array<PeerAddress>): StellarMessage(MessageType.PEERS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       peers.size.toXdr(stream)
@@ -7869,49 +7870,49 @@ abstract class StellarMessage(val discriminant: MessageType): XdrEncodable {
     }
   }
 
-  public class GetTxSet(var txSetHash: Uint256): StellarMessage(MessageType.GET_TX_SET) {
+  open class GetTxSet(var txSetHash: Uint256): StellarMessage(MessageType.GET_TX_SET) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       txSetHash.toXdr(stream)
     }
   }
 
-  public class TxSet(var txSet: TransactionSet): StellarMessage(MessageType.TX_SET) {
+  open class TxSet(var txSet: TransactionSet): StellarMessage(MessageType.TX_SET) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       txSet.toXdr(stream)
     }
   }
 
-  public class Transaction(var transaction: TransactionEnvelope): StellarMessage(MessageType.TRANSACTION) {
+  open class Transaction(var transaction: TransactionEnvelope): StellarMessage(MessageType.TRANSACTION) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       transaction.toXdr(stream)
     }
   }
 
-  public class GetScpQuorumset(var qSetHash: Uint256): StellarMessage(MessageType.GET_SCP_QUORUMSET) {
+  open class GetScpQuorumset(var qSetHash: Uint256): StellarMessage(MessageType.GET_SCP_QUORUMSET) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       qSetHash.toXdr(stream)
     }
   }
 
-  public class ScpQuorumset(var qSet: SCPQuorumSet): StellarMessage(MessageType.SCP_QUORUMSET) {
+  open class ScpQuorumset(var qSet: SCPQuorumSet): StellarMessage(MessageType.SCP_QUORUMSET) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       qSet.toXdr(stream)
     }
   }
 
-  public class ScpMessage(var envelope: SCPEnvelope): StellarMessage(MessageType.SCP_MESSAGE) {
+  open class ScpMessage(var envelope: SCPEnvelope): StellarMessage(MessageType.SCP_MESSAGE) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       envelope.toXdr(stream)
     }
   }
 
-  public class GetScpState(var getSCPLedgerSeq: Uint32): StellarMessage(MessageType.GET_SCP_STATE) {
+  open class GetScpState(var getSCPLedgerSeq: Uint32): StellarMessage(MessageType.GET_SCP_STATE) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       getSCPLedgerSeq.toXdr(stream)
@@ -7938,14 +7939,14 @@ abstract class AuthenticatedMessage(val discriminant: LedgerVersion): XdrEncodab
       discriminant.toXdr(stream)
   }
 
-  public class EmptyVersion(var v0: AuthenticatedMessageV0): AuthenticatedMessage(LedgerVersion.EMPTY_VERSION) {
+  open class EmptyVersion(var v0: AuthenticatedMessageV0): AuthenticatedMessage(LedgerVersion.EMPTY_VERSION) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       v0.toXdr(stream)
     }
   }
 
-  public class AuthenticatedMessageV0(
+  open class AuthenticatedMessageV0(
       var sequence: Uint64,
       var message: StellarMessage,
       var mac: HmacSha256Mac
@@ -7974,7 +7975,7 @@ abstract class AuthenticatedMessage(val discriminant: LedgerVersion): XdrEncodab
 //  };
 
 //  ===========================================================================
-public class AMLAlertRequest(
+open class AMLAlertRequest(
     var balanceID: BalanceID,
     var amount: Uint64,
     var reason: String256,
@@ -7993,7 +7994,7 @@ public class AMLAlertRequest(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: AMLAlertRequestExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: AMLAlertRequestExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -8018,7 +8019,7 @@ public class AMLAlertRequest(
 //  };
 
 //  ===========================================================================
-public class AssetCreationRequest(
+open class AssetCreationRequest(
     var code: AssetCode,
     var preissuedAssetSigner: AccountID,
     var maxIssuanceAmount: Uint64,
@@ -8043,7 +8044,7 @@ public class AssetCreationRequest(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: AssetCreationRequestExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: AssetCreationRequestExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -8064,7 +8065,7 @@ public class AssetCreationRequest(
 //  };
 
 //  ===========================================================================
-public class AssetUpdateRequest(
+open class AssetUpdateRequest(
     var code: AssetCode,
     var details: Longstring,
     var policies: Uint32,
@@ -8083,7 +8084,7 @@ public class AssetUpdateRequest(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: AssetUpdateRequestExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: AssetUpdateRequestExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -8102,7 +8103,7 @@ public class AssetUpdateRequest(
 //  };
 
 //  ===========================================================================
-public class AssetChangePreissuedSigner(
+open class AssetChangePreissuedSigner(
     var code: AssetCode,
     var accountID: AccountID,
     var ext: AssetChangePreissuedSignerExt
@@ -8119,7 +8120,7 @@ public class AssetChangePreissuedSigner(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: AssetChangePreissuedSignerExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: AssetChangePreissuedSignerExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -8141,7 +8142,7 @@ public class AssetChangePreissuedSigner(
 //  };
 
 //  ===========================================================================
-public class PreIssuanceRequest(
+open class PreIssuanceRequest(
     var asset: AssetCode,
     var amount: Uint64,
     var signature: DecoratedSignature,
@@ -8162,7 +8163,7 @@ public class PreIssuanceRequest(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: PreIssuanceRequestExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: PreIssuanceRequestExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -8184,7 +8185,7 @@ public class PreIssuanceRequest(
 //  };
 
 //  ===========================================================================
-public class IssuanceRequest(
+open class IssuanceRequest(
     var asset: AssetCode,
     var amount: Uint64,
     var receiver: BalanceID,
@@ -8207,7 +8208,7 @@ public class IssuanceRequest(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: IssuanceRequestExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: IssuanceRequestExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -8226,7 +8227,7 @@ public class IssuanceRequest(
 //  };
 
 //  ===========================================================================
-public class LimitsUpdateRequest(
+open class LimitsUpdateRequest(
     var documentHash: Hash,
     var ext: LimitsUpdateRequestExt
   ) : XdrEncodable {
@@ -8241,7 +8242,7 @@ public class LimitsUpdateRequest(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: LimitsUpdateRequestExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: LimitsUpdateRequestExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -8259,7 +8260,7 @@ public class LimitsUpdateRequest(
 //  };
 
 //  ===========================================================================
-public class SaleCreationRequestQuoteAsset(
+open class SaleCreationRequestQuoteAsset(
     var quoteAsset: AssetCode,
     var price: Uint64,
     var ext: SaleCreationRequestQuoteAssetExt
@@ -8276,7 +8277,7 @@ public class SaleCreationRequestQuoteAsset(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: SaleCreationRequestQuoteAssetExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: SaleCreationRequestQuoteAssetExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -8304,7 +8305,7 @@ public class SaleCreationRequestQuoteAsset(
 //  };
 
 //  ===========================================================================
-public class SaleCreationRequest(
+open class SaleCreationRequest(
     var baseAsset: AssetCode,
     var defaultQuoteAsset: AssetCode,
     var startTime: Uint64,
@@ -8336,9 +8337,9 @@ public class SaleCreationRequest(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: SaleCreationRequestExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: SaleCreationRequestExt(LedgerVersion.EMPTY_VERSION)
 
-    public class TypedSale(var saleTypeExt: SaleTypeExt): SaleCreationRequestExt(LedgerVersion.TYPED_SALE) {
+    open class TypedSale(var saleTypeExt: SaleTypeExt): SaleCreationRequestExt(LedgerVersion.TYPED_SALE) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         saleTypeExt.toXdr(stream)
@@ -8375,7 +8376,7 @@ public class SaleCreationRequest(
 //  };
 
 //  ===========================================================================
-public class UpdateKYCRequest(
+open class UpdateKYCRequest(
     var accountToUpdateKYC: AccountID,
     var accountTypeToSet: AccountType,
     var kycLevel: Uint32,
@@ -8407,7 +8408,7 @@ public class UpdateKYCRequest(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: UpdateKYCRequestExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: UpdateKYCRequestExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -8442,7 +8443,7 @@ public enum class WithdrawalType(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class AutoConversionWithdrawalDetails(
+open class AutoConversionWithdrawalDetails(
     var destAsset: AssetCode,
     var expectedAmount: Uint64,
     var ext: AutoConversionWithdrawalDetailsExt
@@ -8459,7 +8460,7 @@ public class AutoConversionWithdrawalDetails(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: AutoConversionWithdrawalDetailsExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: AutoConversionWithdrawalDetailsExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -8486,7 +8487,7 @@ public class AutoConversionWithdrawalDetails(
 //  };
 
 //  ===========================================================================
-public class WithdrawalRequest(
+open class WithdrawalRequest(
     var balance: BalanceID,
     var amount: Uint64,
     var universalAmount: Uint64,
@@ -8513,7 +8514,7 @@ public class WithdrawalRequest(
         discriminant.toXdr(stream)
     }
 
-    public class AutoConversion(var autoConversion: AutoConversionWithdrawalDetails): WithdrawalRequestDetails(WithdrawalType.AUTO_CONVERSION) {
+    open class AutoConversion(var autoConversion: AutoConversionWithdrawalDetails): WithdrawalRequestDetails(WithdrawalType.AUTO_CONVERSION) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         autoConversion.toXdr(stream)
@@ -8525,7 +8526,7 @@ public class WithdrawalRequest(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: WithdrawalRequestExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: WithdrawalRequestExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -8587,7 +8588,7 @@ public class WithdrawalRequest(
 //  };
 
 //  ===========================================================================
-public class Operation(
+open class Operation(
     var sourceAccount: AccountID?,
     var body: OperationBody
   ) : XdrEncodable {
@@ -8607,147 +8608,147 @@ public class Operation(
         discriminant.toXdr(stream)
     }
 
-    public class CreateAccount(var createAccountOp: CreateAccountOp): OperationBody(OperationType.CREATE_ACCOUNT) {
+    open class CreateAccount(var createAccountOp: CreateAccountOp): OperationBody(OperationType.CREATE_ACCOUNT) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         createAccountOp.toXdr(stream)
       }
     }
 
-    public class Payment(var paymentOp: PaymentOp): OperationBody(OperationType.PAYMENT) {
+    open class Payment(var paymentOp: PaymentOp): OperationBody(OperationType.PAYMENT) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         paymentOp.toXdr(stream)
       }
     }
 
-    public class SetOptions(var setOptionsOp: SetOptionsOp): OperationBody(OperationType.SET_OPTIONS) {
+    open class SetOptions(var setOptionsOp: SetOptionsOp): OperationBody(OperationType.SET_OPTIONS) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         setOptionsOp.toXdr(stream)
       }
     }
 
-    public class CreateIssuanceRequest(var createIssuanceRequestOp: CreateIssuanceRequestOp): OperationBody(OperationType.CREATE_ISSUANCE_REQUEST) {
+    open class CreateIssuanceRequest(var createIssuanceRequestOp: CreateIssuanceRequestOp): OperationBody(OperationType.CREATE_ISSUANCE_REQUEST) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         createIssuanceRequestOp.toXdr(stream)
       }
     }
 
-    public class SetFees(var setFeesOp: SetFeesOp): OperationBody(OperationType.SET_FEES) {
+    open class SetFees(var setFeesOp: SetFeesOp): OperationBody(OperationType.SET_FEES) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         setFeesOp.toXdr(stream)
       }
     }
 
-    public class ManageAccount(var manageAccountOp: ManageAccountOp): OperationBody(OperationType.MANAGE_ACCOUNT) {
+    open class ManageAccount(var manageAccountOp: ManageAccountOp): OperationBody(OperationType.MANAGE_ACCOUNT) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         manageAccountOp.toXdr(stream)
       }
     }
 
-    public class CreateWithdrawalRequest(var createWithdrawalRequestOp: CreateWithdrawalRequestOp): OperationBody(OperationType.CREATE_WITHDRAWAL_REQUEST) {
+    open class CreateWithdrawalRequest(var createWithdrawalRequestOp: CreateWithdrawalRequestOp): OperationBody(OperationType.CREATE_WITHDRAWAL_REQUEST) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         createWithdrawalRequestOp.toXdr(stream)
       }
     }
 
-    public class ManageBalance(var manageBalanceOp: ManageBalanceOp): OperationBody(OperationType.MANAGE_BALANCE) {
+    open class ManageBalance(var manageBalanceOp: ManageBalanceOp): OperationBody(OperationType.MANAGE_BALANCE) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         manageBalanceOp.toXdr(stream)
       }
     }
 
-    public class ReviewPaymentRequest(var reviewPaymentRequestOp: ReviewPaymentRequestOp): OperationBody(OperationType.REVIEW_PAYMENT_REQUEST) {
+    open class ReviewPaymentRequest(var reviewPaymentRequestOp: ReviewPaymentRequestOp): OperationBody(OperationType.REVIEW_PAYMENT_REQUEST) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         reviewPaymentRequestOp.toXdr(stream)
       }
     }
 
-    public class ManageAsset(var manageAssetOp: ManageAssetOp): OperationBody(OperationType.MANAGE_ASSET) {
+    open class ManageAsset(var manageAssetOp: ManageAssetOp): OperationBody(OperationType.MANAGE_ASSET) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         manageAssetOp.toXdr(stream)
       }
     }
 
-    public class CreatePreissuanceRequest(var createPreIssuanceRequest: CreatePreIssuanceRequestOp): OperationBody(OperationType.CREATE_PREISSUANCE_REQUEST) {
+    open class CreatePreissuanceRequest(var createPreIssuanceRequest: CreatePreIssuanceRequestOp): OperationBody(OperationType.CREATE_PREISSUANCE_REQUEST) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         createPreIssuanceRequest.toXdr(stream)
       }
     }
 
-    public class SetLimits(var setLimitsOp: SetLimitsOp): OperationBody(OperationType.SET_LIMITS) {
+    open class SetLimits(var setLimitsOp: SetLimitsOp): OperationBody(OperationType.SET_LIMITS) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         setLimitsOp.toXdr(stream)
       }
     }
 
-    public class DirectDebit(var directDebitOp: DirectDebitOp): OperationBody(OperationType.DIRECT_DEBIT) {
+    open class DirectDebit(var directDebitOp: DirectDebitOp): OperationBody(OperationType.DIRECT_DEBIT) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         directDebitOp.toXdr(stream)
       }
     }
 
-    public class ManageAssetPair(var manageAssetPairOp: ManageAssetPairOp): OperationBody(OperationType.MANAGE_ASSET_PAIR) {
+    open class ManageAssetPair(var manageAssetPairOp: ManageAssetPairOp): OperationBody(OperationType.MANAGE_ASSET_PAIR) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         manageAssetPairOp.toXdr(stream)
       }
     }
 
-    public class ManageOffer(var manageOfferOp: ManageOfferOp): OperationBody(OperationType.MANAGE_OFFER) {
+    open class ManageOffer(var manageOfferOp: ManageOfferOp): OperationBody(OperationType.MANAGE_OFFER) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         manageOfferOp.toXdr(stream)
       }
     }
 
-    public class ManageInvoice(var manageInvoiceOp: ManageInvoiceOp): OperationBody(OperationType.MANAGE_INVOICE) {
+    open class ManageInvoice(var manageInvoiceOp: ManageInvoiceOp): OperationBody(OperationType.MANAGE_INVOICE) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         manageInvoiceOp.toXdr(stream)
       }
     }
 
-    public class ReviewRequest(var reviewRequestOp: ReviewRequestOp): OperationBody(OperationType.REVIEW_REQUEST) {
+    open class ReviewRequest(var reviewRequestOp: ReviewRequestOp): OperationBody(OperationType.REVIEW_REQUEST) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         reviewRequestOp.toXdr(stream)
       }
     }
 
-    public class CreateSaleRequest(var createSaleCreationRequestOp: CreateSaleCreationRequestOp): OperationBody(OperationType.CREATE_SALE_REQUEST) {
+    open class CreateSaleRequest(var createSaleCreationRequestOp: CreateSaleCreationRequestOp): OperationBody(OperationType.CREATE_SALE_REQUEST) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         createSaleCreationRequestOp.toXdr(stream)
       }
     }
 
-    public class CheckSaleState(var checkSaleStateOp: CheckSaleStateOp): OperationBody(OperationType.CHECK_SALE_STATE) {
+    open class CheckSaleState(var checkSaleStateOp: CheckSaleStateOp): OperationBody(OperationType.CHECK_SALE_STATE) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         checkSaleStateOp.toXdr(stream)
       }
     }
 
-    public class CreateAmlAlert(var createAMLAlertRequestOp: CreateAMLAlertRequestOp): OperationBody(OperationType.CREATE_AML_ALERT) {
+    open class CreateAmlAlert(var createAMLAlertRequestOp: CreateAMLAlertRequestOp): OperationBody(OperationType.CREATE_AML_ALERT) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         createAMLAlertRequestOp.toXdr(stream)
       }
     }
 
-    public class CreateKycRequest(var createUpdateKYCRequestOp: CreateUpdateKYCRequestOp): OperationBody(OperationType.CREATE_KYC_REQUEST) {
+    open class CreateKycRequest(var createUpdateKYCRequestOp: CreateUpdateKYCRequestOp): OperationBody(OperationType.CREATE_KYC_REQUEST) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         createUpdateKYCRequestOp.toXdr(stream)
@@ -8803,30 +8804,30 @@ abstract class Memo(val discriminant: MemoType): XdrEncodable {
       discriminant.toXdr(stream)
   }
 
-  public class MemoNone: Memo(MemoType.MEMO_NONE)
+  open class MemoNone: Memo(MemoType.MEMO_NONE)
 
-  public class MemoText(var text: String): Memo(MemoType.MEMO_TEXT) {
+  open class MemoText(var text: String): Memo(MemoType.MEMO_TEXT) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       text.toXdr(stream)
     }
   }
 
-  public class MemoId(var id: Uint64): Memo(MemoType.MEMO_ID) {
+  open class MemoId(var id: Uint64): Memo(MemoType.MEMO_ID) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       id.toXdr(stream)
     }
   }
 
-  public class MemoHash(var hash: Hash): Memo(MemoType.MEMO_HASH) {
+  open class MemoHash(var hash: Hash): Memo(MemoType.MEMO_HASH) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       hash.toXdr(stream)
     }
   }
 
-  public class MemoReturn(var retHash: Hash): Memo(MemoType.MEMO_RETURN) {
+  open class MemoReturn(var retHash: Hash): Memo(MemoType.MEMO_RETURN) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       retHash.toXdr(stream)
@@ -8843,7 +8844,7 @@ abstract class Memo(val discriminant: MemoType): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class TimeBounds(
+open class TimeBounds(
     var minTime: Uint64,
     var maxTime: Uint64
   ) : XdrEncodable {
@@ -8880,7 +8881,7 @@ public class TimeBounds(
 //  };
 
 //  ===========================================================================
-public class Transaction(
+open class Transaction(
     var sourceAccount: AccountID,
     var salt: Salt,
     var timeBounds: TimeBounds,
@@ -8906,7 +8907,7 @@ public class Transaction(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: TransactionExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: TransactionExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -8919,7 +8920,7 @@ public class Transaction(
 //  };
 
 //  ===========================================================================
-public class TransactionEnvelope(
+open class TransactionEnvelope(
     var tx: Transaction,
     var signatures: Array<DecoratedSignature>
   ) : XdrEncodable {
@@ -9028,7 +9029,7 @@ abstract class OperationResult(val discriminant: OperationResultCode): XdrEncoda
       discriminant.toXdr(stream)
   }
 
-  public class Opinner(var tr: OperationResultTr): OperationResult(OperationResultCode.opINNER) {
+  open class Opinner(var tr: OperationResultTr): OperationResult(OperationResultCode.opINNER) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       tr.toXdr(stream)
@@ -9040,147 +9041,147 @@ abstract class OperationResult(val discriminant: OperationResultCode): XdrEncoda
         discriminant.toXdr(stream)
     }
 
-    public class CreateAccount(var createAccountResult: CreateAccountResult): OperationResultTr(OperationType.CREATE_ACCOUNT) {
+    open class CreateAccount(var createAccountResult: CreateAccountResult): OperationResultTr(OperationType.CREATE_ACCOUNT) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         createAccountResult.toXdr(stream)
       }
     }
 
-    public class Payment(var paymentResult: PaymentResult): OperationResultTr(OperationType.PAYMENT) {
+    open class Payment(var paymentResult: PaymentResult): OperationResultTr(OperationType.PAYMENT) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         paymentResult.toXdr(stream)
       }
     }
 
-    public class SetOptions(var setOptionsResult: SetOptionsResult): OperationResultTr(OperationType.SET_OPTIONS) {
+    open class SetOptions(var setOptionsResult: SetOptionsResult): OperationResultTr(OperationType.SET_OPTIONS) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         setOptionsResult.toXdr(stream)
       }
     }
 
-    public class CreateIssuanceRequest(var createIssuanceRequestResult: CreateIssuanceRequestResult): OperationResultTr(OperationType.CREATE_ISSUANCE_REQUEST) {
+    open class CreateIssuanceRequest(var createIssuanceRequestResult: CreateIssuanceRequestResult): OperationResultTr(OperationType.CREATE_ISSUANCE_REQUEST) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         createIssuanceRequestResult.toXdr(stream)
       }
     }
 
-    public class SetFees(var setFeesResult: SetFeesResult): OperationResultTr(OperationType.SET_FEES) {
+    open class SetFees(var setFeesResult: SetFeesResult): OperationResultTr(OperationType.SET_FEES) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         setFeesResult.toXdr(stream)
       }
     }
 
-    public class ManageAccount(var manageAccountResult: ManageAccountResult): OperationResultTr(OperationType.MANAGE_ACCOUNT) {
+    open class ManageAccount(var manageAccountResult: ManageAccountResult): OperationResultTr(OperationType.MANAGE_ACCOUNT) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         manageAccountResult.toXdr(stream)
       }
     }
 
-    public class CreateWithdrawalRequest(var createWithdrawalRequestResult: CreateWithdrawalRequestResult): OperationResultTr(OperationType.CREATE_WITHDRAWAL_REQUEST) {
+    open class CreateWithdrawalRequest(var createWithdrawalRequestResult: CreateWithdrawalRequestResult): OperationResultTr(OperationType.CREATE_WITHDRAWAL_REQUEST) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         createWithdrawalRequestResult.toXdr(stream)
       }
     }
 
-    public class ManageBalance(var manageBalanceResult: ManageBalanceResult): OperationResultTr(OperationType.MANAGE_BALANCE) {
+    open class ManageBalance(var manageBalanceResult: ManageBalanceResult): OperationResultTr(OperationType.MANAGE_BALANCE) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         manageBalanceResult.toXdr(stream)
       }
     }
 
-    public class ReviewPaymentRequest(var reviewPaymentRequestResult: ReviewPaymentRequestResult): OperationResultTr(OperationType.REVIEW_PAYMENT_REQUEST) {
+    open class ReviewPaymentRequest(var reviewPaymentRequestResult: ReviewPaymentRequestResult): OperationResultTr(OperationType.REVIEW_PAYMENT_REQUEST) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         reviewPaymentRequestResult.toXdr(stream)
       }
     }
 
-    public class ManageAsset(var manageAssetResult: ManageAssetResult): OperationResultTr(OperationType.MANAGE_ASSET) {
+    open class ManageAsset(var manageAssetResult: ManageAssetResult): OperationResultTr(OperationType.MANAGE_ASSET) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         manageAssetResult.toXdr(stream)
       }
     }
 
-    public class CreatePreissuanceRequest(var createPreIssuanceRequestResult: CreatePreIssuanceRequestResult): OperationResultTr(OperationType.CREATE_PREISSUANCE_REQUEST) {
+    open class CreatePreissuanceRequest(var createPreIssuanceRequestResult: CreatePreIssuanceRequestResult): OperationResultTr(OperationType.CREATE_PREISSUANCE_REQUEST) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         createPreIssuanceRequestResult.toXdr(stream)
       }
     }
 
-    public class SetLimits(var setLimitsResult: SetLimitsResult): OperationResultTr(OperationType.SET_LIMITS) {
+    open class SetLimits(var setLimitsResult: SetLimitsResult): OperationResultTr(OperationType.SET_LIMITS) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         setLimitsResult.toXdr(stream)
       }
     }
 
-    public class DirectDebit(var directDebitResult: DirectDebitResult): OperationResultTr(OperationType.DIRECT_DEBIT) {
+    open class DirectDebit(var directDebitResult: DirectDebitResult): OperationResultTr(OperationType.DIRECT_DEBIT) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         directDebitResult.toXdr(stream)
       }
     }
 
-    public class ManageAssetPair(var manageAssetPairResult: ManageAssetPairResult): OperationResultTr(OperationType.MANAGE_ASSET_PAIR) {
+    open class ManageAssetPair(var manageAssetPairResult: ManageAssetPairResult): OperationResultTr(OperationType.MANAGE_ASSET_PAIR) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         manageAssetPairResult.toXdr(stream)
       }
     }
 
-    public class ManageOffer(var manageOfferResult: ManageOfferResult): OperationResultTr(OperationType.MANAGE_OFFER) {
+    open class ManageOffer(var manageOfferResult: ManageOfferResult): OperationResultTr(OperationType.MANAGE_OFFER) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         manageOfferResult.toXdr(stream)
       }
     }
 
-    public class ManageInvoice(var manageInvoiceResult: ManageInvoiceResult): OperationResultTr(OperationType.MANAGE_INVOICE) {
+    open class ManageInvoice(var manageInvoiceResult: ManageInvoiceResult): OperationResultTr(OperationType.MANAGE_INVOICE) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         manageInvoiceResult.toXdr(stream)
       }
     }
 
-    public class ReviewRequest(var reviewRequestResult: ReviewRequestResult): OperationResultTr(OperationType.REVIEW_REQUEST) {
+    open class ReviewRequest(var reviewRequestResult: ReviewRequestResult): OperationResultTr(OperationType.REVIEW_REQUEST) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         reviewRequestResult.toXdr(stream)
       }
     }
 
-    public class CreateSaleRequest(var createSaleCreationRequestResult: CreateSaleCreationRequestResult): OperationResultTr(OperationType.CREATE_SALE_REQUEST) {
+    open class CreateSaleRequest(var createSaleCreationRequestResult: CreateSaleCreationRequestResult): OperationResultTr(OperationType.CREATE_SALE_REQUEST) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         createSaleCreationRequestResult.toXdr(stream)
       }
     }
 
-    public class CheckSaleState(var checkSaleStateResult: CheckSaleStateResult): OperationResultTr(OperationType.CHECK_SALE_STATE) {
+    open class CheckSaleState(var checkSaleStateResult: CheckSaleStateResult): OperationResultTr(OperationType.CHECK_SALE_STATE) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         checkSaleStateResult.toXdr(stream)
       }
     }
 
-    public class CreateAmlAlert(var createAMLAlertRequestResult: CreateAMLAlertRequestResult): OperationResultTr(OperationType.CREATE_AML_ALERT) {
+    open class CreateAmlAlert(var createAMLAlertRequestResult: CreateAMLAlertRequestResult): OperationResultTr(OperationType.CREATE_AML_ALERT) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         createAMLAlertRequestResult.toXdr(stream)
       }
     }
 
-    public class CreateKycRequest(var createUpdateKYCRequestResult: CreateUpdateKYCRequestResult): OperationResultTr(OperationType.CREATE_KYC_REQUEST) {
+    open class CreateKycRequest(var createUpdateKYCRequestResult: CreateUpdateKYCRequestResult): OperationResultTr(OperationType.CREATE_KYC_REQUEST) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         createUpdateKYCRequestResult.toXdr(stream)
@@ -9255,7 +9256,7 @@ public enum class TransactionResultCode(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class TransactionResult(
+open class TransactionResult(
     var feeCharged: Int64,
     var result: TransactionResultResult,
     var ext: TransactionResultExt
@@ -9272,7 +9273,7 @@ public class TransactionResult(
         discriminant.toXdr(stream)
     }
 
-    public class Txsuccess(var results: Array<OperationResult>): TransactionResultResult(TransactionResultCode.txSUCCESS) {
+    open class Txsuccess(var results: Array<OperationResult>): TransactionResultResult(TransactionResultCode.txSUCCESS) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         results.size.toXdr(stream)
@@ -9282,7 +9283,7 @@ public class TransactionResult(
       }
     }
 
-    public class Txfailed(var results: Array<OperationResult>): TransactionResultResult(TransactionResultCode.txFAILED) {
+    open class Txfailed(var results: Array<OperationResult>): TransactionResultResult(TransactionResultCode.txFAILED) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         results.size.toXdr(stream)
@@ -9297,7 +9298,7 @@ public class TransactionResult(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: TransactionResultExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: TransactionResultExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -9391,7 +9392,7 @@ abstract class PublicKey(val discriminant: CryptoKeyType): XdrEncodable {
       discriminant.toXdr(stream)
   }
 
-  public class KeyTypeEd25519(var ed25519: Uint256): PublicKey(CryptoKeyType.KEY_TYPE_ED25519) {
+  open class KeyTypeEd25519(var ed25519: Uint256): PublicKey(CryptoKeyType.KEY_TYPE_ED25519) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       ed25519.toXdr(stream)
@@ -9464,7 +9465,7 @@ public typealias NodeID = PublicKey
 //  };
 
 //  ===========================================================================
-public class Curve25519Secret(
+open class Curve25519Secret(
     var key: XdrByteArrayFixed32
   ) : XdrEncodable {
 
@@ -9481,7 +9482,7 @@ public class Curve25519Secret(
 //  };
 
 //  ===========================================================================
-public class Curve25519Public(
+open class Curve25519Public(
     var key: XdrByteArrayFixed32
   ) : XdrEncodable {
 
@@ -9498,7 +9499,7 @@ public class Curve25519Public(
 //  };
 
 //  ===========================================================================
-public class HmacSha256Key(
+open class HmacSha256Key(
     var key: XdrByteArrayFixed32
   ) : XdrEncodable {
 
@@ -9515,7 +9516,7 @@ public class HmacSha256Key(
 //  };
 
 //  ===========================================================================
-public class HmacSha256Mac(
+open class HmacSha256Mac(
     var mac: XdrByteArrayFixed32
   ) : XdrEncodable {
 
@@ -9610,7 +9611,7 @@ public typealias DataValue = ByteArray
 //  };
 
 //  ===========================================================================
-public class Fee(
+open class Fee(
     var fixed: Uint64,
     var percent: Uint64,
     var ext: FeeExt
@@ -9627,7 +9628,7 @@ public class Fee(
         discriminant.toXdr(stream)
     }
 
-    public class EmptyVersion: FeeExt(LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: FeeExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -9697,7 +9698,7 @@ public enum class OperationType(val value: Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-public class DecoratedSignature(
+open class DecoratedSignature(
     var hint: SignatureHint,
     var signature: Signature
   ) : XdrEncodable {
