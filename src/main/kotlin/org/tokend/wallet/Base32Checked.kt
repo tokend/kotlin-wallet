@@ -6,15 +6,12 @@ import java.io.CharArrayWriter
 import java.io.IOException
 import java.util.*
 
-internal object StrKey {
+internal object Base32Checked {
     /**
-     * Indicates that there was a problem decoding strkey encoded string.
+     * Indicates that there was a problem decoding base32-checked encoded string.
      * @see Account
      */
-    class FormatException : RuntimeException {
-        constructor() : super() {}
-        constructor(message: String) : super(message) {}
-    }
+    class FormatException(message: String) : RuntimeException(message)
 
     private val base32Encoding = BaseEncoding.base32().upperCase().omitPadding()
 
@@ -22,8 +19,6 @@ internal object StrKey {
             private val value: Byte) {
         ACCOUNT_ID((6 shl 3).toByte()), // G
         SEED((18 shl 3).toByte()), // S
-        PRE_AUTH_TX((19 shl 3).toByte()), // T
-        SHA256_HASH((23 shl 3).toByte()),
         BALANCE_ID((1 shl 3).toByte()); // B
 
         fun getValue(): Int {
@@ -47,22 +42,6 @@ internal object StrKey {
         return decodeCheck(VersionByte.SEED, data.toCharArray())
     }
 
-    fun encodePreAuthTx(data: ByteArray): String {
-        return String(encodeCheck(VersionByte.PRE_AUTH_TX, data))
-    }
-
-    fun decodePreAuthTx(data: String): ByteArray {
-        return decodeCheck(VersionByte.PRE_AUTH_TX, data.toCharArray())
-    }
-
-    fun encodeSha256Hash(data: ByteArray): String {
-        return String(encodeCheck(VersionByte.SHA256_HASH, data))
-    }
-
-    fun decodeSha256Hash(data: String): ByteArray {
-        return decodeCheck(VersionByte.SHA256_HASH, data.toCharArray())
-    }
-
     fun encodeBalanceId(data: ByteArray): String {
         return String(encodeCheck(VersionByte.BALANCE_ID, data))
     }
@@ -77,7 +56,7 @@ internal object StrKey {
             outputStream.write(versionByte.getValue())
             outputStream.write(data)
             val payload = outputStream.toByteArray()
-            val checksum = StrKey.calculateChecksum(payload)
+            val checksum = Base32Checked.calculateChecksum(payload)
             outputStream.write(checksum)
             val unencoded = outputStream.toByteArray()
 
@@ -85,7 +64,7 @@ internal object StrKey {
             // We don't want secret seed to be stored as String in memory because of security reasons. It's impossible
             // to erase it from memory when we want it to be erased (ASAP).
             val charArrayWriter = CharArrayWriter(unencoded.size)
-            val charOutputStream = StrKey.base32Encoding.encodingStream(charArrayWriter)
+            val charOutputStream = Base32Checked.base32Encoding.encodingStream(charArrayWriter)
             charOutputStream.write(unencoded)
             val charsEncoded = charArrayWriter.toCharArray()
 
@@ -118,7 +97,7 @@ internal object StrKey {
             bytes[i] = encoded[i].toByte()
         }
 
-        val decoded = StrKey.base32Encoding.decode(java.nio.CharBuffer.wrap(encoded))
+        val decoded = Base32Checked.base32Encoding.decode(java.nio.CharBuffer.wrap(encoded))
         val decodedVersionByte = decoded[0]
         val payload = Arrays.copyOfRange(decoded, 0, decoded.size - 2)
         val data = Arrays.copyOfRange(payload, 1, payload.size)
@@ -128,7 +107,7 @@ internal object StrKey {
             throw FormatException("Version byte is invalid")
         }
 
-        val expectedChecksum = StrKey.calculateChecksum(payload)
+        val expectedChecksum = Base32Checked.calculateChecksum(payload)
 
         if (!Arrays.equals(expectedChecksum, checksum)) {
             throw FormatException("Checksum invalid")

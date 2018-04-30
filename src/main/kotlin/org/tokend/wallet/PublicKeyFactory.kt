@@ -8,11 +8,11 @@ import org.tokend.wallet.xdr.Uint256
 object PublicKeyFactory {
     @JvmStatic
     fun fromBalanceId(balanceId: String): BalanceID {
-        return PublicKey.KeyTypeEd25519(Uint256(StrKey.decodeBalanceId(balanceId)))
+        return PublicKey.KeyTypeEd25519(Uint256(Base32Checked.decodeBalanceId(balanceId)))
     }
 
     @JvmStatic
     fun fromAccountId(accountId: String): AccountID {
-        return PublicKey.KeyTypeEd25519(Uint256(StrKey.decodeAccountId(accountId)))
+        return PublicKey.KeyTypeEd25519(Uint256(Base32Checked.decodeAccountId(accountId)))
     }
 }

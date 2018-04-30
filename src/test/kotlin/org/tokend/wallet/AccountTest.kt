@@ -42,7 +42,7 @@ class AccountTest {
     fun fromSeedBytes() {
         val seed = (0 until 32).map { it.toByte() }.toByteArray()
         val account = Account.fromSecretSeed(seed)
-        Assert.assertEquals(StrKey.encodeSecretSeed(seed), account.secretSeed)
+        Assert.assertEquals(Base32Checked.encodeSecretSeed(seed), account.secretSeed)
     }
 
     @Test()
