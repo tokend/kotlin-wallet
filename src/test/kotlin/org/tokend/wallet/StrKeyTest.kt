@@ -9,6 +9,7 @@ class StrKeyTest {
     val ACCOUNT_ID_ENCODED = "GDJHRQF4GCMIIKAAAQ6IHY42X73FQFLHUULAPSKKD4DFDM7UXWWCQDS3"
     val PRE_AUTH_TX_ENCODED = "TDJHRQF4GCMIIKAAAQ6IHY42X73FQFLHUULAPSKKD4DFDM7UXWWCR6AK"
     val SHA_256_ENCODED = "XDJHRQF4GCMIIKAAAQ6IHY42X73FQFLHUULAPSKKD4DFDM7UXWWCQ2FT"
+    val BALANCE_ID_ENCODED = "BDJHRQF4GCMIIKAAAQ6IHY42X73FQFLHUULAPSKKD4DFDM7UXWWCQMUQ"
     val BYTES = BaseEncoding.base16().decode("D278C0BC3098842800043C83E39ABFF6581567A51607C94A1F0651B3F4BDAC28")
     val CHECKSUM = BaseEncoding.base16().decode("56BE")
 
@@ -57,6 +58,18 @@ class StrKeyTest {
     @Test
     fun decodeSha256Hash() {
         val decoded = StrKey.decodeSha256Hash(SHA_256_ENCODED)
+        Assert.assertArrayEquals(BYTES, decoded)
+    }
+
+    @Test
+    fun encodeBalanceId() {
+        val encoded = StrKey.encodeBalanceId(BYTES)
+        Assert.assertEquals(BALANCE_ID_ENCODED, encoded)
+    }
+
+    @Test
+    fun decodeBalanceId() {
+        val decoded = StrKey.decodeBalanceId(BALANCE_ID_ENCODED)
         Assert.assertArrayEquals(BYTES, decoded)
     }
 
