@@ -1,0 +1,67 @@
+// Config for private Maven repo deployment.
+
+if (file("repoCredentials.gradle").exists()) {
+    apply from: "repoCredentials.gradle"
+}
+
+apply plugin: 'maven'
+
+task sourceJar(type: Jar, dependsOn: classes) {
+    classifier 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives javadocJar, sourceJar
+}
+
+configurations {
+    deployerJars
+}
+
+dependencies {
+    deployerJars "org.apache.maven.wagon:wagon-ssh:2.2"
+}
+
+uploadArchives {
+    repositories.mavenDeployer {
+        dependsOn test
+
+        configuration = configurations.deployerJars
+
+        beforeDeployment {
+            if (!(project.ext.has("repoUrl")
+                    && project.ext.has("repoUser")
+                    && project.ext.has("repoPass"))) {
+                throw new GradleException("In order to deploy archives you must create " +
+                        "'repoCredentials.gradle' file the root dir and specify following " +
+                        "credentials inside:\n" +
+                        "\text.repoUrl\n\text.repoUser\n\text.repoPass")
+            }
+        }
+
+        repository(url: project.ext.has("repoUrl") ? repoUrl : "") {
+            authentication(userName: project.ext.has("repoUser") ? repoUser : "",
+                    password: project.ext.has("repoPass") ? repoPass : "")
+        }
+
+        pom.project {
+            licenses {
+                license {
+                    name "MIT License"
+                    url "https://opensource.org/licenses/MIT"
+                    distribution "repo"
+                }
+            }
+            organization {
+                name "Distributed Lab"
+                url "https://distributedlab.com"
+            }
+        }
+    }
+}
