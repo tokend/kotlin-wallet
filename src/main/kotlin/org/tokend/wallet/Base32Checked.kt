@@ -6,10 +6,9 @@ import java.io.CharArrayWriter
 import java.io.IOException
 import java.util.*
 
-internal object Base32Checked {
+object Base32Checked {
     /**
      * Indicates that there was a problem decoding base32-checked encoded string.
-     * @see Account
      */
     class FormatException(message: String) : RuntimeException(message)
 
@@ -26,30 +25,37 @@ internal object Base32Checked {
         }
     }
 
+    @JvmStatic
     fun encodeAccountId(data: ByteArray): String {
         return String(encodeCheck(VersionByte.ACCOUNT_ID, data))
     }
 
+    @JvmStatic
     fun decodeAccountId(data: String): ByteArray {
         return decodeCheck(VersionByte.ACCOUNT_ID, data.toCharArray())
     }
 
+    @JvmStatic
     fun encodeSecretSeed(data: ByteArray): String {
         return String(encodeCheck(VersionByte.SEED, data))
     }
 
+    @JvmStatic
     fun decodeSecretSeed(data: String): ByteArray {
         return decodeCheck(VersionByte.SEED, data.toCharArray())
     }
 
+    @JvmStatic
     fun encodeBalanceId(data: ByteArray): String {
         return String(encodeCheck(VersionByte.BALANCE_ID, data))
     }
 
+    @JvmStatic
     fun decodeBalanceId(data: String): ByteArray {
         return decodeCheck(VersionByte.BALANCE_ID, data.toCharArray())
     }
 
+    @JvmStatic
     fun encodeCheck(versionByte: VersionByte, data: ByteArray): CharArray {
         try {
             val outputStream = ByteArrayOutputStream()
@@ -88,6 +94,7 @@ internal object Base32Checked {
 
     }
 
+    @JvmStatic
     fun decodeCheck(versionByte: VersionByte, encoded: CharArray): ByteArray {
         val bytes = ByteArray(encoded.size)
         for (i in encoded.indices) {
@@ -122,6 +129,7 @@ internal object Base32Checked {
         return data
     }
 
+    @JvmStatic
     fun calculateChecksum(bytes: ByteArray): ByteArray {
         // This code calculates CRC16-XModem checksum
         // Ported from https://github.com/alexgorbatchev/node-crc
