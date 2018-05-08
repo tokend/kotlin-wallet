@@ -36,13 +36,13 @@ object Base32Checked {
     }
 
     @JvmStatic
-    fun encodeSecretSeed(data: ByteArray): String {
-        return String(encodeCheck(VersionByte.SEED, data))
+    fun encodeSecretSeed(data: ByteArray): CharArray {
+        return encodeCheck(VersionByte.SEED, data)
     }
 
     @JvmStatic
-    fun decodeSecretSeed(data: String): ByteArray {
-        return decodeCheck(VersionByte.SEED, data.toCharArray())
+    fun decodeSecretSeed(data: CharArray): ByteArray {
+        return decodeCheck(VersionByte.SEED, data)
     }
 
     @JvmStatic

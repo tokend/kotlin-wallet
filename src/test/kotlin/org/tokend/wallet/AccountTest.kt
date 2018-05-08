@@ -14,7 +14,7 @@ class AccountTest {
     @Test
     fun sign() {
         val expectedSig = "1B0EBBAE618B267668A8122ECCCD2A20480BC81951EB401E0F92B613483B798763D36AEB4B0404BC2A31FA1EAD47522BBA08705AB51BA205020E67D09AE87D0E"
-        val account = Account.fromSecretSeed(SEED)
+        val account = Account.fromSecretSeed(SEED.toCharArray())
         val sig = account.sign(DATA)
         Assert.assertArrayEquals(BaseEncoding.base16().decode(expectedSig), sig)
     }
@@ -28,21 +28,21 @@ class AccountTest {
 
     @Test
     fun verifyInvalid() {
-        val account = Account.fromSecretSeed(SEED)
+        val account = Account.fromSecretSeed(SEED.toCharArray())
         Assert.assertFalse(account.verifySignature(ByteArray(0), ByteArray(0)))
     }
 
     @Test
     fun fromSeedString() {
-        val account = Account.fromSecretSeed(SEED)
-        Assert.assertEquals(SEED, account.secretSeed)
+        val account = Account.fromSecretSeed(SEED.toCharArray())
+        Assert.assertEquals(SEED, String(account.secretSeed!!))
     }
 
     @Test
     fun fromSeedBytes() {
         val seed = (0 until 32).map { it.toByte() }.toByteArray()
         val account = Account.fromSecretSeed(seed)
-        Assert.assertEquals(Base32Checked.encodeSecretSeed(seed), account.secretSeed)
+        Assert.assertEquals(String(Base32Checked.encodeSecretSeed(seed)), String(account.secretSeed!!))
     }
 
     @Test()
@@ -54,13 +54,13 @@ class AccountTest {
 
     @Test
     fun accountId() {
-        val account = Account.fromSecretSeed(SEED)
+        val account = Account.fromSecretSeed(SEED.toCharArray())
         Assert.assertEquals(ACCOUNT_ID, account.accountId)
     }
 
     @Test
     fun signDecorated() {
-        val account = Account.fromSecretSeed(SEED)
+        val account = Account.fromSecretSeed(SEED.toCharArray())
         val expectedSig = "W3R2wwAAAEAbDruuYYsmdmioEi7MzSogSAvIGVHrQB4PkrYTSDt5h2PTautLBAS8KjH6Hq1HUiu6CHBatRuiBQIOZ9Ca6H0O"
         val decoratedSignature = account.signDecorated(DATA)
         Assert.assertEquals(expectedSig, decoratedSignature.toBase64())

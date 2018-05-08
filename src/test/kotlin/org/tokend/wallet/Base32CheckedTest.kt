@@ -13,13 +13,13 @@ class Base32CheckedTest {
 
     @Test
     fun encodeSeed() {
-        val encoded = Base32Checked.encodeSecretSeed(BYTES)
+        val encoded = String(Base32Checked.encodeSecretSeed(BYTES))
         Assert.assertEquals(SEED_ENCODED, encoded)
     }
 
     @Test
     fun decodeSeed() {
-        val decoded = Base32Checked.decodeSecretSeed(SEED_ENCODED)
+        val decoded = Base32Checked.decodeSecretSeed(SEED_ENCODED.toCharArray())
         Assert.assertArrayEquals(BYTES, decoded)
     }
 

@@ -22,7 +22,7 @@ class Account(private val ecDSAKeyPair: EcDSAKeyPair) {
     /**
      * Returns the human readable secret seed encoded in strkey.
      */
-    val secretSeed: String?
+    val secretSeed: CharArray?
         get() = ecDSAKeyPair.privateKeySeed?.let { Base32Checked.encodeSecretSeed(it) }
 
     /**
@@ -84,7 +84,7 @@ class Account(private val ecDSAKeyPair: EcDSAKeyPair) {
          * @return [Account]
          */
         @JvmStatic
-        fun fromSecretSeed(seed: String): Account {
+        fun fromSecretSeed(seed: CharArray): Account {
             val decoded = Base32Checked.decodeSecretSeed(seed)
             val keypair = fromSecretSeed(decoded)
             return keypair

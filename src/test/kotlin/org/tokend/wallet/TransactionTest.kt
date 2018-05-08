@@ -11,7 +11,7 @@ class TransactionTest {
     @Test
     fun encoding() {
         val sourceBalance = "BBVRUASMC2OMFGWHQPD4TTXTZZ7ACOFWWFTB5Y3K6757FSUSAEPEPXAS"
-        val sourceAccountSeed = "SBEBZQIXHAZ3BZXOJEN6R57KMEDISGBIIP6LAVRCNDM4WZIQPHNYZICC"
+        val sourceAccountSeed = "SBEBZQIXHAZ3BZXOJEN6R57KMEDISGBIIP6LAVRCNDM4WZIQPHNYZICC".toCharArray()
         val destBalance = "BCN65IW4JYFLLJADTA5PNP2N27KPGDWUBD27UAHQITRTO3ADVST4WI3O"
         val account = Account.fromSecretSeed(sourceAccountSeed)
 
