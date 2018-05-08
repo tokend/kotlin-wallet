@@ -61,4 +61,10 @@ class Base32CheckedTest {
         val checksum = Base32Checked.calculateChecksum(BYTES)
         Assert.assertArrayEquals(CHECKSUM, checksum)
     }
+
+    @Test
+    fun testValidation() {
+        Assert.assertTrue(Base32Checked.isValid(Base32Checked.VersionByte.ACCOUNT_ID, ACCOUNT_ID_ENCODED.toCharArray()))
+        Assert.assertFalse(Base32Checked.isValid(Base32Checked.VersionByte.BALANCE_ID, ACCOUNT_ID_ENCODED.toCharArray()))
+    }
 }

@@ -26,6 +26,16 @@ object Base32Checked {
     }
 
     @JvmStatic
+    fun isValid(versionByte: VersionByte, data: CharArray): Boolean {
+        try {
+            decodeCheck(versionByte, data)
+            return true
+        } catch (_: Exception) {
+            return false
+        }
+    }
+
+    @JvmStatic
     fun encodeAccountId(data: ByteArray): String {
         return String(encodeCheck(VersionByte.ACCOUNT_ID, data))
     }
