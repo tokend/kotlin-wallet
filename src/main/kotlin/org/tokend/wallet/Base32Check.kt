@@ -6,6 +6,11 @@ import java.io.CharArrayWriter
 import java.io.IOException
 import java.util.*
 
+/**
+ * Performs encoding and decoding of specific data to Base32Check.
+ * Base32Check is Base32 encoding with version byte and checksum
+ * [version byte] + [data] + [CRC16 checksum of version byte and data]
+ */
 object Base32Check {
     /**
      * Indicates that there was a problem decoding base32-checked encoded string.
@@ -14,14 +19,25 @@ object Base32Check {
 
     private val base32Encoding = BaseEncoding.base32().upperCase().omitPadding()
 
-    enum class VersionByte constructor(// X
-            private val value: Byte) {
-        ACCOUNT_ID((6 shl 3).toByte()), // G
-        SEED((18 shl 3).toByte()), // S
-        BALANCE_ID((1 shl 3).toByte()); // B
+    enum class VersionByte constructor(private val value: Byte) {
+        ACCOUNT_ID(48.toByte()),  // G
+        SEED      (144.toByte()), // S
+        BALANCE_ID(8.toByte());   // B
 
         fun getValue(): Int {
             return value.toInt()
+        }
+
+        companion object {
+            @JvmStatic
+            fun valueOf(value: Byte): VersionByte? {
+                return when (value) {
+                    ACCOUNT_ID.value -> ACCOUNT_ID
+                    SEED.value       -> SEED
+                    BALANCE_ID.value -> BALANCE_ID
+                    else             -> null
+                }
+            }
         }
     }
 
@@ -106,6 +122,16 @@ object Base32Check {
 
     @JvmStatic
     fun decodeCheck(versionByte: VersionByte, encoded: CharArray): ByteArray {
+        val decodingResult = decode(encoded)
+
+        if (versionByte != decodingResult.first)
+            throw FormatException("Version byte is invalid")
+
+        return decodingResult.second
+    }
+
+    @JvmStatic
+    fun decode(encoded: CharArray): Pair<VersionByte, ByteArray> {
         val bytes = ByteArray(encoded.size)
         for (i in encoded.indices) {
             if (encoded[i].toInt() > 127) {
@@ -120,10 +146,6 @@ object Base32Check {
         val data = Arrays.copyOfRange(payload, 1, payload.size)
         val checksum = Arrays.copyOfRange(decoded, decoded.size - 2, decoded.size)
 
-        if (decodedVersionByte.toInt() != versionByte.getValue()) {
-            throw FormatException("Version byte is invalid")
-        }
-
         val expectedChecksum = Base32Check.calculateChecksum(payload)
 
         if (!Arrays.equals(expectedChecksum, checksum)) {
@@ -136,11 +158,14 @@ object Base32Check {
             Arrays.fill(payload, 0.toByte())
         }
 
-        return data
+        val versionByte = VersionByte.valueOf(decodedVersionByte)
+                ?: throw FormatException("Version byte is invalid")
+
+        return Pair(versionByte, data)
     }
 
     @JvmStatic
-    fun calculateChecksum(bytes: ByteArray): ByteArray {
+    private fun calculateChecksum(bytes: ByteArray): ByteArray {
         // This code calculates CRC16-XModem checksum
         // Ported from https://github.com/alexgorbatchev/node-crc
         var crc = 0x0000
