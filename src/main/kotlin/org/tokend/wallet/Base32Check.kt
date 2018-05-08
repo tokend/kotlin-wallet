@@ -6,7 +6,7 @@ import java.io.CharArrayWriter
 import java.io.IOException
 import java.util.*
 
-object Base32Checked {
+object Base32Check {
     /**
      * Indicates that there was a problem decoding base32-checked encoded string.
      */
@@ -72,7 +72,7 @@ object Base32Checked {
             outputStream.write(versionByte.getValue())
             outputStream.write(data)
             val payload = outputStream.toByteArray()
-            val checksum = Base32Checked.calculateChecksum(payload)
+            val checksum = Base32Check.calculateChecksum(payload)
             outputStream.write(checksum)
             val unencoded = outputStream.toByteArray()
 
@@ -80,7 +80,7 @@ object Base32Checked {
             // We don't want secret seed to be stored as String in memory because of security reasons. It's impossible
             // to erase it from memory when we want it to be erased (ASAP).
             val charArrayWriter = CharArrayWriter(unencoded.size)
-            val charOutputStream = Base32Checked.base32Encoding.encodingStream(charArrayWriter)
+            val charOutputStream = Base32Check.base32Encoding.encodingStream(charArrayWriter)
             charOutputStream.write(unencoded)
             val charsEncoded = charArrayWriter.toCharArray()
 
@@ -114,7 +114,7 @@ object Base32Checked {
             bytes[i] = encoded[i].toByte()
         }
 
-        val decoded = Base32Checked.base32Encoding.decode(java.nio.CharBuffer.wrap(encoded))
+        val decoded = Base32Check.base32Encoding.decode(java.nio.CharBuffer.wrap(encoded))
         val decodedVersionByte = decoded[0]
         val payload = Arrays.copyOfRange(decoded, 0, decoded.size - 2)
         val data = Arrays.copyOfRange(payload, 1, payload.size)
@@ -124,7 +124,7 @@ object Base32Checked {
             throw FormatException("Version byte is invalid")
         }
 
-        val expectedChecksum = Base32Checked.calculateChecksum(payload)
+        val expectedChecksum = Base32Check.calculateChecksum(payload)
 
         if (!Arrays.equals(expectedChecksum, checksum)) {
             throw FormatException("Checksum invalid")

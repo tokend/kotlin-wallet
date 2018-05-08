@@ -4,7 +4,7 @@ import com.google.common.io.BaseEncoding
 import org.junit.Assert
 import org.junit.Test
 
-class Base32CheckedTest {
+class Base32CheckTest {
     val SEED_ENCODED = "SDJHRQF4GCMIIKAAAQ6IHY42X73FQFLHUULAPSKKD4DFDM7UXWWCRHBE"
     val ACCOUNT_ID_ENCODED = "GDJHRQF4GCMIIKAAAQ6IHY42X73FQFLHUULAPSKKD4DFDM7UXWWCQDS3"
     val BALANCE_ID_ENCODED = "BDJHRQF4GCMIIKAAAQ6IHY42X73FQFLHUULAPSKKD4DFDM7UXWWCQMUQ"
@@ -13,58 +13,58 @@ class Base32CheckedTest {
 
     @Test
     fun encodeSeed() {
-        val encoded = String(Base32Checked.encodeSecretSeed(BYTES))
+        val encoded = String(Base32Check.encodeSecretSeed(BYTES))
         Assert.assertEquals(SEED_ENCODED, encoded)
     }
 
     @Test
     fun decodeSeed() {
-        val decoded = Base32Checked.decodeSecretSeed(SEED_ENCODED.toCharArray())
+        val decoded = Base32Check.decodeSecretSeed(SEED_ENCODED.toCharArray())
         Assert.assertArrayEquals(BYTES, decoded)
     }
 
     @Test
     fun encodeAccountId() {
-        val encoded = Base32Checked.encodeAccountId(BYTES)
+        val encoded = Base32Check.encodeAccountId(BYTES)
         Assert.assertEquals(ACCOUNT_ID_ENCODED, encoded)
     }
 
     @Test
     fun decodeAccountId() {
-        val decoded = Base32Checked.decodeAccountId(ACCOUNT_ID_ENCODED)
+        val decoded = Base32Check.decodeAccountId(ACCOUNT_ID_ENCODED)
         Assert.assertArrayEquals(BYTES, decoded)
     }
 
     @Test
     fun encodeBalanceId() {
-        val encoded = Base32Checked.encodeBalanceId(BYTES)
+        val encoded = Base32Check.encodeBalanceId(BYTES)
         Assert.assertEquals(BALANCE_ID_ENCODED, encoded)
     }
 
     @Test
     fun decodeBalanceId() {
-        val decoded = Base32Checked.decodeBalanceId(BALANCE_ID_ENCODED)
+        val decoded = Base32Check.decodeBalanceId(BALANCE_ID_ENCODED)
         Assert.assertArrayEquals(BYTES, decoded)
     }
 
     @Test
     fun decodeInvalidVersionByte() {
         try {
-            Base32Checked.decodeAccountId(SEED_ENCODED)
+            Base32Check.decodeAccountId(SEED_ENCODED)
             Assert.fail()
-        } catch (e: Base32Checked.FormatException) {
+        } catch (e: Base32Check.FormatException) {
         }
     }
 
     @Test
     fun calculateChecksum() {
-        val checksum = Base32Checked.calculateChecksum(BYTES)
+        val checksum = Base32Check.calculateChecksum(BYTES)
         Assert.assertArrayEquals(CHECKSUM, checksum)
     }
 
     @Test
     fun testValidation() {
-        Assert.assertTrue(Base32Checked.isValid(Base32Checked.VersionByte.ACCOUNT_ID, ACCOUNT_ID_ENCODED.toCharArray()))
-        Assert.assertFalse(Base32Checked.isValid(Base32Checked.VersionByte.BALANCE_ID, ACCOUNT_ID_ENCODED.toCharArray()))
+        Assert.assertTrue(Base32Check.isValid(Base32Check.VersionByte.ACCOUNT_ID, ACCOUNT_ID_ENCODED.toCharArray()))
+        Assert.assertFalse(Base32Check.isValid(Base32Check.VersionByte.BALANCE_ID, ACCOUNT_ID_ENCODED.toCharArray()))
     }
 }

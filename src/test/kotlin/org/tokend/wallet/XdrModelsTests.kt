@@ -11,11 +11,11 @@ class XdrModelsTests {
     private val ASSET_CODE = "OLG"
     private val AMOUNT = 12345600L
     private val BYTES_ACCOUNT_ID: PublicKey
-            = PublicKey.KeyTypeEd25519(Uint256(Base32Checked.decodeAccountId(ACCOUNT_ID)))
+            = PublicKey.KeyTypeEd25519(Uint256(Base32Check.decodeAccountId(ACCOUNT_ID)))
     private val BYTES_BALANCE_ID: PublicKey
-            = PublicKey.KeyTypeEd25519(Uint256(Base32Checked.decodeBalanceId(BALANCE_ID)))
+            = PublicKey.KeyTypeEd25519(Uint256(Base32Check.decodeBalanceId(BALANCE_ID)))
     private val BYTES_COUNTERPARTY_BALANCE_ID: PublicKey
-            = PublicKey.KeyTypeEd25519(Uint256(Base32Checked.decodeBalanceId(COUNTERPARTY_BALANCE_ID)))
+            = PublicKey.KeyTypeEd25519(Uint256(Base32Check.decodeBalanceId(COUNTERPARTY_BALANCE_ID)))
 
     @Test
     fun testCreateBalanceOp() {

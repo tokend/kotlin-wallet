@@ -17,13 +17,13 @@ class Account(private val ecDSAKeyPair: EcDSAKeyPair) {
     /**
      * Returns the human readable account ID encoded in strkey.
      */
-    val accountId: String = Base32Checked.encodeAccountId(ecDSAKeyPair.publicKeyBytes)
+    val accountId: String = Base32Check.encodeAccountId(ecDSAKeyPair.publicKeyBytes)
 
     /**
      * Returns the human readable secret seed encoded in strkey.
      */
     val secretSeed: CharArray?
-        get() = ecDSAKeyPair.privateKeySeed?.let { Base32Checked.encodeSecretSeed(it) }
+        get() = ecDSAKeyPair.privateKeySeed?.let { Base32Check.encodeSecretSeed(it) }
 
     /**
      * Returns public key bytes.
@@ -85,7 +85,7 @@ class Account(private val ecDSAKeyPair: EcDSAKeyPair) {
          */
         @JvmStatic
         fun fromSecretSeed(seed: CharArray): Account {
-            val decoded = Base32Checked.decodeSecretSeed(seed)
+            val decoded = Base32Check.decodeSecretSeed(seed)
             val keypair = fromSecretSeed(decoded)
             return keypair
         }
@@ -107,7 +107,7 @@ class Account(private val ecDSAKeyPair: EcDSAKeyPair) {
          */
         @JvmStatic
         fun fromAccountId(accountId: String): Account {
-            val decoded = Base32Checked.decodeAccountId(accountId)
+            val decoded = Base32Check.decodeAccountId(accountId)
             return fromPublicKey(decoded)
         }
 
