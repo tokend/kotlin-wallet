@@ -7,7 +7,7 @@ import org.tokend.wallet.xdr.ManageBalanceAction
 import org.tokend.wallet.xdr.ManageBalanceOp
 
 class CreateBalanceOp(accountId: AccountID,
-                      assetCode: AssetCode) : ManageBalanceOp(ManageBalanceAction.CREATE,
+                      assetCode: AssetCode) : ManageBalanceOp(ManageBalanceAction.CREATE_UNIQUE,
         accountId, assetCode, ManageBalanceOp.ManageBalanceOpExt.EmptyVersion()) {
     constructor(accountId: String,
                 assetCode: String) : this( PublicKeyFactory.fromAccountId(accountId), assetCode)
