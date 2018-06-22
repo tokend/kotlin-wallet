@@ -9,9 +9,6 @@ buildscript {
     }
 }
 
-group 'org.tokend'
-version '1.0.5'
-
 apply plugin: 'java'
 apply plugin: 'kotlin'
 
@@ -45,3 +42,7 @@ compileTestKotlin {
 }
 
 apply from: "deploy.gradle"
+
+group 'org.tokend'
+version '1.0.6'
+uploadArchives.repositories.mavenDeployer.pom.artifactId = 'wallet'
