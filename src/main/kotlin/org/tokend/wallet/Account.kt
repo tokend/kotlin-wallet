@@ -64,13 +64,8 @@ class Account(private val ecDSAKeyPair: EcDSAKeyPair) {
     }
 
     private fun getSignatureHint(): SignatureHint {
-        val publicKeyBytesStream = ByteArrayOutputStream()
-        val xdrPublicKeyStream = XdrDataOutputStream(publicKeyBytesStream)
-        xdrPublicKey.toXdr(xdrPublicKeyStream)
-
-        val publicKeyBytes = publicKeyBytesStream.toByteArray()
-        val signatureHintBytes = Arrays.copyOfRange(publicKeyBytes,
-                publicKeyBytes.size - 4, publicKeyBytes.size)
+        val signatureHintBytes = Arrays.copyOfRange(publicKey,
+                publicKey.size - 4, publicKey.size)
 
         return SignatureHint(signatureHintBytes)
     }
