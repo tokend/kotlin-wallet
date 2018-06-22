@@ -1,8 +1,9 @@
 package org.tokend.wallet
 
-import com.google.common.io.BaseEncoding
+import org.apache.commons.codec.binary.Base32
+import org.tokend.wallet.utils.toByteArray
+import org.tokend.wallet.utils.toCharArray
 import java.io.ByteArrayOutputStream
-import java.io.CharArrayWriter
 import java.io.IOException
 import java.util.*
 
@@ -17,11 +18,11 @@ object Base32Check {
      */
     class FormatException(message: String) : RuntimeException(message)
 
-    private val base32Encoding = BaseEncoding.base32().upperCase().omitPadding()
+    private val base32Encoding = Base32()
 
     enum class VersionByte constructor(private val value: Byte) {
         ACCOUNT_ID(48.toByte()),  // G
-        SEED      (144.toByte()), // S
+        SEED(144.toByte()), // S
         BALANCE_ID(8.toByte());   // B
 
         fun getValue(): Int {
@@ -33,9 +34,9 @@ object Base32Check {
             fun valueOf(value: Byte): VersionByte? {
                 return when (value) {
                     ACCOUNT_ID.value -> ACCOUNT_ID
-                    SEED.value       -> SEED
+                    SEED.value -> SEED
                     BALANCE_ID.value -> BALANCE_ID
-                    else             -> null
+                    else -> null
                 }
             }
         }
@@ -92,25 +93,21 @@ object Base32Check {
             outputStream.write(checksum)
             val unencoded = outputStream.toByteArray()
 
-            // Why not use base32Encoding.encode here?
-            // We don't want secret seed to be stored as String in memory because of security reasons. It's impossible
-            // to erase it from memory when we want it to be erased (ASAP).
-            val charArrayWriter = CharArrayWriter(unencoded.size)
-            val charOutputStream = Base32Check.base32Encoding.encodingStream(charArrayWriter)
-            charOutputStream.write(unencoded)
-            val charsEncoded = charArrayWriter.toCharArray()
+//            // Why not use base32Encoding.encode here?
+//            // We don't want secret seed to be stored as String in memory because of security reasons. It's impossible
+//            // to erase it from memory when we want it to be erased (ASAP).
+//            val charArrayWriter = CharArrayWriter(unencoded.size)
+//            val charOutputStream = Base32Check.base32Encoding.encodingStream(charArrayWriter)
+//            charOutputStream.write(unencoded)
+//            val charsEncoded = charArrayWriter.toCharArray()
+            val encoded = base32Encoding.encode(unencoded)
+            val charsEncoded = encoded.toCharArray()
 
             if (VersionByte.SEED == versionByte) {
                 Arrays.fill(unencoded, 0.toByte())
                 Arrays.fill(payload, 0.toByte())
                 Arrays.fill(checksum, 0.toByte())
-
-                // Clean charArrayWriter internal buffer
-                val bufferSize = charArrayWriter.size()
-                val zeros = CharArray(bufferSize)
-                Arrays.fill(zeros, '0')
-                charArrayWriter.reset()
-                charArrayWriter.write(zeros)
+                Arrays.fill(encoded, 0)
             }
 
             return charsEncoded
@@ -140,7 +137,7 @@ object Base32Check {
             bytes[i] = encoded[i].toByte()
         }
 
-        val decoded = Base32Check.base32Encoding.decode(java.nio.CharBuffer.wrap(encoded))
+        val decoded = Base32Check.base32Encoding.decode(encoded.toByteArray())
         val decodedVersionByte = decoded[0]
         val payload = Arrays.copyOfRange(decoded, 0, decoded.size - 2)
         val data = Arrays.copyOfRange(payload, 1, payload.size)
