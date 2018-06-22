@@ -1,5 +1,6 @@
 package org.tokend.wallet.xdr.utils
 
+import org.apache.commons.codec.binary.Base64
 import java.io.ByteArrayOutputStream
 
 interface XdrEncodable {
@@ -15,6 +16,7 @@ interface XdrEncodable {
         val outputStream = ByteArrayOutputStream()
         val xdrOutputStream = XdrDataOutputStream(outputStream)
         this.toXdr(xdrOutputStream)
-        return outputStream.toByteArray().encodeBase64ToString()
+        val xdrBytes = outputStream.toByteArray()
+        return String(Base64().encode(xdrBytes))
     }
 }

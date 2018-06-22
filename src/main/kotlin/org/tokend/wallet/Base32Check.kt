@@ -93,13 +93,6 @@ object Base32Check {
             outputStream.write(checksum)
             val unencoded = outputStream.toByteArray()
 
-//            // Why not use base32Encoding.encode here?
-//            // We don't want secret seed to be stored as String in memory because of security reasons. It's impossible
-//            // to erase it from memory when we want it to be erased (ASAP).
-//            val charArrayWriter = CharArrayWriter(unencoded.size)
-//            val charOutputStream = Base32Check.base32Encoding.encodingStream(charArrayWriter)
-//            charOutputStream.write(unencoded)
-//            val charsEncoded = charArrayWriter.toCharArray()
             val encoded = base32Encoding.encode(unencoded)
             val charsEncoded = encoded.toCharArray()
 
