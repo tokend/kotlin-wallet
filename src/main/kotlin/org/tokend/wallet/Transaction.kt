@@ -18,6 +18,7 @@ class Transaction {
     val operations: List<Operation>
     val timeBounds: TimeBounds
     val salt: Long
+    val maxTotalFee: Long?
 
     private val mSignatures = mutableListOf<DecoratedSignature>()
     val signatures: List<DecoratedSignature>
@@ -33,7 +34,7 @@ class Transaction {
      * transaction will be valid. Default transaction lifetime is [DEFAULT_LIFETIME_SECONDS]
      * @param salt optional unique value, random by default
      *
-     * @throws IllegalAccessException if no operations were added.
+     * @throws IllegalStateException if no operations were added.
      */
     @JvmOverloads
     constructor(networkParams: NetworkParams,
@@ -41,7 +42,8 @@ class Transaction {
                 operations: List<Operation>,
                 memo: Memo? = null,
                 timeBounds: TimeBounds? = null,
-                salt: Long? = null) {
+                salt: Long? = null,
+                maxTotalFee: Long? = null) {
         if (operations.isEmpty()) {
             throw IllegalStateException("Transaction must contain at least one operation")
         }
@@ -49,10 +51,10 @@ class Transaction {
         this.networkParams = networkParams
         this.sourceAccountId = sourceAccountId
         this.operations = operations
+        this.maxTotalFee = maxTotalFee
 
         this.memo = memo ?: Memo.MemoNone()
-        this.timeBounds = timeBounds ?:
-                TimeBounds(0, Date().time / 1000 + DEFAULT_LIFETIME_SECONDS)
+        this.timeBounds = timeBounds ?: TimeBounds(0, Date().time / 1000 + DEFAULT_LIFETIME_SECONDS)
         this.salt = (salt ?: Random().nextLong()) and 0xffffffffL
     }
 
@@ -92,17 +94,25 @@ class Transaction {
     }
 
     private fun getXdrTransaction(): Transaction {
+        val ext =
+                if (maxTotalFee != null)
+                    Transaction.TransactionExt.AddTransactionFee(
+                            maxTotalFee
+                    )
+                else
+                    Transaction.TransactionExt.EmptyVersion()
+
         return Transaction(
                 sourceAccountId,
                 salt,
                 timeBounds,
                 memo,
                 operations.toTypedArray(),
-                Transaction.TransactionExt.EmptyVersion()
+                ext
         )
     }
 
     companion object {
-        val DEFAULT_LIFETIME_SECONDS = 7 * 24 * 3600 - 3600L
+        const val DEFAULT_LIFETIME_SECONDS = 7 * 24 * 3600 - 3600L
     }
 }

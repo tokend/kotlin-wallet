@@ -3,6 +3,7 @@ package org.tokend.wallet
 import org.junit.Assert
 import org.junit.Test
 import org.tokend.wallet.xdr.*
+import org.tokend.wallet.xdr.op_extensions.BindExternalAccountOp
 
 class TransactionTest {
     val SOURCE_ACCOUNT_ID = "GDVJSBSBSERR3YP3LKLHTODWEFGCSLDWDIODER3CKLZXUMVPZOPT4MHY"
@@ -37,11 +38,12 @@ class TransactionTest {
                 listOf(Operation(null, Operation.OperationBody.Payment(paymentOp))),
                 Memo.MemoText("Sample text"),
                 TimeBounds(0L, 42L),
-                0L
+                0L,
+                12345L
         )
         transaction.addSignature(account)
 
-        val expectedEnvelope = "AAAAAOqZBkGRIx3h+1qWebh2IUwpLHYaHDJHYlLzejKvy58+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAqAAAAAQAAAAtTYW1wbGUgdGV4dAAAAAABAAAAAAAAAAEAAAAAaxoCTBacwprHg8fJzvPOfgE4trFmHuNq9/vyypIBHkcAAAAAm+6i3E4KtaQDmDr2v03X1PMO1Aj1+gDwROM3bAOsp8sAAAAAAA9CQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARUZXN0AAAAAAAAAAAAAAAAAAAAAAAAAAHjQTipAAAAQGslKbormeLjf75qgaaJlvVbTAM2cXgObU7pd3MWnfw+eJ4BmIJwGZxsMXBm7kY0xe1FTszUIYGs31T5MpmA2AE="
+        val expectedEnvelope = "AAAAAOqZBkGRIx3h+1qWebh2IUwpLHYaHDJHYlLzejKvy58+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAqAAAAAQAAAAtTYW1wbGUgdGV4dAAAAAABAAAAAAAAAAEAAAAAaxoCTBacwprHg8fJzvPOfgE4trFmHuNq9/vyypIBHkcAAAAAm+6i3E4KtaQDmDr2v03X1PMO1Aj1+gDwROM3bAOsp8sAAAAAAA9CQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARUZXN0AAAAAAAAAAAAAAAAAAAAMQAAAAAAADA5AAAAAeNBOKkAAABAjLsz2UoLaZ0MWTatsoAufNJcOO0Yy8/Mug9ByC+kwjeYKwvxnuBuveqAzcpbJdMqa6fN0thoW1nYCIfxpSwsDg=="
         val envelope = transaction.getEnvelope().toBase64()
         Assert.assertEquals(expectedEnvelope, envelope)
     }
@@ -54,6 +56,36 @@ class TransactionTest {
                     PublicKeyFactory.fromAccountId(SOURCE_ACCOUNT_ID),
                     emptyList())
             Assert.fail("Transactions with no operations can't be allowed")
-        } catch (e: Exception) { }
+        } catch (e: Exception) {
+        }
+    }
+
+    @Test
+    fun emptyVersionExt() {
+        val transaction = Transaction(
+                NETWORK,
+                PublicKeyFactory.fromAccountId(SOURCE_ACCOUNT_ID),
+                listOf(
+                        Operation(null,
+                                Operation.OperationBody.BindExternalSystemAccountId(BindExternalAccountOp(42)))
+                ))
+
+        Assert.assertEquals(org.tokend.wallet.xdr.Transaction.TransactionExt.EmptyVersion::class.java,
+                transaction.getEnvelope().tx.ext.javaClass)
+    }
+
+    @Test
+    fun feeExt() {
+        val transaction = Transaction(
+                NETWORK,
+                PublicKeyFactory.fromAccountId(SOURCE_ACCOUNT_ID),
+                listOf(
+                        Operation(null,
+                                Operation.OperationBody.BindExternalSystemAccountId(BindExternalAccountOp(42)))
+                ),
+                maxTotalFee = 1783)
+
+        Assert.assertEquals(org.tokend.wallet.xdr.Transaction.TransactionExt.AddTransactionFee::class.java,
+                transaction.getEnvelope().tx.ext.javaClass)
     }
 }
