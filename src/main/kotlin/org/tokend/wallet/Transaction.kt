@@ -54,6 +54,7 @@ class Transaction {
 
     /**
      * Optional maximal value of the fee charged for each operation.
+     * Not used by default.
      */
     val maxTotalFee: Long?
 

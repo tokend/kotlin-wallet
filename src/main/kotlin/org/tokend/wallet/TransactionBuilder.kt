@@ -7,6 +7,9 @@ import org.tokend.wallet.xdr.TimeBounds
 
 /**
  * Builds a [Transaction] object.
+ *
+ * @param networkParams params of the network into which the transaction will be sent
+ * @param sourceAccountId original account ID of the transaction initiator
  */
 class TransactionBuilder(private val networkParams: NetworkParams,
                          private val sourceAccountId: AccountID) {
@@ -17,7 +20,16 @@ class TransactionBuilder(private val networkParams: NetworkParams,
     private var maxTotalFee: Long? = null
 
     /**
+     * @param networkParams params of the network into which the transaction will be sent
+     * @param sourceAccountId original account ID of the transaction initiator
+     */
+    constructor(networkParams: NetworkParams,
+                sourceAccountId: String) : this(networkParams, PublicKeyFactory.fromAccountId(sourceAccountId))
+
+    /**
      * Adds operation with given body to the result transaction.
+     *
+     * @see Transaction.operations
      */
     @JvmOverloads
     fun addOperation(operationBody: Operation.OperationBody,
@@ -28,6 +40,8 @@ class TransactionBuilder(private val networkParams: NetworkParams,
 
     /**
      * Sets memo of the result transaction.
+     *
+     * @see Transaction.memo
      */
     fun setMemo(memo: Memo): TransactionBuilder {
         this.memo = memo
@@ -39,6 +53,8 @@ class TransactionBuilder(private val networkParams: NetworkParams,
      * result transaction will be valid.
      * Default transaction lifetime is [Transaction.DEFAULT_LIFETIME_SECONDS]
      * @param timeBounds time range in unixtime
+     *
+     * @see Transaction.timeBounds
      */
     fun setTimeBounds(timeBounds: TimeBounds): TransactionBuilder {
         this.timeBounds = timeBounds
@@ -48,6 +64,8 @@ class TransactionBuilder(private val networkParams: NetworkParams,
     /**
      * Sets salt of the result transaction.
      * By default transaction salt is a random [Long].
+     *
+     * @see Transaction.salt
      */
     fun setSalt(salt: Long): TransactionBuilder {
         this.salt = salt
@@ -56,7 +74,9 @@ class TransactionBuilder(private val networkParams: NetworkParams,
 
     /**
      * Sets maximum fee of the result transaction.
-     * By default transaction fee is not used.
+     * Not used by default.
+     *
+     * @see Transaction.maxTotalFee
      */
     fun setMaxTotalFee(fee: Long): TransactionBuilder {
         this.maxTotalFee = fee
