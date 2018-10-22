@@ -1,7 +1,10 @@
-package org.tokend.wallet
+package org.tokend.wallet_test
 
 import org.junit.Assert
 import org.junit.Test
+import org.tokend.wallet.NetworkParams
+import org.tokend.wallet.PublicKeyFactory
+import org.tokend.wallet.TransactionBuilder
 import org.tokend.wallet.xdr.*
 
 class TransactionBuilderTest {

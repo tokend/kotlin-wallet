@@ -1,8 +1,9 @@
-package org.tokend.wallet
+package org.tokend.wallet_test
 
 import com.google.common.io.BaseEncoding
 import org.junit.Assert
 import org.junit.Test
+import org.tokend.wallet.Base32Check
 
 class Base32CheckTest {
     val SEED_ENCODED = "SDJHRQF4GCMIIKAAAQ6IHY42X73FQFLHUULAPSKKD4DFDM7UXWWCRHBE"

@@ -1,8 +1,10 @@
-package org.tokend.wallet
+package org.tokend.wallet_test
 
 import com.google.common.io.BaseEncoding
 import org.junit.Assert
 import org.junit.Test
+import org.tokend.wallet.Account
+import org.tokend.wallet.Base32Check
 import org.tokend.wallet.xdr.PublicKey
 
 class AccountTest {

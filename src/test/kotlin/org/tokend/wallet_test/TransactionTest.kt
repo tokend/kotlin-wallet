@@ -1,7 +1,11 @@
-package org.tokend.wallet
+package org.tokend.wallet_test
 
 import org.junit.Assert
 import org.junit.Test
+import org.tokend.wallet.Account
+import org.tokend.wallet.NetworkParams
+import org.tokend.wallet.PublicKeyFactory
+import org.tokend.wallet.Transaction
 import org.tokend.wallet.xdr.*
 import org.tokend.wallet.xdr.op_extensions.BindExternalAccountOp
 
