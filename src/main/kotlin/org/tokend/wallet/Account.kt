@@ -2,62 +2,75 @@ package org.tokend.wallet
 
 import org.tokend.crypto.ecdsa.Curves
 import org.tokend.crypto.ecdsa.EcDSAKeyPair
+import org.tokend.crypto.ecdsa.SignUnavailableException
 import org.tokend.wallet.xdr.DecoratedSignature
 import org.tokend.wallet.xdr.PublicKey
 import org.tokend.wallet.xdr.SignatureHint
 import org.tokend.wallet.xdr.Uint256
-import org.tokend.wallet.xdr.utils.XdrDataOutputStream
-import java.io.ByteArrayOutputStream
 import java.util.*
 
 /**
- * Represents TokenD account defined by private and/or public keys.
+ * Represents TokenD account defined by EcDSA private and/or public keys.
+ * In this case account is a synonym of keypair.
+ *
+ * @see <a href="https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm/">ECDSA</a>
+ * @see <a href="https://ed25519.cr.yp.to/">Ed25519</a>
  */
 class Account(private val ecDSAKeyPair: EcDSAKeyPair) {
     /**
-     * Returns the human readable account ID encoded in strkey.
+     * @return public key encoded by [Base32Check].
+     *
+     * @see <a href="https://tokend.gitbook.io/knowledge-base/technical-details/key-entities/accounts#account-id">AccountID in the Knowledge base</a>
      */
     val accountId: String = Base32Check.encodeAccountId(ecDSAKeyPair.publicKeyBytes)
 
     /**
-     * Returns the human readable secret seed encoded in strkey.
+     * @return private key seed encoded by [Base32Check].
+     *
+     * @see <a href="https://tokend.gitbook.io/knowledge-base/technical-details/key-entities/accounts#account-secret-seed">Secret seed in the Knowledge base</a>
      */
     val secretSeed: CharArray?
         get() = ecDSAKeyPair.privateKeySeed?.let { Base32Check.encodeSecretSeed(it) }
 
     /**
-     * Returns public key bytes.
+     * @return public key bytes.
      */
     val publicKey: ByteArray = ecDSAKeyPair.publicKeyBytes
 
     /**
-     * Returns public key wrapped into XDR.
+     * @return public key wrapped into XDR.
      */
     val xdrPublicKey: PublicKey
         get() = PublicKey.KeyTypeEd25519(Uint256(publicKey))
 
     /**
-     * Returns [true] if this Account is capable of signing, [false] otherwise.
+     * @return [true] if this account is capable of signing, [false] otherwise.
      */
     fun canSign(): Boolean = ecDSAKeyPair.canSign
 
     /**
-     * Sign the provided data with the account's private key.
+     * Signs provided data with the account's private key.
+     *
+     * @throws SignUnavailableException if account is not capable of signing.
+     *
+     * @see canSign
      */
     fun sign(data: ByteArray): ByteArray {
         return ecDSAKeyPair.sign(data)
     }
 
     /**
-     * Verify the provided data and signature match this account's public key.
+     * Verifies provided data and signature with the account's public key.
      */
     fun verifySignature(data: ByteArray, signature: ByteArray): Boolean {
         return ecDSAKeyPair.verify(data, signature)
     }
 
     /**
-     * Sign the provided data with the account's private key
+     * Signs provided data with the account's private key
      * and wraps the signature into XDR.
+     *
+     * @see sign
      */
     fun signDecorated(data: ByteArray): DecoratedSignature {
         return DecoratedSignature(getSignatureHint(), sign(data))
@@ -74,9 +87,12 @@ class Account(private val ecDSAKeyPair: EcDSAKeyPair) {
         private const val CURVE = Curves.ED25519_SHA512
 
         /**
-         * Creates a new Account from a strkey encoded secret seed.
-         * @param seed The strkey encoded secret seed.
-         * @return [Account]
+         * Creates an account from a secret seed.
+         *
+         * @param seed [Base32Check] encoded private key seed.
+         *
+         * @see Base32Check
+         * @see Account.secretSeed
          */
         @JvmStatic
         fun fromSecretSeed(seed: CharArray): Account {
@@ -86,9 +102,9 @@ class Account(private val ecDSAKeyPair: EcDSAKeyPair) {
         }
 
         /**
-         * Creates a new Account from a raw 32 byte secret seed.
-         * @param seed The 32 byte secret seed.
-         * @return [Account]
+         * Creates an account from a raw 32 byte secret seed.
+         *
+         * @param seed 32 bytes of the private key seed.
          */
         @JvmStatic
         fun fromSecretSeed(seed: ByteArray): Account {
@@ -96,9 +112,15 @@ class Account(private val ecDSAKeyPair: EcDSAKeyPair) {
         }
 
         /**
-         * Creates a new Account from a strkey encoded account ID.
-         * @param accountId The strkey encoded account ID.
-         * @return [Account]
+         * Creates an account from an account ID.
+         * Created account can be used only for signature verification
+         * as soon as it has no private key.
+         *
+         * @param accountId [Base32Check] encoded public key.
+         *
+         * @see Base32Check
+         * @see Account.accountId
+         * @see verifySignature
          */
         @JvmStatic
         fun fromAccountId(accountId: String): Account {
@@ -107,9 +129,11 @@ class Account(private val ecDSAKeyPair: EcDSAKeyPair) {
         }
 
         /**
-         * Creates a new Account from a 32 byte public key.
-         * @param publicKey The 32 byte public key.
-         * @return [Account]
+         * Creates an account from a raw 32 byte public key.
+         *
+         * @param publicKey 32 bytes of the public key.
+         *
+         * @see Account.publicKey
          */
         @JvmStatic
         fun fromPublicKey(publicKey: ByteArray): Account {
@@ -117,9 +141,9 @@ class Account(private val ecDSAKeyPair: EcDSAKeyPair) {
         }
 
         /**
-         * Creates a new Account from an XDR-wrapped public key.
+         * Creates an account from an XDR-wrapped public key.
+         *
          * @param publicKey XDR-wrapped public key.
-         * @return [Account]
          */
         @JvmStatic
         fun fromXdrPublicKey(publicKey: PublicKey.KeyTypeEd25519): Account {
@@ -127,8 +151,7 @@ class Account(private val ecDSAKeyPair: EcDSAKeyPair) {
         }
 
         /**
-         * Generates a random Account.
-         * @return a random Account.
+         * Creates an account from a random private key.
          */
         @JvmStatic
         fun random(): Account {
