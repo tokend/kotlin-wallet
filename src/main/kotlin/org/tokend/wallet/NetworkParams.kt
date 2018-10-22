@@ -2,6 +2,7 @@ package org.tokend.wallet
 
 import org.tokend.wallet.utils.Hashing
 import java.math.BigDecimal
+import java.math.MathContext
 import java.math.RoundingMode
 
 /**
@@ -27,10 +28,12 @@ class NetworkParams {
 
     /**
      * Converts given amount to network format.
+     *
+     * @see NetworkParams.precision
      */
     fun amountToPrecised(amount: BigDecimal): Long {
         return amount
-                .multiply(BigDecimal.TEN.pow(precision))
+                .multiply(BigDecimal(precisionMultiplier))
                 .setScale(0, RoundingMode.DOWN)
                 .longValueExact()
     }
@@ -39,10 +42,14 @@ class NetworkParams {
      * Converts given amount from network format to human-readable.
      */
     fun amountFromPrecised(amount: Long): BigDecimal {
-        return BigDecimal(amount).divide(BigDecimal.TEN.pow(precision))
+        return BigDecimal(amount)
+                .divide(BigDecimal(precisionMultiplier), MathContext.DECIMAL128)
     }
 
     companion object {
-        val DEFAULT_PRECISION = 6
+        /**
+         * Default amount precision in TokenD.
+         */
+        const val DEFAULT_PRECISION = 6
     }
 }
