@@ -10,29 +10,71 @@ import java.util.*
 
 /**
  * Represents TokenD transaction - a set of operations that changes the state of the system.
+ *
+ * @see <a href="https://tokend.gitbook.io/knowledge-base/technical-details/key-entities/transaction">Transaction in the Knowledge base</a>
  */
 class Transaction {
+    /**
+     * Params of the network into which the transaction will be sent.
+     */
     val networkParams: NetworkParams
+
+    /**
+     * Original account ID of the transaction initiator.
+     *
+     * @see <a href="https://tokend.gitbook.io/knowledge-base/technical-details/key-entities/transaction#source-account">Source account ID in the Knowledge base</a>
+     */
     val sourceAccountId: AccountID
+
+    /**
+     * Optional transaction payload.
+     *
+     * @see <a href="https://tokend.gitbook.io/knowledge-base/technical-details/key-entities/transaction#memo">Memo in the Knowledge base</a>
+     */
     val memo: Memo
+
+    /**
+     * List of operations performed by this transaction.
+     *
+     * @see <a href="https://tokend.gitbook.io/knowledge-base/technical-details/operations">Operations overview in the Knowledge base</a>
+     */
     val operations: List<Operation>
+
+    /**
+     * Time range during which the transaction will be valid.
+     *
+     * @see <a href="https://tokend.gitbook.io/knowledge-base/technical-details/key-entities/transaction#time-bounds">Time bounds in the Knowledge base</a>
+     */
     val timeBounds: TimeBounds
+
+    /**
+     * Any number that ensures the uniqueness of the transaction.
+     */
     val salt: Long
+
+    /**
+     * Optional maximal value of the fee charged for each operation.
+     */
     val maxTotalFee: Long?
 
     private val mSignatures = mutableListOf<DecoratedSignature>()
+
+    /**
+     * List of signatures for the transaction.
+     */
     val signatures: List<DecoratedSignature>
         get() = mSignatures.toList()
 
     /**
-     * Creates Transaction instance.
+     * Creates unsigned TokenD transaction.
      *
      * @param networkParams network specification
      * @param sourceAccountId account ID of transaction initiator
      * @param memo optional transaction payload
-     * @param timeBounds unixtime range during which the
+     * @param timeBounds time range during which the
      * transaction will be valid. Default transaction lifetime is [DEFAULT_LIFETIME_SECONDS]
      * @param salt optional unique value, random by default
+     * @param maxTotalFee system-specific feature, not used by default.
      *
      * @throws IllegalStateException if no operations were added.
      */
@@ -66,14 +108,14 @@ class Transaction {
     }
 
     /**
-     * Returns SHA-256 hash of the transaction.
+     * @return SHA-256 hash of the transaction.
      */
     fun getHash(): ByteArray {
         return Hashing.sha256(getSignatureBase())
     }
 
     /**
-     * Returns XDR-wrapped transaction with all signatures.
+     * @return XDR-wrapped transaction with all signatures.
      */
     fun getEnvelope(): TransactionEnvelope {
         return TransactionEnvelope(getXdrTransaction(), mSignatures.toTypedArray())
