@@ -9,8 +9,8 @@ import java.util.*
 
 /**
  * Performs encoding and decoding of specific data to Base32Check.
- * Base32Check is Base32 encoding with version byte and checksum
- * [version byte] + [data] + [CRC16 checksum of version byte and data]
+ * Base32Check is Base32 encoding with version byte and checksum:
+ * &#91;version byte&#93; + &#91;data&#93; + &#91;CRC16 checksum of version byte and data&#93;
  */
 object Base32Check {
     /**
@@ -42,6 +42,10 @@ object Base32Check {
         }
     }
 
+    /**
+     * @return [true] if encoded data is related to the given version byte
+     * and can be decoded, [false] otherwise.
+     */
     @JvmStatic
     fun isValid(versionByte: VersionByte, data: CharArray): Boolean {
         try {
@@ -52,36 +56,57 @@ object Base32Check {
         }
     }
 
+    /**
+     * Encodes given data using [VersionByte.ACCOUNT_ID] version byte.
+     */
     @JvmStatic
     fun encodeAccountId(data: ByteArray): String {
         return String(encodeCheck(VersionByte.ACCOUNT_ID, data))
     }
 
+    /**
+     * Decodes given data using [VersionByte.ACCOUNT_ID] version byte.
+     */
     @JvmStatic
     fun decodeAccountId(data: String): ByteArray {
         return decodeCheck(VersionByte.ACCOUNT_ID, data.toCharArray())
     }
 
+    /**
+     * Encodes given data using [VersionByte.SEED] version byte.
+     */
     @JvmStatic
     fun encodeSecretSeed(data: ByteArray): CharArray {
         return encodeCheck(VersionByte.SEED, data)
     }
 
+    /**
+     * Decodes given data using [VersionByte.SEED] version byte.
+     */
     @JvmStatic
     fun decodeSecretSeed(data: CharArray): ByteArray {
         return decodeCheck(VersionByte.SEED, data)
     }
 
+    /**
+     * Encodes given data using [VersionByte.BALANCE_ID] version byte.
+     */
     @JvmStatic
     fun encodeBalanceId(data: ByteArray): String {
         return String(encodeCheck(VersionByte.BALANCE_ID, data))
     }
 
+    /**
+     * Decodes given data using [VersionByte.BALANCE_ID] version byte.
+     */
     @JvmStatic
     fun decodeBalanceId(data: String): ByteArray {
         return decodeCheck(VersionByte.BALANCE_ID, data.toCharArray())
     }
 
+    /**
+     * Encodes given data using given version byte.
+     */
     @JvmStatic
     fun encodeCheck(versionByte: VersionByte, data: ByteArray): CharArray {
         try {
@@ -110,6 +135,9 @@ object Base32Check {
 
     }
 
+    /**
+     * Decodes given data using given version byte.
+     */
     @JvmStatic
     fun decodeCheck(versionByte: VersionByte, encoded: CharArray): ByteArray {
         val decodingResult = decode(encoded)
@@ -120,6 +148,11 @@ object Base32Check {
         return decodingResult.second
     }
 
+    /**
+     * Decodes given data and obtains it's version byte.
+     *
+     * @return [Pair] of the version byte and decoded data
+     */
     @JvmStatic
     fun decode(encoded: CharArray): Pair<VersionByte, ByteArray> {
         val bytes = ByteArray(encoded.size)
