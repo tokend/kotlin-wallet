@@ -1,5 +1,5 @@
 GIT
-  remote: https://gitlab.com/distributed_lab/xdrgen.git
+  remote: https://github.com/tokend/xdrgen.git
   revision: 99a98bcd56561af7895f8278b8ff09f9ad55cc7d
   specs:
     xdrgen (0.0.6)
@@ -19,7 +19,7 @@ GEM
     addressable (2.5.2)
       public_suffix (>= 2.0.2, < 4.0)
     coderay (1.1.2)
-    concurrent-ruby (1.0.5)
+    concurrent-ruby (1.1.1)
     faraday (0.15.3)
       multipart-post (>= 1.2, < 3)
     i18n (1.1.1)
