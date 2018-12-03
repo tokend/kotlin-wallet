@@ -81,4 +81,12 @@ class AccountTest {
                 Account.fromAccountId(ACCOUNT_ID).xdrPublicKey as PublicKey.KeyTypeEd25519)
         Assert.assertEquals(ACCOUNT_ID, account.accountId)
     }
+
+    @Test
+    fun destroy() {
+        val account = Account.fromSecretSeed(SEED.toCharArray())
+        account.destroy()
+        Assert.assertTrue(account.isDestroyed)
+        Assert.assertNull(account.secretSeed)
+    }
 }

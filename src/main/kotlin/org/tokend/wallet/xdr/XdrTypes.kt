@@ -356,6 +356,83 @@ open class AccountLimitsEntry(
 
 // === xdr source ============================================================
 
+//  struct AccountRolePermissionEntry
+//  {
+//      uint64 permissionID;
+//      uint64 accountRoleID;
+//      OperationType opType;
+//  
+//      // reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class AccountRolePermissionEntry(
+    var permissionID: Uint64,
+    var accountRoleID: Uint64,
+    var opType: OperationType,
+    var ext: AccountRolePermissionEntryExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    permissionID.toXdr(stream)
+    accountRoleID.toXdr(stream)
+    opType.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class AccountRolePermissionEntryExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: AccountRolePermissionEntryExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct AccountRoleEntry {
+//      uint64 accountRoleID;
+//      longstring accountRoleName;
+//  
+//      // reserved for future use
+//      union switch (LedgerVersion v) {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class AccountRoleEntry(
+    var accountRoleID: Uint64,
+    var accountRoleName: Longstring,
+    var ext: AccountRoleEntryExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    accountRoleID.toXdr(stream)
+    accountRoleName.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class AccountRoleEntryExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: AccountRoleEntryExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
 //  struct AccountTypeLimitsEntry
 //  {
 //  	AccountType accountType;
@@ -425,7 +502,8 @@ open class AccountTypeLimitsEntry(
 //  	EXTERNAL_SYSTEM_ACCOUNT_ID_POOL_MANAGER = 67108864,
 //      KEY_VALUE_MANAGER = 134217728, // can manage keyValue
 //      SUPER_ISSUANCE_MANAGER = 268435456,
-//      CONTRACT_MANAGER = 536870912
+//      CONTRACT_MANAGER = 536870912,
+//      ACCOUNT_ROLE_PERMISSION_MANAGER = 1073741824 // can manage account role permissions
 //  };
 
 //  ===========================================================================
@@ -460,6 +538,7 @@ public enum class SignerType(val value: Int): XdrEncodable {
   KEY_VALUE_MANAGER(134217728),
   SUPER_ISSUANCE_MANAGER(268435456),
   CONTRACT_MANAGER(536870912),
+  ACCOUNT_ROLE_PERMISSION_MANAGER(1073741824),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -678,6 +757,49 @@ public enum class BlockReasons(val value: Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  struct AccountEntryExtended
+//  {
+//      uint32 kycLevel;
+//      uint64* accountRole;
+//  
+//      // reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class AccountEntryExtended(
+    var kycLevel: Uint32,
+    var accountRole: Uint64?,
+    var ext: AccountEntryExtendedExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    kycLevel.toXdr(stream)
+    if (accountRole != null) {
+      true.toXdr(stream)
+      accountRole?.toXdr(stream)
+    } else {
+      false.toXdr(stream)
+    }
+    ext.toXdr(stream)
+  }
+
+  abstract class AccountEntryExtendedExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: AccountEntryExtendedExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
 //  struct AccountEntry
 //  {
 //      AccountID accountID;      // master public key for this account
@@ -703,10 +825,11 @@ public enum class BlockReasons(val value: Int): XdrEncodable {
 //      {
 //      case EMPTY_VERSION:
 //          void;
-//  	case USE_KYC_LEVEL:
-//  		uint32 kycLevel;
+//      case USE_KYC_LEVEL:
+//          uint32 kycLevel;
+//      case REPLACE_ACCOUNT_TYPES_WITH_POLICIES:
+//          AccountEntryExtended accountEntryExt;
 //      }
-//  	
 //      ext;
 //  };
 
@@ -761,6 +884,13 @@ open class AccountEntry(
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         kycLevel.toXdr(stream)
+      }
+    }
+
+    open class ReplaceAccountTypesWithPolicies(var accountEntryExt: AccountEntryExtended): AccountEntryExt(LedgerVersion.REPLACE_ACCOUNT_TYPES_WITH_POLICIES) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        accountEntryExt.toXdr(stream)
       }
     }
   }
@@ -1211,7 +1341,8 @@ open class ExternalSystemAccountID(
 //      ISSUANCE_FEE = 3,
 //      INVEST_FEE = 4, // fee to be taken while creating sale participation
 //      CAPITAL_DEPLOYMENT_FEE = 5, // fee to be taken when sale close
-//      OPERATION_FEE = 6
+//      OPERATION_FEE = 6,
+//      PAYOUT_FEE = 7
 //  };
 
 //  ===========================================================================
@@ -1223,6 +1354,7 @@ public enum class FeeType(val value: Int): XdrEncodable {
   INVEST_FEE(4),
   CAPITAL_DEPLOYMENT_FEE(5),
   OPERATION_FEE(6),
+  PAYOUT_FEE(7),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -1454,7 +1586,8 @@ open class KeyValueEntry(
 //      PAYMENT_OUT = 1,
 //      WITHDRAW = 2,
 //      SPEND = 3,
-//      DEPOSIT = 4
+//      DEPOSIT = 4,
+//      PAYOUT = 5
 //  };
 
 //  ===========================================================================
@@ -1463,6 +1596,7 @@ public enum class StatsOpType(val value: Int): XdrEncodable {
   WITHDRAW(2),
   SPEND(3),
   DEPOSIT(4),
+  PAYOUT(5),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -2541,7 +2675,9 @@ public enum class ThresholdIndexes(val value: Int): XdrEncodable {
 //      LIMITS_V2 = 22,
 //      STATISTICS_V2 = 23,
 //      PENDING_STATISTICS = 24,
-//      CONTRACT = 25
+//      CONTRACT = 25,
+//      ACCOUNT_ROLE = 26,
+//      ACCOUNT_ROLE_PERMISSION = 27
 //  };
 
 //  ===========================================================================
@@ -2569,6 +2705,8 @@ public enum class LedgerEntryType(val value: Int): XdrEncodable {
   STATISTICS_V2(23),
   PENDING_STATISTICS(24),
   CONTRACT(25),
+  ACCOUNT_ROLE(26),
+  ACCOUNT_ROLE_PERMISSION(27),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -2628,6 +2766,10 @@ public enum class LedgerEntryType(val value: Int): XdrEncodable {
 //          PendingStatisticsEntry pendingStatistics;
 //      case CONTRACT:
 //          ContractEntry contract;
+//      case ACCOUNT_ROLE:
+//          AccountRoleEntry accountRole;
+//      case ACCOUNT_ROLE_PERMISSION:
+//          AccountRolePermissionEntry accountRolePermission;
 //      }
 //      data;
 //  
@@ -2809,6 +2951,20 @@ open class LedgerEntry(
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         contract.toXdr(stream)
+      }
+    }
+
+    open class AccountRole(var accountRole: AccountRoleEntry): LedgerEntryData(LedgerEntryType.ACCOUNT_ROLE) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        accountRole.toXdr(stream)
+      }
+    }
+
+    open class AccountRolePermission(var accountRolePermission: AccountRolePermissionEntry): LedgerEntryData(LedgerEntryType.ACCOUNT_ROLE_PERMISSION) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        accountRolePermission.toXdr(stream)
       }
     }
   }
@@ -3329,6 +3485,26 @@ abstract class LedgerUpgrade(val discriminant: LedgerUpgradeType): XdrEncodable 
 //          }
 //          ext;
 //      } contract;
+//  case ACCOUNT_ROLE:
+//      struct {
+//          uint64 accountRoleID;
+//          union switch (LedgerVersion v)
+//          {
+//          case EMPTY_VERSION:
+//              void;
+//          }
+//          ext;
+//      } accountRole;
+//  case ACCOUNT_ROLE_PERMISSION:
+//      struct {
+//          uint64 permissionID;
+//          union switch (LedgerVersion v)
+//          {
+//          case EMPTY_VERSION:
+//              void;
+//          }
+//          ext;
+//      } accountRolePermission;
 //  };
 
 //  ===========================================================================
@@ -3488,6 +3664,20 @@ abstract class LedgerKey(val discriminant: LedgerEntryType): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       contract.toXdr(stream)
+    }
+  }
+
+  open class AccountRole(var accountRole: LedgerKeyAccountRole): LedgerKey(LedgerEntryType.ACCOUNT_ROLE) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      accountRole.toXdr(stream)
+    }
+  }
+
+  open class AccountRolePermission(var accountRolePermission: LedgerKeyAccountRolePermission): LedgerKey(LedgerEntryType.ACCOUNT_ROLE_PERMISSION) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      accountRolePermission.toXdr(stream)
     }
   }
 
@@ -3893,6 +4083,42 @@ abstract class LedgerKey(val discriminant: LedgerEntryType): XdrEncodable {
       }
 
       open class EmptyVersion: LedgerKeyContractExt(LedgerVersion.EMPTY_VERSION)
+    }
+  }
+  open class LedgerKeyAccountRole(
+      var accountRoleID: Uint64,
+      var ext: LedgerKeyAccountRoleExt
+    ) : XdrEncodable {
+
+    override fun toXdr(stream: XdrDataOutputStream) {
+      accountRoleID.toXdr(stream)
+      ext.toXdr(stream)
+    }
+
+    abstract class LedgerKeyAccountRoleExt(val discriminant: LedgerVersion): XdrEncodable {
+      override fun toXdr(stream: XdrDataOutputStream) {
+          discriminant.toXdr(stream)
+      }
+
+      open class EmptyVersion: LedgerKeyAccountRoleExt(LedgerVersion.EMPTY_VERSION)
+    }
+  }
+  open class LedgerKeyAccountRolePermission(
+      var permissionID: Uint64,
+      var ext: LedgerKeyAccountRolePermissionExt
+    ) : XdrEncodable {
+
+    override fun toXdr(stream: XdrDataOutputStream) {
+      permissionID.toXdr(stream)
+      ext.toXdr(stream)
+    }
+
+    abstract class LedgerKeyAccountRolePermissionExt(val discriminant: LedgerVersion): XdrEncodable {
+      override fun toXdr(stream: XdrDataOutputStream) {
+          discriminant.toXdr(stream)
+      }
+
+      open class EmptyVersion: LedgerKeyAccountRolePermissionExt(LedgerVersion.EMPTY_VERSION)
     }
   }
 }
@@ -4431,6 +4657,119 @@ abstract class BindExternalSystemAccountIdResult(val discriminant: BindExternalS
   }
 
   open class Success(var success: BindExternalSystemAccountIdSuccess): BindExternalSystemAccountIdResult(BindExternalSystemAccountIdResultCode.SUCCESS) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      success.toXdr(stream)
+    }
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct CancelSaleCreationRequestOp
+//  {
+//      uint64 requestID;
+//  
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  
+//  };
+
+//  ===========================================================================
+open class CancelSaleCreationRequestOp(
+    var requestID: Uint64,
+    var ext: CancelSaleCreationRequestOpExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    requestID.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class CancelSaleCreationRequestOpExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: CancelSaleCreationRequestOpExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  enum CancelSaleCreationRequestResultCode
+//  {
+//      // codes considered as "success" for the operation
+//      SUCCESS = 0,
+//  
+//      // codes considered as "failure" for the operation
+//      REQUEST_ID_INVALID = -1, // request id can not be equal zero
+//      REQUEST_NOT_FOUND = -2 // trying to cancel not existing reviewable request
+//  };
+
+//  ===========================================================================
+public enum class CancelSaleCreationRequestResultCode(val value: Int): XdrEncodable {
+  SUCCESS(0),
+  REQUEST_ID_INVALID(-1),
+  REQUEST_NOT_FOUND(-2),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct CancelSaleCreationSuccess {
+//  
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class CancelSaleCreationSuccess(
+    var ext: CancelSaleCreationSuccessExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    ext.toXdr(stream)
+  }
+
+  abstract class CancelSaleCreationSuccessExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: CancelSaleCreationSuccessExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  union CancelSaleCreationRequestResult switch (CancelSaleCreationRequestResultCode code)
+//  {
+//      case SUCCESS:
+//          CancelSaleCreationSuccess success;
+//      default:
+//          void;
+//  };
+
+//  ===========================================================================
+abstract class CancelSaleCreationRequestResult(val discriminant: CancelSaleCreationRequestResultCode): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  open class Success(var success: CancelSaleCreationSuccess): CancelSaleCreationRequestResult(CancelSaleCreationRequestResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
@@ -5056,6 +5395,52 @@ abstract class CreateUpdateKYCRequestResult(val discriminant: CreateUpdateKYCReq
 
 // === xdr source ============================================================
 
+//  struct CreateAccountOpExtended
+//  {
+//      ExternalSystemAccountID externalSystemIDs<>;
+//      uint64* roleID;
+//  
+//      // reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class CreateAccountOpExtended(
+    var externalSystemIDs: Array<ExternalSystemAccountID>,
+    var roleID: Uint64?,
+    var ext: CreateAccountOpExtendedExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    externalSystemIDs.size.toXdr(stream)
+    externalSystemIDs.forEach {
+      it.toXdr(stream)
+    }
+    if (roleID != null) {
+      true.toXdr(stream)
+      roleID?.toXdr(stream)
+    } else {
+      false.toXdr(stream)
+    }
+    ext.toXdr(stream)
+  }
+
+  abstract class CreateAccountOpExtendedExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: CreateAccountOpExtendedExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
 //  struct CreateAccountOp
 //  {
 //      AccountID destination; // account to create
@@ -5068,9 +5453,11 @@ abstract class CreateUpdateKYCRequestResult(val discriminant: CreateUpdateKYCReq
 //      union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
-//          void;	
-//  	case PASS_EXTERNAL_SYS_ACC_ID_IN_CREATE_ACC:
-//  		ExternalSystemAccountID externalSystemIDs<>;
+//          void;
+//      case PASS_EXTERNAL_SYS_ACC_ID_IN_CREATE_ACC:
+//          ExternalSystemAccountID externalSystemIDs<>;
+//      case REPLACE_ACCOUNT_TYPES_WITH_POLICIES:
+//          CreateAccountOpExtended opExt;
 //      }
 //      ext;
 //  };
@@ -5113,6 +5500,13 @@ open class CreateAccountOp(
         externalSystemIDs.forEach {
           it.toXdr(stream)
         }
+      }
+    }
+
+    open class ReplaceAccountTypesWithPolicies(var opExt: CreateAccountOpExtended): CreateAccountOpExt(LedgerVersion.REPLACE_ACCOUNT_TYPES_WITH_POLICIES) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        opExt.toXdr(stream)
       }
     }
   }
@@ -6046,6 +6440,506 @@ abstract class DirectDebitResult(val discriminant: DirectDebitResultCode): XdrEn
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
+    }
+  }
+}
+
+// === xdr source ============================================================
+
+//  enum ManageAccountRolePermissionOpAction
+//  {
+//      CREATE = 0,
+//      UPDATE = 1,
+//      REMOVE = 2
+//  };
+
+//  ===========================================================================
+public enum class ManageAccountRolePermissionOpAction(val value: Int): XdrEncodable {
+  CREATE(0),
+  UPDATE(1),
+  REMOVE(2),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct CreateAccountRolePermissionData
+//  {
+//      uint64 roleID;
+//      OperationType opType;
+//  
+//      // reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      } ext;
+//  };
+
+//  ===========================================================================
+open class CreateAccountRolePermissionData(
+    var roleID: Uint64,
+    var opType: OperationType,
+    var ext: CreateAccountRolePermissionDataExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    roleID.toXdr(stream)
+    opType.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class CreateAccountRolePermissionDataExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: CreateAccountRolePermissionDataExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct UpdateAccountRolePermissionData
+//  {
+//      uint64 permissionID;
+//      uint64 roleID;
+//      OperationType opType;
+//  
+//      // reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      } ext;
+//  };
+
+//  ===========================================================================
+open class UpdateAccountRolePermissionData(
+    var permissionID: Uint64,
+    var roleID: Uint64,
+    var opType: OperationType,
+    var ext: UpdateAccountRolePermissionDataExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    permissionID.toXdr(stream)
+    roleID.toXdr(stream)
+    opType.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class UpdateAccountRolePermissionDataExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: UpdateAccountRolePermissionDataExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct RemoveAccountRolePermissionData
+//  {
+//      uint64 permissionID;
+//  
+//      // reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      } ext;
+//  };
+
+//  ===========================================================================
+open class RemoveAccountRolePermissionData(
+    var permissionID: Uint64,
+    var ext: RemoveAccountRolePermissionDataExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    permissionID.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class RemoveAccountRolePermissionDataExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: RemoveAccountRolePermissionDataExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct ManageAccountRolePermissionOp
+//  {
+//      union switch (ManageAccountRolePermissionOpAction action)
+//      {
+//      case CREATE:
+//          CreateAccountRolePermissionData createData;
+//      case UPDATE:
+//          UpdateAccountRolePermissionData updateData;
+//      case REMOVE:
+//          RemoveAccountRolePermissionData removeData;
+//      } data;
+//  
+//      // reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class ManageAccountRolePermissionOp(
+    var data: ManageAccountRolePermissionOpData,
+    var ext: ManageAccountRolePermissionOpExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    data.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class ManageAccountRolePermissionOpData(val discriminant: ManageAccountRolePermissionOpAction): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class Create(var createData: CreateAccountRolePermissionData): ManageAccountRolePermissionOpData(ManageAccountRolePermissionOpAction.CREATE) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        createData.toXdr(stream)
+      }
+    }
+
+    open class Update(var updateData: UpdateAccountRolePermissionData): ManageAccountRolePermissionOpData(ManageAccountRolePermissionOpAction.UPDATE) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        updateData.toXdr(stream)
+      }
+    }
+
+    open class Remove(var removeData: RemoveAccountRolePermissionData): ManageAccountRolePermissionOpData(ManageAccountRolePermissionOpAction.REMOVE) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        removeData.toXdr(stream)
+      }
+    }
+  }
+  abstract class ManageAccountRolePermissionOpExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: ManageAccountRolePermissionOpExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  enum ManageAccountRolePermissionResultCode
+//  {
+//      // codes considered as "success" for the operation
+//      SUCCESS = 0,
+//  
+//      // codes considered as "failure" for the operation
+//      NOT_FOUND = -1,
+//      PERMISSION_ALREADY_EXISTS = -2
+//  };
+
+//  ===========================================================================
+public enum class ManageAccountRolePermissionResultCode(val value: Int): XdrEncodable {
+  SUCCESS(0),
+  NOT_FOUND(-1),
+  PERMISSION_ALREADY_EXISTS(-2),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+}
+
+// === xdr source ============================================================
+
+//  union ManageAccountRolePermissionResult switch (ManageAccountRolePermissionResultCode code)
+//  {
+//      case SUCCESS:
+//          struct {
+//              uint64 permissionID;
+//  
+//              // reserved for future use
+//              union switch (LedgerVersion v)
+//              {
+//              case EMPTY_VERSION:
+//                  void;
+//              }
+//              ext;
+//          } success;
+//      default:
+//          void;
+//  };
+
+//  ===========================================================================
+abstract class ManageAccountRolePermissionResult(val discriminant: ManageAccountRolePermissionResultCode): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  open class Success(var success: ManageAccountRolePermissionResultSuccess): ManageAccountRolePermissionResult(ManageAccountRolePermissionResultCode.SUCCESS) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      success.toXdr(stream)
+    }
+  }
+
+  open class ManageAccountRolePermissionResultSuccess(
+      var permissionID: Uint64,
+      var ext: ManageAccountRolePermissionResultSuccessExt
+    ) : XdrEncodable {
+
+    override fun toXdr(stream: XdrDataOutputStream) {
+      permissionID.toXdr(stream)
+      ext.toXdr(stream)
+    }
+
+    abstract class ManageAccountRolePermissionResultSuccessExt(val discriminant: LedgerVersion): XdrEncodable {
+      override fun toXdr(stream: XdrDataOutputStream) {
+          discriminant.toXdr(stream)
+      }
+
+      open class EmptyVersion: ManageAccountRolePermissionResultSuccessExt(LedgerVersion.EMPTY_VERSION)
+    }
+  }
+}
+
+// === xdr source ============================================================
+
+//  enum ManageAccountRoleOpAction
+//  {
+//      CREATE = 0,
+//      REMOVE = 1
+//  };
+
+//  ===========================================================================
+public enum class ManageAccountRoleOpAction(val value: Int): XdrEncodable {
+  CREATE(0),
+  REMOVE(1),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct CreateAccountRoleData
+//  {
+//      longstring name;
+//  
+//      // reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      } ext;
+//  };
+
+//  ===========================================================================
+open class CreateAccountRoleData(
+    var name: Longstring,
+    var ext: CreateAccountRoleDataExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    name.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class CreateAccountRoleDataExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: CreateAccountRoleDataExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct RemoveAccountRoleData
+//  {
+//      uint64 accountRoleID;
+//  
+//      // reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      } ext;
+//  };
+
+//  ===========================================================================
+open class RemoveAccountRoleData(
+    var accountRoleID: Uint64,
+    var ext: RemoveAccountRoleDataExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    accountRoleID.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class RemoveAccountRoleDataExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: RemoveAccountRoleDataExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct ManageAccountRoleOp
+//  {
+//      union switch (ManageAccountRoleOpAction action)
+//      {
+//      case CREATE:
+//          CreateAccountRoleData createData;
+//      case REMOVE:
+//          RemoveAccountRoleData removeData;
+//      } data;
+//  
+//      // reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class ManageAccountRoleOp(
+    var data: ManageAccountRoleOpData,
+    var ext: ManageAccountRoleOpExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    data.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class ManageAccountRoleOpData(val discriminant: ManageAccountRoleOpAction): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class Create(var createData: CreateAccountRoleData): ManageAccountRoleOpData(ManageAccountRoleOpAction.CREATE) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        createData.toXdr(stream)
+      }
+    }
+
+    open class Remove(var removeData: RemoveAccountRoleData): ManageAccountRoleOpData(ManageAccountRoleOpAction.REMOVE) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        removeData.toXdr(stream)
+      }
+    }
+  }
+  abstract class ManageAccountRoleOpExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: ManageAccountRoleOpExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  enum ManageAccountRoleResultCode
+//  {
+//      // codes considered as "success" for the operation
+//      SUCCESS = 0,
+//  
+//      // codes considered as "failure" for the operation
+//      NOT_FOUND = -1
+//  };
+
+//  ===========================================================================
+public enum class ManageAccountRoleResultCode(val value: Int): XdrEncodable {
+  SUCCESS(0),
+  NOT_FOUND(-1),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+}
+
+// === xdr source ============================================================
+
+//  union ManageAccountRoleResult switch (ManageAccountRoleResultCode code)
+//  {
+//      case SUCCESS:
+//          struct {
+//              uint64 accountRoleID;
+//  
+//              // reserved for future use
+//              union switch (LedgerVersion v)
+//              {
+//              case EMPTY_VERSION:
+//                  void;
+//              }
+//              ext;
+//          } success;
+//      default:
+//          void;
+//  };
+
+//  ===========================================================================
+abstract class ManageAccountRoleResult(val discriminant: ManageAccountRoleResultCode): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  open class Success(var success: ManageAccountRoleResultSuccess): ManageAccountRoleResult(ManageAccountRoleResultCode.SUCCESS) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      success.toXdr(stream)
+    }
+  }
+
+  open class ManageAccountRoleResultSuccess(
+      var accountRoleID: Uint64,
+      var ext: ManageAccountRoleResultSuccessExt
+    ) : XdrEncodable {
+
+    override fun toXdr(stream: XdrDataOutputStream) {
+      accountRoleID.toXdr(stream)
+      ext.toXdr(stream)
+    }
+
+    abstract class ManageAccountRoleResultSuccessExt(val discriminant: LedgerVersion): XdrEncodable {
+      override fun toXdr(stream: XdrDataOutputStream) {
+          discriminant.toXdr(stream)
+      }
+
+      open class EmptyVersion: ManageAccountRoleResultSuccessExt(LedgerVersion.EMPTY_VERSION)
     }
   }
 }
@@ -9496,6 +10390,215 @@ abstract class PaymentResult(val discriminant: PaymentResultCode): XdrEncodable 
 
 // === xdr source ============================================================
 
+//  struct PayoutOp
+//  {
+//      AssetCode asset; // asset, which holders will receive dividends
+//      BalanceID sourceBalanceID; // balance, from which payout will be performed
+//  
+//      uint64 maxPayoutAmount; // max amount of asset, that owner wants to pay out
+//      uint64 minPayoutAmount; // min tokens amount which will be payed for one balance;
+//      uint64 minAssetHolderAmount; // min tokens amount for which holder will received dividends
+//  
+//      Fee fee;
+//  
+//      // reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class PayoutOp(
+    var asset: AssetCode,
+    var sourceBalanceID: BalanceID,
+    var maxPayoutAmount: Uint64,
+    var minPayoutAmount: Uint64,
+    var minAssetHolderAmount: Uint64,
+    var fee: Fee,
+    var ext: PayoutOpExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    asset.toXdr(stream)
+    sourceBalanceID.toXdr(stream)
+    maxPayoutAmount.toXdr(stream)
+    minPayoutAmount.toXdr(stream)
+    minAssetHolderAmount.toXdr(stream)
+    fee.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class PayoutOpExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: PayoutOpExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  enum PayoutResultCode
+//  {
+//      // codes considered as "success" for the operation
+//      SUCCESS = 0,    // payout successfully completed
+//  
+//      // codes considered as "failure" for the operation
+//      INVALID_AMOUNT = -1, // max payout amount can not be zero
+//      INVALID_ASSET = -2,
+//      ASSET_NOT_FOUND = -3,
+//      ASSET_NOT_TRANSFERABLE = -4, // asset must have policy transferable
+//      BALANCE_NOT_FOUND = -5,
+//      INSUFFICIENT_FEE_AMOUNT = -6,
+//      FEE_EXCEEDS_ACTUAL_AMOUNT = -7,
+//      TOTAL_FEE_OVERFLOW = -8,
+//      UNDERFUNDED = -9, // not enough amount on source balance
+//      HOLDERS_NOT_FOUND = -10, // there is no holders of such asset
+//      MIN_AMOUNT_TOO_BIG = -11, // there is no appropriate holders balances
+//      LINE_FULL = -12, // destination balance amount overflows
+//      STATS_OVERFLOW = -13, // source statistics overflow
+//      LIMITS_EXCEEDED = -14 // source account limit exceeded
+//  };
+
+//  ===========================================================================
+public enum class PayoutResultCode(val value: Int): XdrEncodable {
+  SUCCESS(0),
+  INVALID_AMOUNT(-1),
+  INVALID_ASSET(-2),
+  ASSET_NOT_FOUND(-3),
+  ASSET_NOT_TRANSFERABLE(-4),
+  BALANCE_NOT_FOUND(-5),
+  INSUFFICIENT_FEE_AMOUNT(-6),
+  FEE_EXCEEDS_ACTUAL_AMOUNT(-7),
+  TOTAL_FEE_OVERFLOW(-8),
+  UNDERFUNDED(-9),
+  HOLDERS_NOT_FOUND(-10),
+  MIN_AMOUNT_TOO_BIG(-11),
+  LINE_FULL(-12),
+  STATS_OVERFLOW(-13),
+  LIMITS_EXCEEDED(-14),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct PayoutResponse
+//  {
+//      AccountID receiverID;
+//      BalanceID receiverBalanceID;
+//      uint64 receivedAmount;
+//  
+//      // reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class PayoutResponse(
+    var receiverID: AccountID,
+    var receiverBalanceID: BalanceID,
+    var receivedAmount: Uint64,
+    var ext: PayoutResponseExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    receiverID.toXdr(stream)
+    receiverBalanceID.toXdr(stream)
+    receivedAmount.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class PayoutResponseExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: PayoutResponseExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct PayoutSuccessResult
+//  {
+//      PayoutResponse payoutResponses<>;
+//      uint64 actualPayoutAmount;
+//      Fee actualFee;
+//  
+//      // reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class PayoutSuccessResult(
+    var payoutResponses: Array<PayoutResponse>,
+    var actualPayoutAmount: Uint64,
+    var actualFee: Fee,
+    var ext: PayoutSuccessResultExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    payoutResponses.size.toXdr(stream)
+    payoutResponses.forEach {
+      it.toXdr(stream)
+    }
+    actualPayoutAmount.toXdr(stream)
+    actualFee.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class PayoutSuccessResultExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: PayoutSuccessResultExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  union PayoutResult switch (PayoutResultCode code)
+//  {
+//      case SUCCESS:
+//          PayoutSuccessResult success;
+//      default:
+//          void;
+//  };
+
+//  ===========================================================================
+abstract class PayoutResult(val discriminant: PayoutResultCode): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  open class Success(var success: PayoutSuccessResult): PayoutResult(PayoutResultCode.SUCCESS) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      success.toXdr(stream)
+    }
+  }
+}
+
+// === xdr source ============================================================
+
 //  enum ReviewRequestOpAction {
 //  	APPROVE = 1,
 //  	REJECT = 2,
@@ -11943,6 +13046,8 @@ open class WithdrawalRequest(
 //  		CreateSaleCreationRequestOp createSaleCreationRequestOp;
 //  	case CHECK_SALE_STATE:
 //  		CheckSaleStateOp checkSaleStateOp;
+//  	case PAYOUT:
+//  	    PayoutOp payoutOp;
 //  	case CREATE_AML_ALERT:
 //  	    CreateAMLAlertRequestOp createAMLAlertRequestOp;
 //  	case MANAGE_KEY_VALUE:
@@ -11963,6 +13068,12 @@ open class WithdrawalRequest(
 //          ManageContractRequestOp manageContractRequestOp;
 //      case MANAGE_CONTRACT:
 //          ManageContractOp manageContractOp;
+//      case CANCEL_SALE_REQUEST:
+//          CancelSaleCreationRequestOp cancelSaleCreationRequestOp;
+//      case MANAGE_ACCOUNT_ROLE:
+//          ManageAccountRoleOp manageAccountRoleOp;
+//      case MANAGE_ACCOUNT_ROLE_PERMISSION:
+//          ManageAccountRolePermissionOp manageAccountRolePermissionOp;
 //      }
 //      body;
 //  };
@@ -12114,6 +13225,13 @@ open class Operation(
       }
     }
 
+    open class Payout(var payoutOp: PayoutOp): OperationBody(OperationType.PAYOUT) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        payoutOp.toXdr(stream)
+      }
+    }
+
     open class CreateAmlAlert(var createAMLAlertRequestOp: CreateAMLAlertRequestOp): OperationBody(OperationType.CREATE_AML_ALERT) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
@@ -12181,6 +13299,27 @@ open class Operation(
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         manageContractOp.toXdr(stream)
+      }
+    }
+
+    open class CancelSaleRequest(var cancelSaleCreationRequestOp: CancelSaleCreationRequestOp): OperationBody(OperationType.CANCEL_SALE_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        cancelSaleCreationRequestOp.toXdr(stream)
+      }
+    }
+
+    open class ManageAccountRole(var manageAccountRoleOp: ManageAccountRoleOp): OperationBody(OperationType.MANAGE_ACCOUNT_ROLE) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        manageAccountRoleOp.toXdr(stream)
+      }
+    }
+
+    open class ManageAccountRolePermission(var manageAccountRolePermissionOp: ManageAccountRolePermissionOp): OperationBody(OperationType.MANAGE_ACCOUNT_ROLE_PERMISSION) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        manageAccountRolePermissionOp.toXdr(stream)
       }
     }
   }
@@ -12385,7 +13524,8 @@ open class TransactionEnvelope(
 //      opNO_COUNTERPARTY = -5,
 //      opCOUNTERPARTY_BLOCKED = -6,
 //      opCOUNTERPARTY_WRONG_TYPE = -7,
-//  	opBAD_AUTH_EXTRA = -8
+//      opBAD_AUTH_EXTRA = -8,
+//      opNO_ROLE_PERMISSION = -9 // not allowed for this role of source account
 //  };
 
 //  ===========================================================================
@@ -12399,6 +13539,7 @@ public enum class OperationResultCode(val value: Int): XdrEncodable {
   opCOUNTERPARTY_BLOCKED(-6),
   opCOUNTERPARTY_WRONG_TYPE(-7),
   opBAD_AUTH_EXTRA(-8),
+  opNO_ROLE_PERMISSION(-9),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -12449,6 +13590,8 @@ public enum class OperationResultCode(val value: Int): XdrEncodable {
 //  		CreateSaleCreationRequestResult createSaleCreationRequestResult;
 //  	case CHECK_SALE_STATE:
 //  		CheckSaleStateResult checkSaleStateResult;
+//  	case PAYOUT:
+//  	    PayoutResult payoutResult;
 //  	case CREATE_AML_ALERT:
 //  	    CreateAMLAlertRequestResult createAMLAlertRequestResult;
 //  	case MANAGE_KEY_VALUE:
@@ -12469,6 +13612,12 @@ public enum class OperationResultCode(val value: Int): XdrEncodable {
 //          ManageContractRequestResult manageContractRequestResult;
 //      case MANAGE_CONTRACT:
 //          ManageContractResult manageContractResult;
+//      case CANCEL_SALE_REQUEST:
+//          CancelSaleCreationRequestResult cancelSaleCreationRequestResult;
+//      case MANAGE_ACCOUNT_ROLE:
+//          ManageAccountRoleResult manageAccountRoleResult;
+//      case MANAGE_ACCOUNT_ROLE_PERMISSION:
+//          ManageAccountRolePermissionResult manageAccountRolePermissionResult;
 //      }
 //      tr;
 //  default:
@@ -12619,6 +13768,13 @@ abstract class OperationResult(val discriminant: OperationResultCode): XdrEncoda
       }
     }
 
+    open class Payout(var payoutResult: PayoutResult): OperationResultTr(OperationType.PAYOUT) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        payoutResult.toXdr(stream)
+      }
+    }
+
     open class CreateAmlAlert(var createAMLAlertRequestResult: CreateAMLAlertRequestResult): OperationResultTr(OperationType.CREATE_AML_ALERT) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
@@ -12686,6 +13842,27 @@ abstract class OperationResult(val discriminant: OperationResultCode): XdrEncoda
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         manageContractResult.toXdr(stream)
+      }
+    }
+
+    open class CancelSaleRequest(var cancelSaleCreationRequestResult: CancelSaleCreationRequestResult): OperationResultTr(OperationType.CANCEL_SALE_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        cancelSaleCreationRequestResult.toXdr(stream)
+      }
+    }
+
+    open class ManageAccountRole(var manageAccountRoleResult: ManageAccountRoleResult): OperationResultTr(OperationType.MANAGE_ACCOUNT_ROLE) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        manageAccountRoleResult.toXdr(stream)
+      }
+    }
+
+    open class ManageAccountRolePermission(var manageAccountRolePermissionResult: ManageAccountRolePermissionResult): OperationResultTr(OperationType.MANAGE_ACCOUNT_ROLE_PERMISSION) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        manageAccountRolePermissionResult.toXdr(stream)
       }
     }
   }
@@ -13047,7 +14224,9 @@ abstract class PublicKey(val discriminant: CryptoKeyType): XdrEncodable {
 //      ALLOW_TO_UPDATE_AND_REJECT_LIMITS_UPDATE_REQUESTS = 46,
 //      ADD_CUSTOMER_DETAILS_TO_CONTRACT = 47,
 //      ADD_CAPITAL_DEPLOYMENT_FEE_TYPE = 48,
-//      ADD_TRANSACTION_FEE = 49
+//      ADD_TRANSACTION_FEE = 49,
+//      ADD_DEFAULT_ISSUANCE_TASKS = 50,
+//      REPLACE_ACCOUNT_TYPES_WITH_POLICIES = 999999 // do not use it yet, there are features to be improved
 //  };
 
 //  ===========================================================================
@@ -13102,6 +14281,8 @@ public enum class LedgerVersion(val value: Int): XdrEncodable {
   ADD_CUSTOMER_DETAILS_TO_CONTRACT(47),
   ADD_CAPITAL_DEPLOYMENT_FEE_TYPE(48),
   ADD_TRANSACTION_FEE(49),
+  ADD_DEFAULT_ISSUANCE_TASKS(50),
+  REPLACE_ACCOUNT_TYPES_WITH_POLICIES(999999),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -13336,7 +14517,11 @@ open class Fee(
 //      MANAGE_KEY_VALUE = 27,
 //      CREATE_MANAGE_LIMITS_REQUEST = 28,
 //      MANAGE_CONTRACT_REQUEST = 29,
-//      MANAGE_CONTRACT = 30
+//      MANAGE_CONTRACT = 30,
+//      CANCEL_SALE_REQUEST = 31,
+//      PAYOUT = 32,
+//      MANAGE_ACCOUNT_ROLE = 33,
+//      MANAGE_ACCOUNT_ROLE_PERMISSION = 34
 //  };
 
 //  ===========================================================================
@@ -13369,6 +14554,10 @@ public enum class OperationType(val value: Int): XdrEncodable {
   CREATE_MANAGE_LIMITS_REQUEST(28),
   MANAGE_CONTRACT_REQUEST(29),
   MANAGE_CONTRACT(30),
+  CANCEL_SALE_REQUEST(31),
+  PAYOUT(32),
+  MANAGE_ACCOUNT_ROLE(33),
+  MANAGE_ACCOUNT_ROLE_PERMISSION(34),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {

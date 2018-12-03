@@ -1,0 +1,4 @@
+[submodule "xdr"]
+	path = xdr
+	url = https://gitlab.com/tokend/xdr.git
+	branch = master

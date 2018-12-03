@@ -1,6 +1,7 @@
 package org.tokend.wallet
 
 import org.apache.commons.codec.binary.Base32
+import org.tokend.crypto.ecdsa.erase
 import org.tokend.wallet.utils.toByteArray
 import org.tokend.wallet.utils.toCharArray
 import java.io.ByteArrayOutputStream
@@ -122,10 +123,10 @@ object Base32Check {
             val charsEncoded = encoded.toCharArray()
 
             if (VersionByte.SEED == versionByte) {
-                Arrays.fill(unencoded, 0.toByte())
-                Arrays.fill(payload, 0.toByte())
-                Arrays.fill(checksum, 0.toByte())
-                Arrays.fill(encoded, 0)
+                unencoded.erase()
+                payload.erase()
+                checksum.erase()
+                encoded.erase()
             }
 
             return charsEncoded
