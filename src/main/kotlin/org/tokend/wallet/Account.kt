@@ -3,11 +3,13 @@ package org.tokend.wallet
 import org.tokend.crypto.ecdsa.Curves
 import org.tokend.crypto.ecdsa.EcDSAKeyPair
 import org.tokend.crypto.ecdsa.SignUnavailableException
+import org.tokend.crypto.ecdsa.erase
 import org.tokend.wallet.xdr.DecoratedSignature
 import org.tokend.wallet.xdr.PublicKey
 import org.tokend.wallet.xdr.SignatureHint
 import org.tokend.wallet.xdr.Uint256
 import java.util.*
+import javax.security.auth.Destroyable
 
 /**
  * Represents TokenD account defined by EcDSA private and/or public keys.
@@ -16,7 +18,7 @@ import java.util.*
  * @see <a href="https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm/">ECDSA</a>
  * @see <a href="https://ed25519.cr.yp.to/">Ed25519</a>
  */
-class Account(private val ecDSAKeyPair: EcDSAKeyPair) {
+class Account(private val ecDSAKeyPair: EcDSAKeyPair) : Destroyable {
     /**
      * @return public key encoded by [Base32Check].
      *
@@ -83,13 +85,22 @@ class Account(private val ecDSAKeyPair: EcDSAKeyPair) {
         return SignatureHint(signatureHintBytes)
     }
 
+    override fun destroy() {
+        ecDSAKeyPair.destroy()
+    }
+
+    override fun isDestroyed(): Boolean {
+        return ecDSAKeyPair.isDestroyed
+    }
+
     companion object {
         private const val CURVE = Curves.ED25519_SHA512
 
         /**
          * Creates an account from a secret seed.
          *
-         * @param seed [Base32Check] encoded private key seed.
+         * @param seed [Base32Check] encoded private key seed. Will be decoded and duplicated
+         * so can be erased after account creation.
          *
          * @see Base32Check
          * @see Account.secretSeed
@@ -98,13 +109,14 @@ class Account(private val ecDSAKeyPair: EcDSAKeyPair) {
         fun fromSecretSeed(seed: CharArray): Account {
             val decoded = Base32Check.decodeSecretSeed(seed)
             val keypair = fromSecretSeed(decoded)
+            decoded.erase()
             return keypair
         }
 
         /**
          * Creates an account from a raw 32 byte secret seed.
          *
-         * @param seed 32 bytes of the private key seed.
+         * @param seed 32 bytes of the private key seed. Will be duplicated.
          */
         @JvmStatic
         fun fromSecretSeed(seed: ByteArray): Account {
