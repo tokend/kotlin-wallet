@@ -985,7 +985,8 @@ open class AssetPairEntry(
 //  	TWO_STEP_WITHDRAWAL = 16,
 //  	REQUIRES_KYC = 32,
 //  	ISSUANCE_MANUAL_REVIEW_REQUIRED = 64,
-//  	REQUIRES_VERIFICATION = 128
+//  	REQUIRES_VERIFICATION = 128, 
+//  	WITHDRAWABLE_V2 = 256 // switch to withdraw with tasks
 //  };
 
 //  ===========================================================================
@@ -998,6 +999,7 @@ public enum class AssetPolicy(val value: Int): XdrEncodable {
   REQUIRES_KYC(32),
   ISSUANCE_MANUAL_REVIEW_REQUIRED(64),
   REQUIRES_VERIFICATION(128),
+  WITHDRAWABLE_V2(256),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -1041,6 +1043,8 @@ public enum class AssetSystemPolicies(val value: Int): XdrEncodable {
 //      {
 //      case EMPTY_VERSION:
 //          void;
+//      case ADD_ASSET_BALANCE_PRECISION:
+//          uint32 trailingDigitsCount;
 //      }
 //      ext;
 //  };
@@ -1078,6 +1082,13 @@ open class AssetEntry(
     }
 
     open class EmptyVersion: AssetEntryExt(LedgerVersion.EMPTY_VERSION)
+
+    open class AddAssetBalancePrecision(var trailingDigitsCount: Uint32): AssetEntryExt(LedgerVersion.ADD_ASSET_BALANCE_PRECISION) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        trailingDigitsCount.toXdr(stream)
+      }
+    }
   }
 }
 
@@ -5136,9 +5147,9 @@ open class CreateAMLAlertRequestOp(
 //      BALANCE_NOT_EXIST = 1, // balance doesn't exist
 //      INVALID_REASON = 2, //invalid reason for request
 //      UNDERFUNDED = 3, //when couldn't lock balance
-//  	REFERENCE_DUPLICATION = 4, // reference already exists
-//  	INVALID_AMOUNT = 5 // amount must be positive
-//  
+//      REFERENCE_DUPLICATION = 4, // reference already exists
+//      INVALID_AMOUNT = 5, // amount must be positive
+//      INCORRECT_PRECISION = 6
 //  
 //  };
 
@@ -5150,6 +5161,7 @@ public enum class CreateAMLAlertRequestResultCode(val value: Int): XdrEncodable 
   UNDERFUNDED(3),
   REFERENCE_DUPLICATION(4),
   INVALID_AMOUNT(5),
+  INCORRECT_PRECISION(6),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -5671,7 +5683,7 @@ open class CreateIssuanceRequestOp(
 //  
 //      // codes considered as "failure" for the operation
 //      ASSET_NOT_FOUND = -1,
-//  	INVALID_AMOUNT = -2,
+//  	INVALID_AMOUNT = -2,             // amount is 0
 //  	REFERENCE_DUPLICATION = -3,
 //  	NO_COUNTERPARTY = -4,
 //  	NOT_AUTHORIZED = -5,
@@ -5682,7 +5694,8 @@ open class CreateIssuanceRequestOp(
 //      REQUIRES_KYC = -10, // asset requires receiver to have KYC
 //      REQUIRES_VERIFICATION = -11, //asset requires receiver to be verified
 //      ISSUANCE_TASKS_NOT_FOUND = -12, // issuance tasks have not been provided by the source and don't exist in 'KeyValue' table
-//      SYSTEM_TASKS_NOT_ALLOWED = -13
+//      SYSTEM_TASKS_NOT_ALLOWED = -13,
+//      INVALID_AMOUNT_PRECISION = -14   // amount does not match asset's precision
 //  };
 
 //  ===========================================================================
@@ -5701,6 +5714,7 @@ public enum class CreateIssuanceRequestResultCode(val value: Int): XdrEncodable 
   REQUIRES_VERIFICATION(-11),
   ISSUANCE_TASKS_NOT_FOUND(-12),
   SYSTEM_TASKS_NOT_ALLOWED(-13),
+  INVALID_AMOUNT_PRECISION(-14),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -5941,12 +5955,13 @@ open class CreatePreIssuanceRequestOp(
 //  
 //      // codes considered as "failure" for the operation
 //      ASSET_NOT_FOUND = -1,
-//      REFERENCE_DUPLICATION = -2,    // reference is already used
-//      NOT_AUTHORIZED_UPLOAD = -3, // tries to pre issue asset for not owned asset
+//      REFERENCE_DUPLICATION = -2,      // reference is already used
+//      NOT_AUTHORIZED_UPLOAD = -3,      // tries to pre issue asset for not owned asset
 //      INVALID_SIGNATURE = -4,
 //      EXCEEDED_MAX_AMOUNT = -5,
-//  	INVALID_AMOUNT = -6,
-//  	INVALID_REFERENCE = -7
+//      INVALID_AMOUNT = -6,             // amount is 0
+//      INVALID_REFERENCE = -7,
+//      INCORRECT_AMOUNT_PRECISION = -8  // amount does not fit to this asset's precision
 //  };
 
 //  ===========================================================================
@@ -5959,6 +5974,7 @@ public enum class CreatePreIssuanceRequestResultCode(val value: Int): XdrEncodab
   EXCEEDED_MAX_AMOUNT(-5),
   INVALID_AMOUNT(-6),
   INVALID_REFERENCE(-7),
+  INCORRECT_AMOUNT_PRECISION(-8),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -6169,11 +6185,13 @@ abstract class CreateSaleCreationRequestResult(val discriminant: CreateSaleCreat
 //  	WithdrawalRequest request;
 //  
 //  	union switch (LedgerVersion v)
-//  	{
-//  	case EMPTY_VERSION:
-//  		void;
-//  	}
-//  	ext;
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      case WITHDRAWAL_TASKS:
+//          uint32* allTasks;
+//      }
+//      ext;
 //  
 //  };
 
@@ -6194,6 +6212,18 @@ open class CreateWithdrawalRequestOp(
     }
 
     open class EmptyVersion: CreateWithdrawalRequestOpExt(LedgerVersion.EMPTY_VERSION)
+
+    open class WithdrawalTasks(var allTasks: Uint32?): CreateWithdrawalRequestOpExt(LedgerVersion.WITHDRAWAL_TASKS) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        if (allTasks != null) {
+          true.toXdr(stream)
+          allTasks?.toXdr(stream)
+        } else {
+          false.toXdr(stream)
+        }
+      }
+    }
   }
 }
 
@@ -6219,7 +6249,9 @@ open class CreateWithdrawalRequestOp(
 //  	STATS_OVERFLOW = -12, // statistics overflowed by the operation
 //  	LIMITS_EXCEEDED = -13, // withdraw exceeds limits for source account
 //  	INVALID_PRE_CONFIRMATION_DETAILS = -14, // it's not allowed to pass pre confirmation details
-//  	LOWER_BOUND_NOT_EXCEEDED = -15
+//  	LOWER_BOUND_NOT_EXCEEDED = -15, //amount to withdraw is too small 
+//      WITHDRAWAL_TASKS_NOT_FOUND = -16,
+//  	NOT_ALLOWED_TO_SET_WITHDRAWAL_TASKS = -17 //Can't set withdrawal tasks on request creation
 //  };
 
 //  ===========================================================================
@@ -6240,6 +6272,8 @@ public enum class CreateWithdrawalRequestResultCode(val value: Int): XdrEncodabl
   LIMITS_EXCEEDED(-13),
   INVALID_PRE_CONFIRMATION_DETAILS(-14),
   LOWER_BOUND_NOT_EXCEEDED(-15),
+  WITHDRAWAL_TASKS_NOT_FOUND(-16),
+  NOT_ALLOWED_TO_SET_WITHDRAWAL_TASKS(-17),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -7441,7 +7475,11 @@ open class ManageAssetOp(
 //  	REQUEST_ALREADY_EXISTS = -9,      // request for creation of unique entry already exists
 //  	STATS_ASSET_ALREADY_EXISTS = -10, // statistics quote asset already exists
 //  	INITIAL_PREISSUED_EXCEEDS_MAX_ISSUANCE = -11, // initial pre issued amount exceeds max issuance amount
-//  	INVALID_DETAILS = -12 // details must be a valid json
+//      INVALID_DETAILS = -12,                        // details must be a valid json
+//      INVALID_TRAILING_DIGITS_COUNT = -13,          // invalid number of trailing digits
+//      INVALID_PREISSUED_AMOUNT_PRECISION = -14,     // initial pre issued amount does not match precision set by trailing digits count
+//      INVALID_MAX_ISSUANCE_AMOUNT_PRECISION = -15,   // maximum issuance amount does not match precision set by trailing digits count
+//      INCOMPATIBLE_POLICIES = -16 // policies set in request are incompatible(i.e. WITHDRAWABLE and WITHDRAWA
 //  };
 
 //  ===========================================================================
@@ -7457,6 +7495,10 @@ public enum class ManageAssetResultCode(val value: Int): XdrEncodable {
   STATS_ASSET_ALREADY_EXISTS(-10),
   INITIAL_PREISSUED_EXCEEDS_MAX_ISSUANCE(-11),
   INVALID_DETAILS(-12),
+  INVALID_TRAILING_DIGITS_COUNT(-13),
+  INVALID_PREISSUED_AMOUNT_PRECISION(-14),
+  INVALID_MAX_ISSUANCE_AMOUNT_PRECISION(-15),
+  INCOMPATIBLE_POLICIES(-16),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -8008,7 +8050,8 @@ open class ManageContractOp(
 //      ALREADY_CONFIRMED = -6,
 //      INVOICE_NOT_APPROVED = -7, // all contract invoices must be approved
 //      DISPUTE_ALREADY_STARTED = -8,
-//      CUSTOMER_BALANCE_OVERFLOW = -9
+//      CUSTOMER_BALANCE_OVERFLOW = -9,
+//      INCORRECT_PRECISION = -10
 //  };
 
 //  ===========================================================================
@@ -8023,6 +8066,7 @@ public enum class ManageContractResultCode(val value: Int): XdrEncodable {
   INVOICE_NOT_APPROVED(-7),
   DISPUTE_ALREADY_STARTED(-8),
   CUSTOMER_BALANCE_OVERFLOW(-9),
+  INCORRECT_PRECISION(-10),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -9110,7 +9154,8 @@ open class ManageOfferOp(
 //  	REQUIRES_KYC = -24, // source must have KYC in order to participate
 //  	SOURCE_UNDERFUNDED = -25,
 //  	SOURCE_BALANCE_LOCK_OVERFLOW = -26,
-//  	REQUIRES_VERIFICATION = -27 // source must be verified in order to participate
+//  	REQUIRES_VERIFICATION = -27, // source must be verified in order to participate
+//  	INCORRECT_AMOUNT_PRECISION = -28
 //  };
 
 //  ===========================================================================
@@ -9143,6 +9188,7 @@ public enum class ManageOfferResultCode(val value: Int): XdrEncodable {
   SOURCE_UNDERFUNDED(-25),
   SOURCE_BALANCE_LOCK_OVERFLOW(-26),
   REQUIRES_VERIFICATION(-27),
+  INCORRECT_AMOUNT_PRECISION(-28),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -9987,7 +10033,8 @@ open class PaymentOpV2(
 //      INSUFFICIENT_FEE_AMOUNT = -14,
 //      BALANCE_TO_CHARGE_FEE_FROM_NOT_FOUND = -15,
 //      PAYMENT_AMOUNT_IS_LESS_THAN_DEST_FEE = -16,
-//      DESTINATION_ACCOUNT_NOT_FOUND = -17
+//      DESTINATION_ACCOUNT_NOT_FOUND = -17,
+//      INCORRECT_AMOUNT_PRECISION = -18
 //  
 //       // !!! Add new result code to review invoice op too !!!
 //  };
@@ -10012,6 +10059,7 @@ public enum class PaymentV2ResultCode(val value: Int): XdrEncodable {
   BALANCE_TO_CHARGE_FEE_FROM_NOT_FOUND(-15),
   PAYMENT_AMOUNT_IS_LESS_THAN_DEST_FEE(-16),
   DESTINATION_ACCOUNT_NOT_FOUND(-17),
+  INCORRECT_AMOUNT_PRECISION(-18),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -10461,7 +10509,8 @@ open class PayoutOp(
 //      MIN_AMOUNT_TOO_BIG = -11, // there is no appropriate holders balances
 //      LINE_FULL = -12, // destination balance amount overflows
 //      STATS_OVERFLOW = -13, // source statistics overflow
-//      LIMITS_EXCEEDED = -14 // source account limit exceeded
+//      LIMITS_EXCEEDED = -14, // source account limit exceeded
+//      INCORRECT_PRECISION = -15 // asset does not allow amounts with such precision
 //  };
 
 //  ===========================================================================
@@ -10481,6 +10530,7 @@ public enum class PayoutResultCode(val value: Int): XdrEncodable {
   LINE_FULL(-12),
   STATS_OVERFLOW(-13),
   LIMITS_EXCEEDED(-14),
+  INCORRECT_PRECISION(-15),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -11105,6 +11155,7 @@ open class ReviewRequestOp(
 //  	INSUFFICIENT_AVAILABLE_FOR_ISSUANCE_AMOUNT = -41,
 //  	FULL_LINE = -42, // can't fund balance - total funds exceed UINT64_MAX
 //  	SYSTEM_TASKS_NOT_ALLOWED = -43,
+//      INCORRECT_PRECISION = -44,
 //  
 //  	// Sale creation requests
 //  	BASE_ASSET_DOES_NOT_EXISTS = -50,
@@ -11157,7 +11208,10 @@ open class ReviewRequestOp(
 //      INVALID_LIMITS = 131,
 //  
 //      // Contract requests
-//      CONTRACT_DETAILS_TOO_LONG = -140 // customer details reached length limit
+//      CONTRACT_DETAILS_TOO_LONG = -140, // customer details reached length limit
+//  
+//  	//Withdrawal request 
+//  	REMOVING_NOT_SET_TASKS = -150 // cannot remove tasks which are not set 
 //  };
 
 //  ===========================================================================
@@ -11178,6 +11232,7 @@ public enum class ReviewRequestResultCode(val value: Int): XdrEncodable {
   INSUFFICIENT_AVAILABLE_FOR_ISSUANCE_AMOUNT(-41),
   FULL_LINE(-42),
   SYSTEM_TASKS_NOT_ALLOWED(-43),
+  INCORRECT_PRECISION(-44),
   BASE_ASSET_DOES_NOT_EXISTS(-50),
   HARD_CAP_WILL_EXCEED_MAX_ISSUANCE(-51),
   INSUFFICIENT_PREISSUED_FOR_HARD_CAP(-52),
@@ -11213,6 +11268,7 @@ public enum class ReviewRequestResultCode(val value: Int): XdrEncodable {
   CANNOT_CREATE_FOR_ACC_ID_AND_ACC_TYPE(130),
   INVALID_LIMITS(131),
   CONTRACT_DETAILS_TOO_LONG(-140),
+  REMOVING_NOT_SET_TASKS(-150),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -12209,6 +12265,8 @@ open class AMLAlertRequest(
 //      {
 //      case EMPTY_VERSION:
 //          void;
+//      case ADD_ASSET_BALANCE_PRECISION:
+//          uint32 trailingDigitsCount;
 //      }
 //      ext;
 //  };
@@ -12240,6 +12298,13 @@ open class AssetCreationRequest(
     }
 
     open class EmptyVersion: AssetCreationRequestExt(LedgerVersion.EMPTY_VERSION)
+
+    open class AddAssetBalancePrecision(var trailingDigitsCount: Uint32): AssetCreationRequestExt(LedgerVersion.ADD_ASSET_BALANCE_PRECISION) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        trailingDigitsCount.toXdr(stream)
+      }
+    }
   }
 }
 
@@ -13880,15 +13945,16 @@ abstract class OperationResult(val discriminant: OperationResultCode): XdrEncoda
 //      txTOO_LATE = -3,          // ledger closeTime after maxTime
 //      txMISSING_OPERATION = -4, // no operation was specified
 //  
-//      txBAD_AUTH = -5,             // too few valid signatures / wrong network
-//      txNO_ACCOUNT = -6,           // source account not found
-//      txBAD_AUTH_EXTRA = -7,       // unused signatures attached to transaction
-//      txINTERNAL_ERROR = -8,       // an unknown error occured
-//  	txACCOUNT_BLOCKED = -9,      // account is blocked and cannot be source of tx
-//      txDUPLICATION = -10,         // if timing is stored
-//      txINSUFFICIENT_FEE = -11,    // the actual total fee amount is greater than the max total fee amount, provided by the source
-//      txSOURCE_UNDERFUNDED = -12,  // not enough tx fee asset on source balance
-//      txCOMMISSION_LINE_FULL = -13 // commission tx fee asset balance amount overflow
+//      txBAD_AUTH = -5,                   // too few valid signatures / wrong network
+//      txNO_ACCOUNT = -6,                 // source account not found
+//      txBAD_AUTH_EXTRA = -7,             // unused signatures attached to transaction
+//      txINTERNAL_ERROR = -8,             // an unknown error occured
+//      txACCOUNT_BLOCKED = -9,            // account is blocked and cannot be source of tx
+//      txDUPLICATION = -10,               // if timing is stored
+//      txINSUFFICIENT_FEE = -11,          // the actual total fee amount is greater than the max total fee amount, provided by the source
+//      txSOURCE_UNDERFUNDED = -12,        // not enough tx fee asset on source balance
+//      txCOMMISSION_LINE_FULL = -13,      // commission tx fee asset balance amount overflow
+//      txFEE_INCORRECT_PRECISION = -14    // fee amount is incompatible with asset precision
 //  };
 
 //  ===========================================================================
@@ -13907,6 +13973,7 @@ public enum class TransactionResultCode(val value: Int): XdrEncodable {
   txINSUFFICIENT_FEE(-11),
   txSOURCE_UNDERFUNDED(-12),
   txCOMMISSION_LINE_FULL(-13),
+  txFEE_INCORRECT_PRECISION(-14),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -14226,6 +14293,8 @@ abstract class PublicKey(val discriminant: CryptoKeyType): XdrEncodable {
 //      ADD_CAPITAL_DEPLOYMENT_FEE_TYPE = 48,
 //      ADD_TRANSACTION_FEE = 49,
 //      ADD_DEFAULT_ISSUANCE_TASKS = 50,
+//  	ADD_ASSET_BALANCE_PRECISION = 51,
+//  	WITHDRAWAL_TASKS = 52,
 //      REPLACE_ACCOUNT_TYPES_WITH_POLICIES = 999999 // do not use it yet, there are features to be improved
 //  };
 
@@ -14282,6 +14351,8 @@ public enum class LedgerVersion(val value: Int): XdrEncodable {
   ADD_CAPITAL_DEPLOYMENT_FEE_TYPE(48),
   ADD_TRANSACTION_FEE(49),
   ADD_DEFAULT_ISSUANCE_TASKS(50),
+  ADD_ASSET_BALANCE_PRECISION(51),
+  WITHDRAWAL_TASKS(52),
   REPLACE_ACCOUNT_TYPES_WITH_POLICIES(999999),
   ;
 
