@@ -4,26 +4,61 @@ import org.tokend.wallet.utils.Hashing
 import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
+import java.util.*
 
 /**
  * Holds network-specific parameters.
  */
 class NetworkParams {
+    /**
+     * Passphrase of the network
+     */
     val passphrase: String
+
+    /**
+     * Decimal places in amounts. For example, 0.000001 in 6 precision is 1
+     */
     val precision: Int
+
+    /**
+     * Multiplier for precised amount conversions
+     *
+     * @see precision
+     */
     val precisionMultiplier: Long
+
+    /**
+     * Identifier of the network
+     */
     val networkId: ByteArray
+
+    /**
+     * Offset between device and server time in seconds
+     */
+    val timeOffsetSeconds: Int
+
+    /**
+     * Calculated current time on server as a UNIX timestamp
+     *
+     * @see timeOffsetSeconds
+     */
+    val nowTimestamp: Long
+        get() = (Date().time / 1000L) + timeOffsetSeconds
 
     /**
      * @param passphrase network passphrase
      * @param precision decimal places in amounts, [DEFAULT_PRECISION] by default
+     * @param timeOffsetSeconds offset between device and server time in seconds, 0 by default
      */
     @JvmOverloads
-    constructor(passphrase: String, precision: Int = DEFAULT_PRECISION) {
+    constructor(passphrase: String,
+                precision: Int = DEFAULT_PRECISION,
+                timeOffsetSeconds: Int = 0) {
         this.passphrase = passphrase
         this.precision = precision
         this.precisionMultiplier = BigDecimal.TEN.pow(precision).longValueExact()
         this.networkId = Hashing.sha256(passphrase.toByteArray())
+        this.timeOffsetSeconds = timeOffsetSeconds
     }
 
     /**

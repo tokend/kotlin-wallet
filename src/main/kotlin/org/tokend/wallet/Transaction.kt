@@ -97,7 +97,8 @@ class Transaction {
         this.maxTotalFee = maxTotalFee
 
         this.memo = memo ?: Memo.MemoNone()
-        this.timeBounds = timeBounds ?: TimeBounds(0, Date().time / 1000 + DEFAULT_LIFETIME_SECONDS)
+        this.timeBounds = timeBounds
+                ?: TimeBounds(0, networkParams.nowTimestamp + DEFAULT_LIFETIME_SECONDS)
         this.salt = (salt ?: Random().nextLong()) and 0xffffffffL
     }
 
