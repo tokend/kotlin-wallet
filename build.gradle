@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.2.31'
+    ext.kotlin_version = '1.3.10'
 
     repositories {
         mavenCentral()
@@ -25,9 +25,9 @@ repositories {
 }
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
-    compile "org.tokend:crypto-ecdsa:1.0.3"
+    compile "org.tokend:crypto-ecdsa:1.0.4"
     compile group: 'commons-codec', name: 'commons-codec', version: '1.10'
 
     testCompile group: 'junit', name: 'junit', version: '4.12'
@@ -44,6 +44,6 @@ compileTestKotlin {
 apply from: "deploy.gradle"
 
 group 'org.tokend'
-version '1.0.12'
+version '1.0.13'
 uploadArchives.repositories.mavenDeployer.pom.artifactId = 'wallet'
 uploadArchives.repositories.mavenDeployer.pom.name = 'TokenD wallet'
