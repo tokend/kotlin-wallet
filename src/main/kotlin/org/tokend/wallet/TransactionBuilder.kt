@@ -17,7 +17,6 @@ class TransactionBuilder(private val networkParams: NetworkParams,
     private var memo: Memo? = null
     private var timeBounds: TimeBounds? = null
     private var salt: Long? = null
-    private var maxTotalFee: Long? = null
 
     /**
      * @param networkParams params of the network into which the transaction will be sent
@@ -73,17 +72,6 @@ class TransactionBuilder(private val networkParams: NetworkParams,
     }
 
     /**
-     * Sets maximum fee of the result transaction.
-     * Not used by default.
-     *
-     * @see Transaction.maxTotalFee
-     */
-    fun setMaxTotalFee(fee: Long): TransactionBuilder {
-        this.maxTotalFee = fee
-        return this
-    }
-
-    /**
      * Builds the result transaction.
      * @throws IllegalStateException if no operations were added.
      */
@@ -94,8 +82,7 @@ class TransactionBuilder(private val networkParams: NetworkParams,
                 operations,
                 memo,
                 timeBounds,
-                salt,
-                maxTotalFee
+                salt
         )
     }
 }
