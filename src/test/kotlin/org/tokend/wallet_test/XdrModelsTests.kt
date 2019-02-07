@@ -38,9 +38,6 @@ class XdrModelsTests {
 
     @Test
     fun testPaymentOp() {
-        val feeData = Fee(AMOUNT, AMOUNT, Fee.FeeExt.EmptyVersion())
-        val paymentFeeData = PaymentFeeDataV2(feeData, feeData, true,
-                PaymentFeeDataV2.PaymentFeeDataV2Ext.EmptyVersion())
         val paymentOp = SimplePaymentOpV2(
                 sourceBalanceId = BYTES_BALANCE_ID,
                 destAccountId = BYTES_ACCOUNT_ID,
