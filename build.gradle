@@ -44,6 +44,6 @@ compileTestKotlin {
 apply from: "deploy.gradle"
 
 group 'org.tokend'
-version '1.0.13'
+version '3.0.0-x1'
 uploadArchives.repositories.mavenDeployer.pom.artifactId = 'wallet'
 uploadArchives.repositories.mavenDeployer.pom.name = 'TokenD wallet'

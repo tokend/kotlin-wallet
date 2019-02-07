@@ -14,8 +14,7 @@ constructor(
         upperBound: Int64,
         lowerBound: Int64,
         subtype: Int64 = 0L,
-        feeAsset: String? = null,
         accountId: String? = null,
         accountType: AccountType? = null
 ) : SimpleSetFeesOp(false, type, asset, fixed, percent,
-        upperBound, lowerBound, subtype, feeAsset, accountId, accountType)
+        upperBound, lowerBound, subtype, accountId, accountType)

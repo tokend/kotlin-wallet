@@ -1,4 +1,4 @@
 [submodule "xdr"]
 	path = xdr
 	url = https://github.com/tokend/xdr.git
-	branch = master
+	branch = 3.0.0-x
