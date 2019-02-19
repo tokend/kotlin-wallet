@@ -482,7 +482,7 @@ open class AccountTypeLimitsEntry(
 //  	BALANCE_MANAGER = 64, // allowed to create balances, spend assets from balances
 //  	ISSUANCE_MANAGER = 128, // allowed to make preissuance request
 //  	INVOICE_MANAGER = 256, // allowed to create payment requests to other accounts
-//  	PAYMENT_OPERATOR = 512, // allowed to review payment requests
+//  	ATOMIC_SWAP_MANAGER = 512, // allowed to work with atomic swaps
 //  	LIMITS_MANAGER = 1024, // allowed to change limits
 //  	ACCOUNT_MANAGER = 2048, // allowed to add/delete signers and trust
 //  	COMMISSION_BALANCE_MANAGER  = 4096,// allowed to spend from commission balances
@@ -517,7 +517,7 @@ public enum class SignerType(val value: Int): XdrEncodable {
   BALANCE_MANAGER(64),
   ISSUANCE_MANAGER(128),
   INVOICE_MANAGER(256),
-  PAYMENT_OPERATOR(512),
+  ATOMIC_SWAP_MANAGER(512),
   LIMITS_MANAGER(1024),
   ACCOUNT_MANAGER(2048),
   COMMISSION_BALANCE_MANAGER(4096),
@@ -805,6 +805,10 @@ open class AccountEntryExtended(
 //      AccountID accountID;      // master public key for this account
 //      AccountID recoveryID;
 //  
+//  	// sequenctial ID - unique identifier of the account, used by ingesting applications to 
+//  	// identify account, while keeping size of index small 
+//      uint64 sequentialID;
+//  
 //      // fields used for signatures
 //      // thresholds stores unsigned bytes: [weight of master|low|medium|high]
 //      Thresholds thresholds;
@@ -820,13 +824,13 @@ open class AccountEntryExtended(
 //  
 //  	int32 policies;
 //  
+//      uint32 kycLevel;
+//  
 //      // reserved for future use
 //      union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
 //          void;
-//      case USE_KYC_LEVEL:
-//          uint32 kycLevel;
 //      case REPLACE_ACCOUNT_TYPES_WITH_POLICIES:
 //          AccountEntryExtended accountEntryExt;
 //      }
@@ -837,6 +841,7 @@ open class AccountEntryExtended(
 open class AccountEntry(
     var accountID: AccountID,
     var recoveryID: AccountID,
+    var sequentialID: Uint64,
     var thresholds: Thresholds,
     var signers: Array<Signer>,
     var limits: Limits?,
@@ -844,12 +849,14 @@ open class AccountEntry(
     var accountType: AccountType,
     var referrer: AccountID?,
     var policies: Int32,
+    var kycLevel: Uint32,
     var ext: AccountEntryExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
     accountID.toXdr(stream)
     recoveryID.toXdr(stream)
+    sequentialID.toXdr(stream)
     thresholds.toXdr(stream)
     signers.size.toXdr(stream)
     signers.forEach {
@@ -870,6 +877,7 @@ open class AccountEntry(
       false.toXdr(stream)
     }
     policies.toXdr(stream)
+    kycLevel.toXdr(stream)
     ext.toXdr(stream)
   }
 
@@ -879,13 +887,6 @@ open class AccountEntry(
     }
 
     open class EmptyVersion: AccountEntryExt(LedgerVersion.EMPTY_VERSION)
-
-    open class UseKycLevel(var kycLevel: Uint32): AccountEntryExt(LedgerVersion.USE_KYC_LEVEL) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        kycLevel.toXdr(stream)
-      }
-    }
 
     open class ReplaceAccountTypesWithPolicies(var accountEntryExt: AccountEntryExtended): AccountEntryExt(LedgerVersion.REPLACE_ACCOUNT_TYPES_WITH_POLICIES) {
       override fun toXdr(stream: XdrDataOutputStream) {
@@ -982,11 +983,11 @@ open class AssetPairEntry(
 //  	BASE_ASSET = 2,
 //  	STATS_QUOTE_ASSET = 4,
 //  	WITHDRAWABLE = 8,
-//  	TWO_STEP_WITHDRAWAL = 16,
-//  	REQUIRES_KYC = 32,
-//  	ISSUANCE_MANUAL_REVIEW_REQUIRED = 64,
-//  	REQUIRES_VERIFICATION = 128, 
-//  	WITHDRAWABLE_V2 = 256 // switch to withdraw with tasks
+//  	REQUIRES_KYC = 16,
+//  	ISSUANCE_MANUAL_REVIEW_REQUIRED = 32,
+//  	REQUIRES_VERIFICATION = 64,
+//  	CAN_BE_BASE_IN_ATOMIC_SWAP = 128,
+//  	CAN_BE_QUOTE_IN_ATOMIC_SWAP = 256
 //  };
 
 //  ===========================================================================
@@ -995,28 +996,11 @@ public enum class AssetPolicy(val value: Int): XdrEncodable {
   BASE_ASSET(2),
   STATS_QUOTE_ASSET(4),
   WITHDRAWABLE(8),
-  TWO_STEP_WITHDRAWAL(16),
-  REQUIRES_KYC(32),
-  ISSUANCE_MANUAL_REVIEW_REQUIRED(64),
-  REQUIRES_VERIFICATION(128),
-  WITHDRAWABLE_V2(256),
-  ;
-
-  override fun toXdr(stream: XdrDataOutputStream) {
-      value.toXdr(stream)
-  }
-}
-
-// === xdr source ============================================================
-
-//  enum AssetSystemPolicies
-//  {
-//  	TWO_STEP_WITHDRAW = 1
-//  };
-
-//  ===========================================================================
-public enum class AssetSystemPolicies(val value: Int): XdrEncodable {
-  TWO_STEP_WITHDRAW(1),
+  REQUIRES_KYC(16),
+  ISSUANCE_MANUAL_REVIEW_REQUIRED(32),
+  REQUIRES_VERIFICATION(64),
+  CAN_BE_BASE_IN_ATOMIC_SWAP(128),
+  CAN_BE_QUOTE_IN_ATOMIC_SWAP(256),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -1037,14 +1021,13 @@ public enum class AssetSystemPolicies(val value: Int): XdrEncodable {
 //  	uint64 issued; // number of issued tokens
 //  	uint64 pendingIssuance; // number of tokens locked for entries like token sale. lockedIssuance + issued can not be > maxIssuanceAmount
 //      uint32 policies;
+//      uint32 trailingDigitsCount;
 //  
 //      // reserved for future use
 //      union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
 //          void;
-//      case ADD_ASSET_BALANCE_PRECISION:
-//          uint32 trailingDigitsCount;
 //      }
 //      ext;
 //  };
@@ -1060,6 +1043,7 @@ open class AssetEntry(
     var issued: Uint64,
     var pendingIssuance: Uint64,
     var policies: Uint32,
+    var trailingDigitsCount: Uint32,
     var ext: AssetEntryExt
   ) : XdrEncodable {
 
@@ -1073,6 +1057,7 @@ open class AssetEntry(
     issued.toXdr(stream)
     pendingIssuance.toXdr(stream)
     policies.toXdr(stream)
+    trailingDigitsCount.toXdr(stream)
     ext.toXdr(stream)
   }
 
@@ -1082,13 +1067,111 @@ open class AssetEntry(
     }
 
     open class EmptyVersion: AssetEntryExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
 
-    open class AddAssetBalancePrecision(var trailingDigitsCount: Uint32): AssetEntryExt(LedgerVersion.ADD_ASSET_BALANCE_PRECISION) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        trailingDigitsCount.toXdr(stream)
-      }
+// === xdr source ============================================================
+
+//  struct ASwapBidQuoteAsset
+//  {
+//      AssetCode quoteAsset;
+//      uint64 price;
+//  
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class ASwapBidQuoteAsset(
+    var quoteAsset: AssetCode,
+    var price: Uint64,
+    var ext: ASwapBidQuoteAssetExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    quoteAsset.toXdr(stream)
+    price.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class ASwapBidQuoteAssetExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
     }
+
+    open class EmptyVersion: ASwapBidQuoteAssetExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct AtomicSwapBidEntry
+//  {
+//      uint64 bidID;
+//      AccountID ownerID;
+//      AssetCode baseAsset;
+//      BalanceID baseBalance;
+//      uint64 amount;
+//      uint64 lockedAmount;
+//      uint64 createdAt;
+//  
+//      bool isCancelled;
+//  
+//      longstring details;
+//  
+//      ASwapBidQuoteAsset quoteAssets<>;
+//  
+//      // reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class AtomicSwapBidEntry(
+    var bidID: Uint64,
+    var ownerID: AccountID,
+    var baseAsset: AssetCode,
+    var baseBalance: BalanceID,
+    var amount: Uint64,
+    var lockedAmount: Uint64,
+    var createdAt: Uint64,
+    var isCancelled: Boolean,
+    var details: Longstring,
+    var quoteAssets: Array<ASwapBidQuoteAsset>,
+    var ext: AtomicSwapBidEntryExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    bidID.toXdr(stream)
+    ownerID.toXdr(stream)
+    baseAsset.toXdr(stream)
+    baseBalance.toXdr(stream)
+    amount.toXdr(stream)
+    lockedAmount.toXdr(stream)
+    createdAt.toXdr(stream)
+    isCancelled.toXdr(stream)
+    details.toXdr(stream)
+    quoteAssets.size.toXdr(stream)
+    quoteAssets.forEach {
+      it.toXdr(stream)
+    }
+    ext.toXdr(stream)
+  }
+
+  abstract class AtomicSwapBidEntryExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: AtomicSwapBidEntryExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -1097,6 +1180,9 @@ open class AssetEntry(
 //  struct BalanceEntry
 //  {
 //      BalanceID balanceID;
+//  	// sequenctial ID - unique identifier of the balance, used by ingesting applications to 
+//  	// identify account, while keeping size of index small 
+//      uint64 sequentialID;
 //      AssetCode asset;
 //      AccountID accountID;
 //      uint64 amount;
@@ -1114,6 +1200,7 @@ open class AssetEntry(
 //  ===========================================================================
 open class BalanceEntry(
     var balanceID: BalanceID,
+    var sequentialID: Uint64,
     var asset: AssetCode,
     var accountID: AccountID,
     var amount: Uint64,
@@ -1123,6 +1210,7 @@ open class BalanceEntry(
 
   override fun toXdr(stream: XdrDataOutputStream) {
     balanceID.toXdr(stream)
+    sequentialID.toXdr(stream)
     asset.toXdr(stream)
     accountID.toXdr(stream)
     amount.toXdr(stream)
@@ -1182,13 +1270,12 @@ public enum class ContractState(val value: Int): XdrEncodable {
 //      longstring initialDetails;
 //  
 //      uint32 state;
+//      longstring customerDetails;
 //  
 //      union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
 //          void;
-//      case ADD_CUSTOMER_DETAILS_TO_CONTRACT:
-//          longstring customerDetails;
 //      }
 //      ext;
 //  };
@@ -1204,6 +1291,7 @@ open class ContractEntry(
     var invoiceRequestsIDs: Array<Uint64>,
     var initialDetails: Longstring,
     var state: Uint32,
+    var customerDetails: Longstring,
     var ext: ContractEntryExt
   ) : XdrEncodable {
 
@@ -1220,6 +1308,7 @@ open class ContractEntry(
     }
     initialDetails.toXdr(stream)
     state.toXdr(stream)
+    customerDetails.toXdr(stream)
     ext.toXdr(stream)
   }
 
@@ -1229,13 +1318,6 @@ open class ContractEntry(
     }
 
     open class EmptyVersion: ContractEntryExt(LedgerVersion.EMPTY_VERSION)
-
-    open class AddCustomerDetailsToContract(var customerDetails: Longstring): ContractEntryExt(LedgerVersion.ADD_CUSTOMER_DETAILS_TO_CONTRACT) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        customerDetails.toXdr(stream)
-      }
-    }
   }
 }
 
@@ -1353,7 +1435,9 @@ open class ExternalSystemAccountID(
 //      INVEST_FEE = 4, // fee to be taken while creating sale participation
 //      CAPITAL_DEPLOYMENT_FEE = 5, // fee to be taken when sale close
 //      OPERATION_FEE = 6,
-//      PAYOUT_FEE = 7
+//      PAYOUT_FEE = 7,
+//      ATOMIC_SWAP_SALE_FEE = 8,
+//      ATOMIC_SWAP_PURCHASE_FEE = 9
 //  };
 
 //  ===========================================================================
@@ -1366,6 +1450,8 @@ public enum class FeeType(val value: Int): XdrEncodable {
   CAPITAL_DEPLOYMENT_FEE(5),
   OPERATION_FEE(6),
   PAYOUT_FEE(7),
+  ATOMIC_SWAP_SALE_FEE(8),
+  ATOMIC_SWAP_PURCHASE_FEE(9),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -1417,6 +1503,7 @@ public enum class PaymentFeeType(val value: Int): XdrEncodable {
 //  {
 //      FeeType feeType;
 //      AssetCode asset;
+//  
 //      int64 fixedFee; // fee paid for operation
 //  	int64 percentFee; // percent of transfer amount to be charged
 //  
@@ -1434,8 +1521,6 @@ public enum class PaymentFeeType(val value: Int): XdrEncodable {
 //      {
 //      case EMPTY_VERSION:
 //          void;
-//      case CROSS_ASSET_FEE:
-//          AssetCode feeAsset;
 //      }
 //      ext;
 //  };
@@ -1485,13 +1570,6 @@ open class FeeEntry(
     }
 
     open class EmptyVersion: FeeEntryExt(LedgerVersion.EMPTY_VERSION)
-
-    open class CrossAssetFee(var feeAsset: AssetCode): FeeEntryExt(LedgerVersion.CROSS_ASSET_FEE) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        feeAsset.toXdr(stream)
-      }
-    }
   }
 }
 
@@ -1518,20 +1596,51 @@ public enum class KeyValueEntryType(val value: Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  union KeyValueEntryValue switch (KeyValueEntryType type)
+//      {
+//          case UINT32:
+//              uint32 ui32Value;
+//          case STRING:
+//              string stringValue<>;
+//          case UINT64:
+//              uint64 ui64Value;
+//      };
+
+//  ===========================================================================
+abstract class KeyValueEntryValue(val discriminant: KeyValueEntryType): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  open class Uint32(var ui32Value: Uint32): KeyValueEntryValue(KeyValueEntryType.UINT32) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      ui32Value.toXdr(stream)
+    }
+  }
+
+  open class String(var stringValue: String): KeyValueEntryValue(KeyValueEntryType.STRING) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      stringValue.toXdr(stream)
+    }
+  }
+
+  open class Uint64(var ui64Value: Uint64): KeyValueEntryValue(KeyValueEntryType.UINT64) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      ui64Value.toXdr(stream)
+    }
+  }
+}
+
+// === xdr source ============================================================
+
 //  struct KeyValueEntry
 //      {
 //          longstring key;
 //  
-//          union switch (KeyValueEntryType type)
-//          {
-//               case UINT32:
-//                  uint32 ui32Value;
-//               case STRING:
-//                  string stringValue<>;
-//              case UINT64:
-//                  uint64 ui64Value;
-//          }
-//          value;
+//          KeyValueEntryValue value;
 //  
 //          // reserved for future use
 //          union switch (LedgerVersion v)
@@ -1555,32 +1664,6 @@ open class KeyValueEntry(
     ext.toXdr(stream)
   }
 
-  abstract class KeyValueEntryValue(val discriminant: KeyValueEntryType): XdrEncodable {
-    override fun toXdr(stream: XdrDataOutputStream) {
-        discriminant.toXdr(stream)
-    }
-
-    open class Uint32(var ui32Value: Uint32): KeyValueEntryValue(KeyValueEntryType.UINT32) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        ui32Value.toXdr(stream)
-      }
-    }
-
-    open class String(var stringValue: String): KeyValueEntryValue(KeyValueEntryType.STRING) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        stringValue.toXdr(stream)
-      }
-    }
-
-    open class Uint64(var ui64Value: Uint64): KeyValueEntryValue(KeyValueEntryType.UINT64) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        ui64Value.toXdr(stream)
-      }
-    }
-  }
   abstract class KeyValueEntryExt(val discriminant: LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
@@ -1848,43 +1931,40 @@ open class ReferenceEntry(
 
 //  enum ReviewableRequestType
 //  {
-//      ASSET_CREATE = 0,
+//  	NONE = 0, // use this request type in ReviewRequestOp extended result if additional info is not required
 //  	ASSET_UPDATE = 1,
 //  	PRE_ISSUANCE_CREATE = 2,
 //  	ISSUANCE_CREATE = 3,
 //  	WITHDRAW = 4,
 //  	SALE = 5,
 //  	LIMITS_UPDATE = 6,
-//  	TWO_STEP_WITHDRAWAL = 7,
-//      AML_ALERT = 8,
-//  	UPDATE_KYC = 9,
-//  	UPDATE_SALE_DETAILS = 10,
-//  	UPDATE_PROMOTION = 11,
-//  	UPDATE_SALE_END_TIME = 12,
-//  	NONE = 13, // use this request type in ReviewRequestOp extended result if additional info is not required
-//  	INVOICE = 14,
-//  	CONTRACT = 15
-//  
+//      AML_ALERT = 7,
+//  	UPDATE_KYC = 8,
+//  	UPDATE_SALE_DETAILS = 9,
+//  	ASSET_CREATE = 10,
+//  	INVOICE = 11,
+//  	CONTRACT = 12,
+//  	CREATE_ATOMIC_SWAP_BID = 16,
+//  	ATOMIC_SWAP = 17
 //  };
 
 //  ===========================================================================
 public enum class ReviewableRequestType(val value: Int): XdrEncodable {
-  ASSET_CREATE(0),
+  NONE(0),
   ASSET_UPDATE(1),
   PRE_ISSUANCE_CREATE(2),
   ISSUANCE_CREATE(3),
   WITHDRAW(4),
   SALE(5),
   LIMITS_UPDATE(6),
-  TWO_STEP_WITHDRAWAL(7),
-  AML_ALERT(8),
-  UPDATE_KYC(9),
-  UPDATE_SALE_DETAILS(10),
-  UPDATE_PROMOTION(11),
-  UPDATE_SALE_END_TIME(12),
-  NONE(13),
-  INVOICE(14),
-  CONTRACT(15),
+  AML_ALERT(7),
+  UPDATE_KYC(8),
+  UPDATE_SALE_DETAILS(9),
+  ASSET_CREATE(10),
+  INVOICE(11),
+  CONTRACT(12),
+  CREATE_ATOMIC_SWAP_BID(16),
+  ATOMIC_SWAP(17),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -1964,32 +2044,30 @@ open class TasksExt(
 //  			SaleCreationRequest saleCreationRequest;
 //          case LIMITS_UPDATE:
 //              LimitsUpdateRequest limitsUpdateRequest;
-//  		case TWO_STEP_WITHDRAWAL:
-//  			WithdrawalRequest twoStepWithdrawalRequest;
 //          case AML_ALERT:
 //              AMLAlertRequest amlAlertRequest;
 //          case UPDATE_KYC:
 //              UpdateKYCRequest updateKYCRequest;
 //          case UPDATE_SALE_DETAILS:
 //              UpdateSaleDetailsRequest updateSaleDetailsRequest;
-//          case UPDATE_PROMOTION:
-//              PromotionUpdateRequest promotionUpdateRequest;
 //          case INVOICE:
 //              InvoiceRequest invoiceRequest;
-//          case UPDATE_SALE_END_TIME:
-//              UpdateSaleEndTimeRequest updateSaleEndTimeRequest;
 //          case CONTRACT:
 //              ContractRequest contractRequest;
+//          case CREATE_ATOMIC_SWAP_BID:
+//              ASwapBidCreationRequest aSwapBidCreationRequest;
+//          case ATOMIC_SWAP:
+//              ASwapRequest aSwapRequest;
 //  	} body;
+//  
+//  	TasksExt tasks;
 //  
 //  	// reserved for future use
 //      union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
 //          void;
-//      case ADD_TASKS_TO_REVIEWABLE_REQUEST:
-//          TasksExt tasksExt;
-//      }
+//  	}
 //      ext;
 //  };
 
@@ -2003,6 +2081,7 @@ open class ReviewableRequestEntry(
     var reference: String64?,
     var createdAt: Int64,
     var body: ReviewableRequestEntryBody,
+    var tasks: TasksExt,
     var ext: ReviewableRequestEntryExt
   ) : XdrEncodable {
 
@@ -2020,6 +2099,7 @@ open class ReviewableRequestEntry(
     }
     createdAt.toXdr(stream)
     body.toXdr(stream)
+    tasks.toXdr(stream)
     ext.toXdr(stream)
   }
 
@@ -2077,13 +2157,6 @@ open class ReviewableRequestEntry(
       }
     }
 
-    open class TwoStepWithdrawal(var twoStepWithdrawalRequest: WithdrawalRequest): ReviewableRequestEntryBody(ReviewableRequestType.TWO_STEP_WITHDRAWAL) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        twoStepWithdrawalRequest.toXdr(stream)
-      }
-    }
-
     open class AmlAlert(var amlAlertRequest: AMLAlertRequest): ReviewableRequestEntryBody(ReviewableRequestType.AML_ALERT) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
@@ -2105,24 +2178,10 @@ open class ReviewableRequestEntry(
       }
     }
 
-    open class UpdatePromotion(var promotionUpdateRequest: PromotionUpdateRequest): ReviewableRequestEntryBody(ReviewableRequestType.UPDATE_PROMOTION) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        promotionUpdateRequest.toXdr(stream)
-      }
-    }
-
     open class Invoice(var invoiceRequest: InvoiceRequest): ReviewableRequestEntryBody(ReviewableRequestType.INVOICE) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         invoiceRequest.toXdr(stream)
-      }
-    }
-
-    open class UpdateSaleEndTime(var updateSaleEndTimeRequest: UpdateSaleEndTimeRequest): ReviewableRequestEntryBody(ReviewableRequestType.UPDATE_SALE_END_TIME) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        updateSaleEndTimeRequest.toXdr(stream)
       }
     }
 
@@ -2132,6 +2191,20 @@ open class ReviewableRequestEntry(
         contractRequest.toXdr(stream)
       }
     }
+
+    open class CreateAtomicSwapBid(var aSwapBidCreationRequest: ASwapBidCreationRequest): ReviewableRequestEntryBody(ReviewableRequestType.CREATE_ATOMIC_SWAP_BID) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        aSwapBidCreationRequest.toXdr(stream)
+      }
+    }
+
+    open class AtomicSwap(var aSwapRequest: ASwapRequest): ReviewableRequestEntryBody(ReviewableRequestType.ATOMIC_SWAP) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        aSwapRequest.toXdr(stream)
+      }
+    }
   }
   abstract class ReviewableRequestEntryExt(val discriminant: LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
@@ -2139,73 +2212,6 @@ open class ReviewableRequestEntry(
     }
 
     open class EmptyVersion: ReviewableRequestEntryExt(LedgerVersion.EMPTY_VERSION)
-
-    open class AddTasksToReviewableRequest(var tasksExt: TasksExt): ReviewableRequestEntryExt(LedgerVersion.ADD_TASKS_TO_REVIEWABLE_REQUEST) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        tasksExt.toXdr(stream)
-      }
-    }
-  }
-}
-
-// === xdr source ============================================================
-
-//  struct SaleAnteEntry
-//  {
-//      uint64 saleID;
-//      BalanceID participantBalanceID;
-//      uint64 amount; // amount to be locked from participant balance
-//  
-//      union switch (LedgerVersion v)
-//      {
-//      case EMPTY_VERSION:
-//          void;
-//      }
-//      ext;
-//  };
-
-//  ===========================================================================
-open class SaleAnteEntry(
-    var saleID: Uint64,
-    var participantBalanceID: BalanceID,
-    var amount: Uint64,
-    var ext: SaleAnteEntryExt
-  ) : XdrEncodable {
-
-  override fun toXdr(stream: XdrDataOutputStream) {
-    saleID.toXdr(stream)
-    participantBalanceID.toXdr(stream)
-    amount.toXdr(stream)
-    ext.toXdr(stream)
-  }
-
-  abstract class SaleAnteEntryExt(val discriminant: LedgerVersion): XdrEncodable {
-    override fun toXdr(stream: XdrDataOutputStream) {
-        discriminant.toXdr(stream)
-    }
-
-    open class EmptyVersion: SaleAnteEntryExt(LedgerVersion.EMPTY_VERSION)
-  }
-}
-
-// === xdr source ============================================================
-
-//  enum SaleState {
-//  	NONE = 0, // default state
-//  	VOTING = 1, // not allowed to invest
-//  	PROMOTION = 2 // not allowed to invest, but allowed to change all the details
-//  };
-
-//  ===========================================================================
-public enum class SaleState(val value: Int): XdrEncodable {
-  NONE(0),
-  VOTING(1),
-  PROMOTION(2),
-  ;
-
-  override fun toXdr(stream: XdrDataOutputStream) {
-      value.toXdr(stream)
   }
 }
 
@@ -2319,72 +2325,41 @@ open class BasicSale(
 
 // === xdr source ============================================================
 
-//  struct SaleTypeExt {
-//  	union switch (SaleType saleType)
-//      {
+//  union SaleTypeExt switch (SaleType saleType)
+//  {
 //  	case BASIC_SALE:
 //  		BasicSale basicSale;
-//      case CROWD_FUNDING:
-//          CrowdFundingSale crowdFundingSale;
-//      case FIXED_PRICE:
-//          FixedPriceSale fixedPriceSale;
-//      }
-//      typedSale;
+//  	case CROWD_FUNDING:
+//  		CrowdFundingSale crowdFundingSale;
+//  	case FIXED_PRICE:
+//  		FixedPriceSale fixedPriceSale;
 //  };
 
 //  ===========================================================================
-open class SaleTypeExt(
-    var typedSale: SaleTypeExtTypedSale
-  ) : XdrEncodable {
-
+abstract class SaleTypeExt(val discriminant: SaleType): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
-    typedSale.toXdr(stream)
+      discriminant.toXdr(stream)
   }
 
-  abstract class SaleTypeExtTypedSale(val discriminant: SaleType): XdrEncodable {
+  open class BasicSale(var basicSale: BasicSale): SaleTypeExt(SaleType.BASIC_SALE) {
     override fun toXdr(stream: XdrDataOutputStream) {
-        discriminant.toXdr(stream)
-    }
-
-    open class BasicSale(var basicSale: BasicSale): SaleTypeExtTypedSale(SaleType.BASIC_SALE) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        basicSale.toXdr(stream)
-      }
-    }
-
-    open class CrowdFunding(var crowdFundingSale: CrowdFundingSale): SaleTypeExtTypedSale(SaleType.CROWD_FUNDING) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        crowdFundingSale.toXdr(stream)
-      }
-    }
-
-    open class FixedPrice(var fixedPriceSale: FixedPriceSale): SaleTypeExtTypedSale(SaleType.FIXED_PRICE) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        fixedPriceSale.toXdr(stream)
-      }
+      super.toXdr(stream)
+      basicSale.toXdr(stream)
     }
   }
-}
 
-// === xdr source ============================================================
+  open class CrowdFunding(var crowdFundingSale: CrowdFundingSale): SaleTypeExt(SaleType.CROWD_FUNDING) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      crowdFundingSale.toXdr(stream)
+    }
+  }
 
-//  struct StatableSaleExt {
-//  	SaleTypeExt saleTypeExt;
-//  	SaleState state;
-//  };
-
-//  ===========================================================================
-open class StatableSaleExt(
-    var saleTypeExt: SaleTypeExt,
-    var state: SaleState
-  ) : XdrEncodable {
-
-  override fun toXdr(stream: XdrDataOutputStream) {
-    saleTypeExt.toXdr(stream)
-    state.toXdr(stream)
+  open class FixedPrice(var fixedPriceSale: FixedPriceSale): SaleTypeExt(SaleType.FIXED_PRICE) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      fixedPriceSale.toXdr(stream)
+    }
   }
 }
 
@@ -2447,15 +2422,12 @@ open class SaleQuoteAsset(
 //  	SaleQuoteAsset quoteAssets<100>;
 //  
 //  	BalanceID baseBalance;
+//      SaleTypeExt saleTypeExt;
 //  
 //  	union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
 //          void;
-//  	case TYPED_SALE:
-//  		SaleTypeExt saleTypeExt;
-//  	case STATABLE_SALES:
-//  		StatableSaleExt statableSaleExt;
 //      }
 //      ext;
 //  };
@@ -2475,6 +2447,7 @@ open class SaleEntry(
     var details: Longstring,
     var quoteAssets: Array<SaleQuoteAsset>,
     var baseBalance: BalanceID,
+    var saleTypeExt: SaleTypeExt,
     var ext: SaleEntryExt
   ) : XdrEncodable {
 
@@ -2495,6 +2468,7 @@ open class SaleEntry(
       it.toXdr(stream)
     }
     baseBalance.toXdr(stream)
+    saleTypeExt.toXdr(stream)
     ext.toXdr(stream)
   }
 
@@ -2504,20 +2478,6 @@ open class SaleEntry(
     }
 
     open class EmptyVersion: SaleEntryExt(LedgerVersion.EMPTY_VERSION)
-
-    open class TypedSale(var saleTypeExt: SaleTypeExt): SaleEntryExt(LedgerVersion.TYPED_SALE) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        saleTypeExt.toXdr(stream)
-      }
-    }
-
-    open class StatableSales(var statableSaleExt: StatableSaleExt): SaleEntryExt(LedgerVersion.STATABLE_SALES) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        statableSaleExt.toXdr(stream)
-      }
-    }
   }
 }
 
@@ -2682,13 +2642,13 @@ public enum class ThresholdIndexes(val value: Int): XdrEncodable {
 //  	ACCOUNT_KYC = 18,
 //  	EXTERNAL_SYSTEM_ACCOUNT_ID_POOL_ENTRY = 19,
 //      KEY_VALUE = 20,
-//      SALE_ANTE = 21,
 //      LIMITS_V2 = 22,
 //      STATISTICS_V2 = 23,
 //      PENDING_STATISTICS = 24,
 //      CONTRACT = 25,
 //      ACCOUNT_ROLE = 26,
-//      ACCOUNT_ROLE_PERMISSION = 27
+//      ACCOUNT_ROLE_PERMISSION = 27,
+//      ATOMIC_SWAP_BID = 28
 //  };
 
 //  ===========================================================================
@@ -2711,13 +2671,13 @@ public enum class LedgerEntryType(val value: Int): XdrEncodable {
   ACCOUNT_KYC(18),
   EXTERNAL_SYSTEM_ACCOUNT_ID_POOL_ENTRY(19),
   KEY_VALUE(20),
-  SALE_ANTE(21),
   LIMITS_V2(22),
   STATISTICS_V2(23),
   PENDING_STATISTICS(24),
   CONTRACT(25),
   ACCOUNT_ROLE(26),
   ACCOUNT_ROLE_PERMISSION(27),
+  ATOMIC_SWAP_BID(28),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -2767,8 +2727,6 @@ public enum class LedgerEntryType(val value: Int): XdrEncodable {
 //          AccountKYCEntry accountKYC;
 //      case EXTERNAL_SYSTEM_ACCOUNT_ID_POOL_ENTRY:
 //          ExternalSystemAccountIDPoolEntry externalSystemAccountIDPoolEntry;
-//      case SALE_ANTE:
-//          SaleAnteEntry saleAnte;
 //      case LIMITS_V2:
 //          LimitsV2Entry limitsV2;
 //      case STATISTICS_V2:
@@ -2777,6 +2735,8 @@ public enum class LedgerEntryType(val value: Int): XdrEncodable {
 //          PendingStatisticsEntry pendingStatistics;
 //      case CONTRACT:
 //          ContractEntry contract;
+//      case ATOMIC_SWAP_BID:
+//          AtomicSwapBidEntry atomicSwapBid;
 //      case ACCOUNT_ROLE:
 //          AccountRoleEntry accountRole;
 //      case ACCOUNT_ROLE_PERMISSION:
@@ -2930,13 +2890,6 @@ open class LedgerEntry(
       }
     }
 
-    open class SaleAnte(var saleAnte: SaleAnteEntry): LedgerEntryData(LedgerEntryType.SALE_ANTE) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        saleAnte.toXdr(stream)
-      }
-    }
-
     open class LimitsV2(var limitsV2: LimitsV2Entry): LedgerEntryData(LedgerEntryType.LIMITS_V2) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
@@ -2962,6 +2915,13 @@ open class LedgerEntry(
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         contract.toXdr(stream)
+      }
+    }
+
+    open class AtomicSwapBid(var atomicSwapBid: AtomicSwapBidEntry): LedgerEntryData(LedgerEntryType.ATOMIC_SWAP_BID) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        atomicSwapBid.toXdr(stream)
       }
     }
 
@@ -3002,24 +2962,6 @@ public enum class EnvelopeType(val value: Int): XdrEncodable {
   SCP(1),
   TX(2),
   AUTH(3),
-  ;
-
-  override fun toXdr(stream: XdrDataOutputStream) {
-      value.toXdr(stream)
-  }
-}
-
-// === xdr source ============================================================
-
-//  enum ExternalSystemIDGeneratorType {
-//  	BITCOIN_BASIC = 1,
-//  	ETHEREUM_BASIC = 2
-//  };
-
-//  ===========================================================================
-public enum class ExternalSystemIDGeneratorType(val value: Int): XdrEncodable {
-  BITCOIN_BASIC(1),
-  ETHEREUM_BASIC(2),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -3122,7 +3064,6 @@ open class IdGenerator(
 //  
 //      uint32 maxTxSetSize; // maximum size a transaction set can be
 //  
-//      ExternalSystemIDGeneratorType externalSystemIDGenerators<>;
 //      int64 txExpirationPeriod;
 //      
 //      Hash skipList[4]; // hashes of ledgers in the past. allows you to jump back
@@ -3152,7 +3093,6 @@ open class LedgerHeader(
     var baseFee: Uint32,
     var baseReserve: Uint32,
     var maxTxSetSize: Uint32,
-    var externalSystemIDGenerators: Array<ExternalSystemIDGeneratorType>,
     var txExpirationPeriod: Int64,
     var skipList: Array<Hash>,
     var ext: LedgerHeaderExt
@@ -3172,10 +3112,6 @@ open class LedgerHeader(
     baseFee.toXdr(stream)
     baseReserve.toXdr(stream)
     maxTxSetSize.toXdr(stream)
-    externalSystemIDGenerators.size.toXdr(stream)
-    externalSystemIDGenerators.forEach {
-      it.toXdr(stream)
-    }
     txExpirationPeriod.toXdr(stream)
     skipList.forEach {
       it.toXdr(stream)
@@ -3198,8 +3134,7 @@ open class LedgerHeader(
 //  {
 //      VERSION = 1,
 //      MAX_TX_SET_SIZE = 2,
-//      TX_EXPIRATION_PERIOD = 3,
-//  	EXTERNAL_SYSTEM_ID_GENERATOR = 4
+//      TX_EXPIRATION_PERIOD = 3
 //  };
 
 //  ===========================================================================
@@ -3207,7 +3142,6 @@ public enum class LedgerUpgradeType(val value: Int): XdrEncodable {
   VERSION(1),
   MAX_TX_SET_SIZE(2),
   TX_EXPIRATION_PERIOD(3),
-  EXTERNAL_SYSTEM_ID_GENERATOR(4),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -3223,8 +3157,6 @@ public enum class LedgerUpgradeType(val value: Int): XdrEncodable {
 //      uint32 newLedgerVersion; // update ledgerVersion
 //  case MAX_TX_SET_SIZE:
 //      uint32 newMaxTxSetSize; // update maxTxSetSize
-//  case EXTERNAL_SYSTEM_ID_GENERATOR:
-//      ExternalSystemIDGeneratorType newExternalSystemIDGenerators<>;
 //  case TX_EXPIRATION_PERIOD:
 //      int64 newTxExpirationPeriod;
 //  };
@@ -3246,16 +3178,6 @@ abstract class LedgerUpgrade(val discriminant: LedgerUpgradeType): XdrEncodable 
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       newMaxTxSetSize.toXdr(stream)
-    }
-  }
-
-  open class ExternalSystemIdGenerator(var newExternalSystemIDGenerators: Array<ExternalSystemIDGeneratorType>): LedgerUpgrade(LedgerUpgradeType.EXTERNAL_SYSTEM_ID_GENERATOR) {
-    override fun toXdr(stream: XdrDataOutputStream) {
-      super.toXdr(stream)
-      newExternalSystemIDGenerators.size.toXdr(stream)
-      newExternalSystemIDGenerators.forEach {
-        it.toXdr(stream)
-      }
     }
   }
 
@@ -3418,7 +3340,7 @@ abstract class LedgerUpgrade(val discriminant: LedgerUpgradeType): XdrEncodable 
 //  	} sale;
 //  case KEY_VALUE:
 //      struct {
-//          string256 key;
+//          longstring key;
 //          union switch (LedgerVersion v)
 //          {
 //          	case EMPTY_VERSION:
@@ -3446,16 +3368,6 @@ abstract class LedgerUpgrade(val discriminant: LedgerUpgradeType): XdrEncodable 
 //  		}
 //  		ext;
 //  	} externalSystemAccountIDPoolEntry;
-//  case SALE_ANTE:
-//      struct {
-//          uint64 saleID;
-//          BalanceID participantBalanceID;
-//          union switch (LedgerVersion v)
-//          {
-//          case EMPTY_VERSION:
-//              void;
-//          } ext;
-//      } saleAnte;
 //  case LIMITS_V2:
 //      struct {
 //          uint64 id;
@@ -3496,6 +3408,16 @@ abstract class LedgerUpgrade(val discriminant: LedgerUpgradeType): XdrEncodable 
 //          }
 //          ext;
 //      } contract;
+//  case ATOMIC_SWAP_BID:
+//      struct {
+//          uint64 bidID;
+//          union switch (LedgerVersion v)
+//          {
+//          case EMPTY_VERSION:
+//              void;
+//          }
+//          ext;
+//      } atomicSwapBid;
 //  case ACCOUNT_ROLE:
 //      struct {
 //          uint64 accountRoleID;
@@ -3643,13 +3565,6 @@ abstract class LedgerKey(val discriminant: LedgerEntryType): XdrEncodable {
     }
   }
 
-  open class SaleAnte(var saleAnte: LedgerKeySaleAnte): LedgerKey(LedgerEntryType.SALE_ANTE) {
-    override fun toXdr(stream: XdrDataOutputStream) {
-      super.toXdr(stream)
-      saleAnte.toXdr(stream)
-    }
-  }
-
   open class LimitsV2(var limitsV2: LedgerKeyLimitsV2): LedgerKey(LedgerEntryType.LIMITS_V2) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
@@ -3675,6 +3590,13 @@ abstract class LedgerKey(val discriminant: LedgerEntryType): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       contract.toXdr(stream)
+    }
+  }
+
+  open class AtomicSwapBid(var atomicSwapBid: LedgerKeyAtomicSwapBid): LedgerKey(LedgerEntryType.ATOMIC_SWAP_BID) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      atomicSwapBid.toXdr(stream)
     }
   }
 
@@ -3949,7 +3871,7 @@ abstract class LedgerKey(val discriminant: LedgerEntryType): XdrEncodable {
     }
   }
   open class LedgerKeyKeyValue(
-      var key: String256,
+      var key: Longstring,
       var ext: LedgerKeyKeyValueExt
     ) : XdrEncodable {
 
@@ -4000,26 +3922,6 @@ abstract class LedgerKey(val discriminant: LedgerEntryType): XdrEncodable {
       }
 
       open class EmptyVersion: LedgerKeyExternalSystemAccountIDPoolEntryExt(LedgerVersion.EMPTY_VERSION)
-    }
-  }
-  open class LedgerKeySaleAnte(
-      var saleID: Uint64,
-      var participantBalanceID: BalanceID,
-      var ext: LedgerKeySaleAnteExt
-    ) : XdrEncodable {
-
-    override fun toXdr(stream: XdrDataOutputStream) {
-      saleID.toXdr(stream)
-      participantBalanceID.toXdr(stream)
-      ext.toXdr(stream)
-    }
-
-    abstract class LedgerKeySaleAnteExt(val discriminant: LedgerVersion): XdrEncodable {
-      override fun toXdr(stream: XdrDataOutputStream) {
-          discriminant.toXdr(stream)
-      }
-
-      open class EmptyVersion: LedgerKeySaleAnteExt(LedgerVersion.EMPTY_VERSION)
     }
   }
   open class LedgerKeyLimitsV2(
@@ -4094,6 +3996,24 @@ abstract class LedgerKey(val discriminant: LedgerEntryType): XdrEncodable {
       }
 
       open class EmptyVersion: LedgerKeyContractExt(LedgerVersion.EMPTY_VERSION)
+    }
+  }
+  open class LedgerKeyAtomicSwapBid(
+      var bidID: Uint64,
+      var ext: LedgerKeyAtomicSwapBidExt
+    ) : XdrEncodable {
+
+    override fun toXdr(stream: XdrDataOutputStream) {
+      bidID.toXdr(stream)
+      ext.toXdr(stream)
+    }
+
+    abstract class LedgerKeyAtomicSwapBidExt(val discriminant: LedgerVersion): XdrEncodable {
+      override fun toXdr(stream: XdrDataOutputStream) {
+          discriminant.toXdr(stream)
+      }
+
+      open class EmptyVersion: LedgerKeyAtomicSwapBidExt(LedgerVersion.EMPTY_VERSION)
     }
   }
   open class LedgerKeyAccountRole(
@@ -4601,8 +4521,7 @@ open class BindExternalSystemAccountIdOp(
 //  
 //      // codes considered as "failure" for the operation
 //      MALFORMED = -1,
-//      NO_AVAILABLE_ID = -2,
-//      AUTO_GENERATED_TYPE_NOT_ALLOWED = -3
+//      NO_AVAILABLE_ID = -2
 //  };
 
 //  ===========================================================================
@@ -4610,7 +4529,6 @@ public enum class BindExternalSystemAccountIdResultCode(val value: Int): XdrEnco
   SUCCESS(0),
   MALFORMED(-1),
   NO_AVAILABLE_ID(-2),
-  AUTO_GENERATED_TYPE_NOT_ALLOWED(-3),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -4668,6 +4586,117 @@ abstract class BindExternalSystemAccountIdResult(val discriminant: BindExternalS
   }
 
   open class Success(var success: BindExternalSystemAccountIdSuccess): BindExternalSystemAccountIdResult(BindExternalSystemAccountIdResultCode.SUCCESS) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      success.toXdr(stream)
+    }
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct CancelASwapBidOp
+//  {
+//      uint64 bidID;
+//  
+//      // reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      } ext;
+//  };
+
+//  ===========================================================================
+open class CancelASwapBidOp(
+    var bidID: Uint64,
+    var ext: CancelASwapBidOpExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    bidID.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class CancelASwapBidOpExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: CancelASwapBidOpExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  enum CancelASwapBidResultCode
+//  {
+//      // codes considered as "success" for the operation
+//      SUCCESS = 0,
+//  
+//      // codes considered as "failure" for the operation
+//      NOT_FOUND = -1, // atomic swap bid does not exist
+//      ALREADY_CANCELLED = -2 // atomic swap bid already cancelled
+//  };
+
+//  ===========================================================================
+public enum class CancelASwapBidResultCode(val value: Int): XdrEncodable {
+  SUCCESS(0),
+  NOT_FOUND(-1),
+  ALREADY_CANCELLED(-2),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct CancelASwapBidResultSuccess
+//  {
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      } ext;
+//  };
+
+//  ===========================================================================
+open class CancelASwapBidResultSuccess(
+    var ext: CancelASwapBidResultSuccessExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    ext.toXdr(stream)
+  }
+
+  abstract class CancelASwapBidResultSuccessExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: CancelASwapBidResultSuccessExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  union CancelASwapBidResult switch (CancelASwapBidResultCode code)
+//  {
+//  case SUCCESS:
+//      CancelASwapBidResultSuccess success;
+//  default:
+//      void;
+//  };
+
+//  ===========================================================================
+abstract class CancelASwapBidResult(val discriminant: CancelASwapBidResultCode): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  open class Success(var success: CancelASwapBidResultSuccess): CancelASwapBidResult(CancelASwapBidResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
@@ -5107,6 +5136,8 @@ abstract class CheckSaleStateResult(val discriminant: CheckSaleStateResultCode):
 //      string64 reference;
 //      AMLAlertRequest amlAlertRequest;
 //  
+//      uint32* allTasks;
+//      
 //  	union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
@@ -5120,12 +5151,19 @@ abstract class CheckSaleStateResult(val discriminant: CheckSaleStateResultCode):
 open class CreateAMLAlertRequestOp(
     var reference: String64,
     var amlAlertRequest: AMLAlertRequest,
+    var allTasks: Uint32?,
     var ext: CreateAMLAlertRequestOpExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
     reference.toXdr(stream)
     amlAlertRequest.toXdr(stream)
+    if (allTasks != null) {
+      true.toXdr(stream)
+      allTasks?.toXdr(stream)
+    } else {
+      false.toXdr(stream)
+    }
     ext.toXdr(stream)
   }
 
@@ -5149,7 +5187,10 @@ open class CreateAMLAlertRequestOp(
 //      UNDERFUNDED = 3, //when couldn't lock balance
 //      REFERENCE_DUPLICATION = 4, // reference already exists
 //      INVALID_AMOUNT = 5, // amount must be positive
-//      INCORRECT_PRECISION = 6
+//      INCORRECT_PRECISION = 6,
+//  
+//      //codes considered as "failure" for the operation
+//      AML_ALERT_TASKS_NOT_FOUND = -1
 //  
 //  };
 
@@ -5162,6 +5203,7 @@ public enum class CreateAMLAlertRequestResultCode(val value: Int): XdrEncodable 
   REFERENCE_DUPLICATION(4),
   INVALID_AMOUNT(5),
   INCORRECT_PRECISION(6),
+  AML_ALERT_TASKS_NOT_FOUND(-1),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -5173,7 +5215,7 @@ public enum class CreateAMLAlertRequestResultCode(val value: Int): XdrEncodable 
 
 //  struct CreateAMLAlertRequestSuccess {
 //  	uint64 requestID;
-//  
+//      bool fulfilled;
 //  	union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
@@ -5185,11 +5227,13 @@ public enum class CreateAMLAlertRequestResultCode(val value: Int): XdrEncodable 
 //  ===========================================================================
 open class CreateAMLAlertRequestSuccess(
     var requestID: Uint64,
+    var fulfilled: Boolean,
     var ext: CreateAMLAlertRequestSuccessExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
     requestID.toXdr(stream)
+    fulfilled.toXdr(stream)
     ext.toXdr(stream)
   }
 
@@ -5233,7 +5277,6 @@ abstract class CreateAMLAlertRequestResult(val discriminant: CreateAMLAlertReque
 //  	AccountType accountTypeToSet;
 //  	uint32 kycLevelToSet;
 //      longstring kycData;
-//  	uint32* allTasks;
 //  
 //  	// Reserved for future use
 //  	union switch (LedgerVersion v)
@@ -5250,7 +5293,6 @@ open class UpdateKYCRequestData(
     var accountTypeToSet: AccountType,
     var kycLevelToSet: Uint32,
     var kycData: Longstring,
-    var allTasks: Uint32?,
     var ext: UpdateKYCRequestDataExt
   ) : XdrEncodable {
 
@@ -5259,12 +5301,6 @@ open class UpdateKYCRequestData(
     accountTypeToSet.toXdr(stream)
     kycLevelToSet.toXdr(stream)
     kycData.toXdr(stream)
-    if (allTasks != null) {
-      true.toXdr(stream)
-      allTasks?.toXdr(stream)
-    } else {
-      false.toXdr(stream)
-    }
     ext.toXdr(stream)
   }
 
@@ -5282,6 +5318,8 @@ open class UpdateKYCRequestData(
 //  struct CreateUpdateKYCRequestOp {
 //      uint64 requestID;
 //      UpdateKYCRequestData updateKYCRequestData;
+//  
+//      uint32* allTasks;
 //      union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
@@ -5294,12 +5332,19 @@ open class UpdateKYCRequestData(
 open class CreateUpdateKYCRequestOp(
     var requestID: Uint64,
     var updateKYCRequestData: UpdateKYCRequestData,
+    var allTasks: Uint32?,
     var ext: CreateUpdateKYCRequestOpExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
     requestID.toXdr(stream)
     updateKYCRequestData.toXdr(stream)
+    if (allTasks != null) {
+      true.toXdr(stream)
+      allTasks?.toXdr(stream)
+    } else {
+      false.toXdr(stream)
+    }
     ext.toXdr(stream)
   }
 
@@ -5409,7 +5454,6 @@ abstract class CreateUpdateKYCRequestResult(val discriminant: CreateUpdateKYCReq
 
 //  struct CreateAccountOpExtended
 //  {
-//      ExternalSystemAccountID externalSystemIDs<>;
 //      uint64* roleID;
 //  
 //      // reserved for future use
@@ -5423,16 +5467,11 @@ abstract class CreateUpdateKYCRequestResult(val discriminant: CreateUpdateKYCReq
 
 //  ===========================================================================
 open class CreateAccountOpExtended(
-    var externalSystemIDs: Array<ExternalSystemAccountID>,
     var roleID: Uint64?,
     var ext: CreateAccountOpExtendedExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
-    externalSystemIDs.size.toXdr(stream)
-    externalSystemIDs.forEach {
-      it.toXdr(stream)
-    }
     if (roleID != null) {
       true.toXdr(stream)
       roleID?.toXdr(stream)
@@ -5460,14 +5499,13 @@ open class CreateAccountOpExtended(
 //      AccountID* referrer;     // parent account
 //  	AccountType accountType;
 //  	uint32 policies;
+//      ExternalSystemAccountID externalSystemIDs<>;
 //  
 //  	 // reserved for future use
 //      union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
 //          void;
-//      case PASS_EXTERNAL_SYS_ACC_ID_IN_CREATE_ACC:
-//          ExternalSystemAccountID externalSystemIDs<>;
 //      case REPLACE_ACCOUNT_TYPES_WITH_POLICIES:
 //          CreateAccountOpExtended opExt;
 //      }
@@ -5481,6 +5519,7 @@ open class CreateAccountOp(
     var referrer: AccountID?,
     var accountType: AccountType,
     var policies: Uint32,
+    var externalSystemIDs: Array<ExternalSystemAccountID>,
     var ext: CreateAccountOpExt
   ) : XdrEncodable {
 
@@ -5495,6 +5534,10 @@ open class CreateAccountOp(
     }
     accountType.toXdr(stream)
     policies.toXdr(stream)
+    externalSystemIDs.size.toXdr(stream)
+    externalSystemIDs.forEach {
+      it.toXdr(stream)
+    }
     ext.toXdr(stream)
   }
 
@@ -5504,16 +5547,6 @@ open class CreateAccountOp(
     }
 
     open class EmptyVersion: CreateAccountOpExt(LedgerVersion.EMPTY_VERSION)
-
-    open class PassExternalSysAccIdInCreateAcc(var externalSystemIDs: Array<ExternalSystemAccountID>): CreateAccountOpExt(LedgerVersion.PASS_EXTERNAL_SYS_ACC_ID_IN_CREATE_ACC) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        externalSystemIDs.size.toXdr(stream)
-        externalSystemIDs.forEach {
-          it.toXdr(stream)
-        }
-      }
-    }
 
     open class ReplaceAccountTypesWithPolicies(var opExt: CreateAccountOpExtended): CreateAccountOpExt(LedgerVersion.REPLACE_ACCOUNT_TYPES_WITH_POLICIES) {
       override fun toXdr(stream: XdrDataOutputStream) {
@@ -5538,9 +5571,7 @@ open class CreateAccountOp(
 //      NAME_DUPLICATION = -4,
 //      REFERRER_NOT_FOUND = -5,
 //  	INVALID_ACCOUNT_VERSION = -6, // if account version is higher than ledger version
-//  	NOT_VERIFIED_CANNOT_HAVE_POLICIES = -7,
-//  	EXTERNAL_SYS_ACC_NOT_ALLOWED = -8, // op contains external system account ID which should be generated on core level
-//  	EXTERNAL_SYS_ID_EXISTS = -9 // external system account ID already exists
+//  	NOT_VERIFIED_CANNOT_HAVE_POLICIES = -7
 //  };
 
 //  ===========================================================================
@@ -5553,8 +5584,6 @@ public enum class CreateAccountResultCode(val value: Int): XdrEncodable {
   REFERRER_NOT_FOUND(-5),
   INVALID_ACCOUNT_VERSION(-6),
   NOT_VERIFIED_CANNOT_HAVE_POLICIES(-7),
-  EXTERNAL_SYS_ACC_NOT_ALLOWED(-8),
-  EXTERNAL_SYS_ID_EXISTS(-9),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -5566,7 +5595,6 @@ public enum class CreateAccountResultCode(val value: Int): XdrEncodable {
 
 //  struct CreateAccountSuccess
 //  {
-//  	ExternalSystemAccountID externalSystemIDs<>;
 //  	 // reserved for future use
 //      union switch (LedgerVersion v)
 //      {
@@ -5578,15 +5606,10 @@ public enum class CreateAccountResultCode(val value: Int): XdrEncodable {
 
 //  ===========================================================================
 open class CreateAccountSuccess(
-    var externalSystemIDs: Array<ExternalSystemAccountID>,
     var ext: CreateAccountSuccessExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
-    externalSystemIDs.size.toXdr(stream)
-    externalSystemIDs.forEach {
-      it.toXdr(stream)
-    }
     ext.toXdr(stream)
   }
 
@@ -5625,17 +5648,288 @@ abstract class CreateAccountResult(val discriminant: CreateAccountResultCode): X
 
 // === xdr source ============================================================
 
+//  struct CreateASwapBidCreationRequestOp
+//  {
+//      ASwapBidCreationRequest request;
+//  
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class CreateASwapBidCreationRequestOp(
+    var request: ASwapBidCreationRequest,
+    var ext: CreateASwapBidCreationRequestOpExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    request.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class CreateASwapBidCreationRequestOpExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: CreateASwapBidCreationRequestOpExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  enum CreateASwapBidCreationRequestResultCode
+//  {
+//      // codes considered as "success" for the operation
+//      SUCCESS = 0,
+//  
+//      // codes considered as "failure" for the operation
+//      INVALID_AMOUNT = -1, // amount is equal to 0
+//      INVALID_PRICE = -2, // price is equal to 0
+//      INVALID_DETAILS = -3,
+//      ATOMIC_SWAP_BID_OVERFLOW = -4,
+//      BASE_ASSET_NOT_FOUND = -5, // base asset does not exist
+//      BASE_ASSET_CANNOT_BE_SWAPPED = -6,
+//      QUOTE_ASSET_NOT_FOUND = -7, // quote asset does not exist
+//      QUOTE_ASSET_CANNOT_BE_SWAPPED = -8,
+//      BASE_BALANCE_NOT_FOUND = -9,
+//      ASSETS_ARE_EQUAL = -10, // base and quote assets are the same
+//      BASE_BALANCE_UNDERFUNDED = -11,
+//      INVALID_QUOTE_ASSET = -12, // one of the quote assets is invalid
+//      NOT_ALLOWED_BY_ASSET_POLICY = -13
+//  };
+
+//  ===========================================================================
+public enum class CreateASwapBidCreationRequestResultCode(val value: Int): XdrEncodable {
+  SUCCESS(0),
+  INVALID_AMOUNT(-1),
+  INVALID_PRICE(-2),
+  INVALID_DETAILS(-3),
+  ATOMIC_SWAP_BID_OVERFLOW(-4),
+  BASE_ASSET_NOT_FOUND(-5),
+  BASE_ASSET_CANNOT_BE_SWAPPED(-6),
+  QUOTE_ASSET_NOT_FOUND(-7),
+  QUOTE_ASSET_CANNOT_BE_SWAPPED(-8),
+  BASE_BALANCE_NOT_FOUND(-9),
+  ASSETS_ARE_EQUAL(-10),
+  BASE_BALANCE_UNDERFUNDED(-11),
+  INVALID_QUOTE_ASSET(-12),
+  NOT_ALLOWED_BY_ASSET_POLICY(-13),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct CreateASwapBidCreationRequestSuccess
+//  {
+//      uint64 requestID;
+//      bool fulfilled;
+//  
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      } ext;
+//  };
+
+//  ===========================================================================
+open class CreateASwapBidCreationRequestSuccess(
+    var requestID: Uint64,
+    var fulfilled: Boolean,
+    var ext: CreateASwapBidCreationRequestSuccessExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    requestID.toXdr(stream)
+    fulfilled.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class CreateASwapBidCreationRequestSuccessExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: CreateASwapBidCreationRequestSuccessExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  union CreateASwapBidCreationRequestResult switch (CreateASwapBidCreationRequestResultCode code)
+//  {
+//  case SUCCESS:
+//      CreateASwapBidCreationRequestSuccess success;
+//  default:
+//      void;
+//  };
+
+//  ===========================================================================
+abstract class CreateASwapBidCreationRequestResult(val discriminant: CreateASwapBidCreationRequestResultCode): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  open class Success(var success: CreateASwapBidCreationRequestSuccess): CreateASwapBidCreationRequestResult(CreateASwapBidCreationRequestResultCode.SUCCESS) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      success.toXdr(stream)
+    }
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct CreateASwapRequestOp
+//  {
+//      ASwapRequest request;
+//  
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      } ext;
+//  };
+
+//  ===========================================================================
+open class CreateASwapRequestOp(
+    var request: ASwapRequest,
+    var ext: CreateASwapRequestOpExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    request.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class CreateASwapRequestOpExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: CreateASwapRequestOpExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  enum CreateASwapRequestResultCode
+//  {
+//      // codes considered as "success" for the operation
+//      SUCCESS = 0,
+//  
+//      // codes considered as "failure" for the operation
+//      INVALID_BASE_AMOUNT = -1,
+//      INVALID_QUOTE_ASSET = -2,
+//      BID_NOT_FOUND = -3,
+//      QUOTE_ASSET_NOT_FOUND = -4,
+//      BID_UNDERFUNDED = -5, // bid has not enough base amount available for lock
+//      ATOMIC_SWAP_TASKS_NOT_FOUND = -6,
+//      NOT_ALLOWED_BY_ASSET_POLICY = -7,
+//      BID_IS_CANCELLED = -8,
+//      CANNOT_CREATE_ASWAP_REQUEST_FOR_OWN_BID = -9
+//  };
+
+//  ===========================================================================
+public enum class CreateASwapRequestResultCode(val value: Int): XdrEncodable {
+  SUCCESS(0),
+  INVALID_BASE_AMOUNT(-1),
+  INVALID_QUOTE_ASSET(-2),
+  BID_NOT_FOUND(-3),
+  QUOTE_ASSET_NOT_FOUND(-4),
+  BID_UNDERFUNDED(-5),
+  ATOMIC_SWAP_TASKS_NOT_FOUND(-6),
+  NOT_ALLOWED_BY_ASSET_POLICY(-7),
+  BID_IS_CANCELLED(-8),
+  CANNOT_CREATE_ASWAP_REQUEST_FOR_OWN_BID(-9),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct CreateASwapRequestSuccess
+//  {
+//      uint64 requestID;
+//      AccountID bidOwnerID;
+//  
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      } ext;
+//  };
+
+//  ===========================================================================
+open class CreateASwapRequestSuccess(
+    var requestID: Uint64,
+    var bidOwnerID: AccountID,
+    var ext: CreateASwapRequestSuccessExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    requestID.toXdr(stream)
+    bidOwnerID.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class CreateASwapRequestSuccessExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: CreateASwapRequestSuccessExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  union CreateASwapRequestResult switch (CreateASwapRequestResultCode code)
+//  {
+//  case SUCCESS:
+//      CreateASwapRequestSuccess success;
+//  default:
+//      void;
+//  };
+
+//  ===========================================================================
+abstract class CreateASwapRequestResult(val discriminant: CreateASwapRequestResultCode): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  open class Success(var success: CreateASwapRequestSuccess): CreateASwapRequestResult(CreateASwapRequestResultCode.SUCCESS) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      success.toXdr(stream)
+    }
+  }
+}
+
+// === xdr source ============================================================
+
 //  struct CreateIssuanceRequestOp
 //  {
 //  	IssuanceRequest request;
 //  	string64 reference;
+//  
+//      uint32* allTasks;
 //  	// reserved for future use
 //      union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
 //          void;
-//      case ADD_TASKS_TO_REVIEWABLE_REQUEST:
-//          uint32* allTasks;
 //      }
 //      ext;
 //  };
@@ -5644,12 +5938,19 @@ abstract class CreateAccountResult(val discriminant: CreateAccountResultCode): X
 open class CreateIssuanceRequestOp(
     var request: IssuanceRequest,
     var reference: String64,
+    var allTasks: Uint32?,
     var ext: CreateIssuanceRequestOpExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
     request.toXdr(stream)
     reference.toXdr(stream)
+    if (allTasks != null) {
+      true.toXdr(stream)
+      allTasks?.toXdr(stream)
+    } else {
+      false.toXdr(stream)
+    }
     ext.toXdr(stream)
   }
 
@@ -5659,18 +5960,6 @@ open class CreateIssuanceRequestOp(
     }
 
     open class EmptyVersion: CreateIssuanceRequestOpExt(LedgerVersion.EMPTY_VERSION)
-
-    open class AddTasksToReviewableRequest(var allTasks: Uint32?): CreateIssuanceRequestOpExt(LedgerVersion.ADD_TASKS_TO_REVIEWABLE_REQUEST) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        if (allTasks != null) {
-          true.toXdr(stream)
-          allTasks?.toXdr(stream)
-        } else {
-          false.toXdr(stream)
-        }
-      }
-    }
   }
 }
 
@@ -5793,13 +6082,15 @@ abstract class CreateIssuanceRequestResult(val discriminant: CreateIssuanceReque
 //  {
 //      LimitsUpdateRequest manageLimitsRequest;
 //  
+//  	uint32* allTasks;
+//      uint64 requestID;
+//  
+//  
 //  	// reserved for future use
 //  	union switch (LedgerVersion v)
 //  	{
 //  	case EMPTY_VERSION:
 //  		void;
-//      case ALLOW_TO_UPDATE_AND_REJECT_LIMITS_UPDATE_REQUESTS:
-//          uint64 requestID;
 //  	}
 //  	ext;
 //  
@@ -5808,11 +6099,20 @@ abstract class CreateIssuanceRequestResult(val discriminant: CreateIssuanceReque
 //  ===========================================================================
 open class CreateManageLimitsRequestOp(
     var manageLimitsRequest: LimitsUpdateRequest,
+    var allTasks: Uint32?,
+    var requestID: Uint64,
     var ext: CreateManageLimitsRequestOpExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
     manageLimitsRequest.toXdr(stream)
+    if (allTasks != null) {
+      true.toXdr(stream)
+      allTasks?.toXdr(stream)
+    } else {
+      false.toXdr(stream)
+    }
+    requestID.toXdr(stream)
     ext.toXdr(stream)
   }
 
@@ -5822,13 +6122,6 @@ open class CreateManageLimitsRequestOp(
     }
 
     open class EmptyVersion: CreateManageLimitsRequestOpExt(LedgerVersion.EMPTY_VERSION)
-
-    open class AllowToUpdateAndRejectLimitsUpdateRequests(var requestID: Uint64): CreateManageLimitsRequestOpExt(LedgerVersion.ALLOW_TO_UPDATE_AND_REJECT_LIMITS_UPDATE_REQUESTS) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        requestID.toXdr(stream)
-      }
-    }
   }
 }
 
@@ -5843,7 +6136,11 @@ open class CreateManageLimitsRequestOp(
 //  	MANAGE_LIMITS_REQUEST_REFERENCE_DUPLICATION = -1,
 //      MANAGE_LIMITS_REQUEST_NOT_FOUND = -2,
 //      INVALID_DETAILS = -3, // details must be valid json
-//      INVALID_MANAGE_LIMITS_REQUEST_VERSION = -4 // a version of the request is higher than ledger version
+//      INVALID_MANAGE_LIMITS_REQUEST_VERSION = -4, // a version of the request is higher than ledger version
+//  	LIMITS_UPDATE_TASKS_NOT_FOUND = -5,
+//      NOT_ALLOWED_TO_SET_TASKS_ON_UPDATE = -6, // can't set allTasks on request update
+//      LIMITS_UPDATE_ZERO_TASKS_NOT_ALLOWED = -7
+//  
 //  };
 
 //  ===========================================================================
@@ -5853,6 +6150,9 @@ public enum class CreateManageLimitsRequestResultCode(val value: Int): XdrEncoda
   MANAGE_LIMITS_REQUEST_NOT_FOUND(-2),
   INVALID_DETAILS(-3),
   INVALID_MANAGE_LIMITS_REQUEST_VERSION(-4),
+  LIMITS_UPDATE_TASKS_NOT_FOUND(-5),
+  NOT_ALLOWED_TO_SET_TASKS_ON_UPDATE(-6),
+  LIMITS_UPDATE_ZERO_TASKS_NOT_ALLOWED(-7),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -5867,6 +6167,7 @@ public enum class CreateManageLimitsRequestResultCode(val value: Int): XdrEncoda
 //  case SUCCESS:
 //      struct {
 //          uint64 manageLimitsRequestID;
+//  		bool fulfilled;
 //  		// reserved for future use
 //  		union switch (LedgerVersion v)
 //  		{
@@ -5894,11 +6195,13 @@ abstract class CreateManageLimitsRequestResult(val discriminant: CreateManageLim
 
   open class CreateManageLimitsRequestResultSuccess(
       var manageLimitsRequestID: Uint64,
+      var fulfilled: Boolean,
       var ext: CreateManageLimitsRequestResultSuccessExt
     ) : XdrEncodable {
 
     override fun toXdr(stream: XdrDataOutputStream) {
       manageLimitsRequestID.toXdr(stream)
+      fulfilled.toXdr(stream)
       ext.toXdr(stream)
     }
 
@@ -5917,6 +6220,8 @@ abstract class CreateManageLimitsRequestResult(val discriminant: CreateManageLim
 //  struct CreatePreIssuanceRequestOp
 //  {
 //      PreIssuanceRequest request;
+//  
+//      uint32* allTasks;
 //  	// reserved for future use
 //      union switch (LedgerVersion v)
 //      {
@@ -5929,11 +6234,18 @@ abstract class CreateManageLimitsRequestResult(val discriminant: CreateManageLim
 //  ===========================================================================
 open class CreatePreIssuanceRequestOp(
     var request: PreIssuanceRequest,
+    var allTasks: Uint32?,
     var ext: CreatePreIssuanceRequestOpExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
     request.toXdr(stream)
+    if (allTasks != null) {
+      true.toXdr(stream)
+      allTasks?.toXdr(stream)
+    } else {
+      false.toXdr(stream)
+    }
     ext.toXdr(stream)
   }
 
@@ -5961,7 +6273,8 @@ open class CreatePreIssuanceRequestOp(
 //      EXCEEDED_MAX_AMOUNT = -5,
 //      INVALID_AMOUNT = -6,             // amount is 0
 //      INVALID_REFERENCE = -7,
-//      INCORRECT_AMOUNT_PRECISION = -8  // amount does not fit to this asset's precision
+//      INCORRECT_AMOUNT_PRECISION = -8,  // amount does not fit to this asset's precision
+//      PREISSUANCE_TASKS_NOT_FOUND = -9
 //  };
 
 //  ===========================================================================
@@ -5975,6 +6288,7 @@ public enum class CreatePreIssuanceRequestResultCode(val value: Int): XdrEncodab
   INVALID_AMOUNT(-6),
   INVALID_REFERENCE(-7),
   INCORRECT_AMOUNT_PRECISION(-8),
+  PREISSUANCE_TASKS_NOT_FOUND(-9),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -6044,6 +6358,8 @@ abstract class CreatePreIssuanceRequestResult(val discriminant: CreatePreIssuanc
 //  	uint64 requestID;
 //      SaleCreationRequest request;
 //  
+//      uint32* allTasks;
+//  
 //  	union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
@@ -6057,12 +6373,19 @@ abstract class CreatePreIssuanceRequestResult(val discriminant: CreatePreIssuanc
 open class CreateSaleCreationRequestOp(
     var requestID: Uint64,
     var request: SaleCreationRequest,
+    var allTasks: Uint32?,
     var ext: CreateSaleCreationRequestOpExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
     requestID.toXdr(stream)
     request.toXdr(stream)
+    if (allTasks != null) {
+      true.toXdr(stream)
+      allTasks?.toXdr(stream)
+    } else {
+      false.toXdr(stream)
+    }
     ext.toXdr(stream)
   }
 
@@ -6095,7 +6418,10 @@ open class CreateSaleCreationRequestOp(
 //  	REQUEST_OR_SALE_ALREADY_EXISTS = -10,
 //  	INSUFFICIENT_PREISSUED = -11, // amount of pre issued tokens is insufficient for hard cap
 //  	INVALID_DETAILS = -12, // details must be a valid json
-//  	VERSION_IS_NOT_SUPPORTED_YET = -13 // version specified in request is not supported yet
+//  	VERSION_IS_NOT_SUPPORTED_YET = -13, // version specified in request is not supported yet
+//      SALE_CREATE_TASKS_NOT_FOUND = -14,
+//      NOT_ALLOWED_TO_SET_TASKS_ON_UPDATE = -15, // can't set allTasks on request update
+//      PENDING_REQUEST_UPDATE_NOT_ALLOWED = -16
 //  };
 
 //  ===========================================================================
@@ -6114,6 +6440,9 @@ public enum class CreateSaleCreationRequestResultCode(val value: Int): XdrEncoda
   INSUFFICIENT_PREISSUED(-11),
   INVALID_DETAILS(-12),
   VERSION_IS_NOT_SUPPORTED_YET(-13),
+  SALE_CREATE_TASKS_NOT_FOUND(-14),
+  NOT_ALLOWED_TO_SET_TASKS_ON_UPDATE(-15),
+  PENDING_REQUEST_UPDATE_NOT_ALLOWED(-16),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -6125,7 +6454,9 @@ public enum class CreateSaleCreationRequestResultCode(val value: Int): XdrEncoda
 
 //  struct CreateSaleCreationSuccess {
 //  	uint64 requestID;
+//      uint64 saleID;
 //  
+//      bool fulfilled;
 //  	union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
@@ -6137,11 +6468,15 @@ public enum class CreateSaleCreationRequestResultCode(val value: Int): XdrEncoda
 //  ===========================================================================
 open class CreateSaleCreationSuccess(
     var requestID: Uint64,
+    var saleID: Uint64,
+    var fulfilled: Boolean,
     var ext: CreateSaleCreationSuccessExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
     requestID.toXdr(stream)
+    saleID.toXdr(stream)
+    fulfilled.toXdr(stream)
     ext.toXdr(stream)
   }
 
@@ -6184,12 +6519,11 @@ abstract class CreateSaleCreationRequestResult(val discriminant: CreateSaleCreat
 //  {
 //  	WithdrawalRequest request;
 //  
+//  	uint32* allTasks;
 //  	union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
 //          void;
-//      case WITHDRAWAL_TASKS:
-//          uint32* allTasks;
 //      }
 //      ext;
 //  
@@ -6198,11 +6532,18 @@ abstract class CreateSaleCreationRequestResult(val discriminant: CreateSaleCreat
 //  ===========================================================================
 open class CreateWithdrawalRequestOp(
     var request: WithdrawalRequest,
+    var allTasks: Uint32?,
     var ext: CreateWithdrawalRequestOpExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
     request.toXdr(stream)
+    if (allTasks != null) {
+      true.toXdr(stream)
+      allTasks?.toXdr(stream)
+    } else {
+      false.toXdr(stream)
+    }
     ext.toXdr(stream)
   }
 
@@ -6212,18 +6553,6 @@ open class CreateWithdrawalRequestOp(
     }
 
     open class EmptyVersion: CreateWithdrawalRequestOpExt(LedgerVersion.EMPTY_VERSION)
-
-    open class WithdrawalTasks(var allTasks: Uint32?): CreateWithdrawalRequestOpExt(LedgerVersion.WITHDRAWAL_TASKS) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        if (allTasks != null) {
-          true.toXdr(stream)
-          allTasks?.toXdr(stream)
-        } else {
-          false.toXdr(stream)
-        }
-      }
-    }
   }
 }
 
@@ -6251,7 +6580,8 @@ open class CreateWithdrawalRequestOp(
 //  	INVALID_PRE_CONFIRMATION_DETAILS = -14, // it's not allowed to pass pre confirmation details
 //  	LOWER_BOUND_NOT_EXCEEDED = -15, //amount to withdraw is too small 
 //      WITHDRAWAL_TASKS_NOT_FOUND = -16,
-//  	NOT_ALLOWED_TO_SET_WITHDRAWAL_TASKS = -17 //Can't set withdrawal tasks on request creation
+//  	NOT_ALLOWED_TO_SET_WITHDRAWAL_TASKS = -17, //Can't set withdrawal tasks on request creation
+//  	WITHDRAWAL_ZERO_TASKS_NOT_ALLOWED = -18
 //  };
 
 //  ===========================================================================
@@ -6274,6 +6604,7 @@ public enum class CreateWithdrawalRequestResultCode(val value: Int): XdrEncodabl
   LOWER_BOUND_NOT_EXCEEDED(-15),
   WITHDRAWAL_TASKS_NOT_FOUND(-16),
   NOT_ALLOWED_TO_SET_WITHDRAWAL_TASKS(-17),
+  WITHDRAWAL_ZERO_TASKS_NOT_ALLOWED(-18),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -6286,6 +6617,7 @@ public enum class CreateWithdrawalRequestResultCode(val value: Int): XdrEncodabl
 //  struct CreateWithdrawalSuccess {
 //  	uint64 requestID;
 //  
+//     bool fulfilled;
 //  	union switch (LedgerVersion v)
 //  	{
 //  	case EMPTY_VERSION:
@@ -6297,11 +6629,13 @@ public enum class CreateWithdrawalRequestResultCode(val value: Int): XdrEncodabl
 //  ===========================================================================
 open class CreateWithdrawalSuccess(
     var requestID: Uint64,
+    var fulfilled: Boolean,
     var ext: CreateWithdrawalSuccessExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
     requestID.toXdr(stream)
+    fulfilled.toXdr(stream)
     ext.toXdr(stream)
   }
 
@@ -6331,146 +6665,6 @@ abstract class CreateWithdrawalRequestResult(val discriminant: CreateWithdrawalR
   }
 
   open class Success(var success: CreateWithdrawalSuccess): CreateWithdrawalRequestResult(CreateWithdrawalRequestResultCode.SUCCESS) {
-    override fun toXdr(stream: XdrDataOutputStream) {
-      super.toXdr(stream)
-      success.toXdr(stream)
-    }
-  }
-}
-
-// === xdr source ============================================================
-
-//  struct DirectDebitOp
-//  {
-//      AccountID from;
-//      PaymentOp paymentOp;
-//  	 // reserved for future use
-//      union switch (LedgerVersion v)
-//      {
-//      case EMPTY_VERSION:
-//          void;
-//      }
-//      ext;
-//  };
-
-//  ===========================================================================
-open class DirectDebitOp(
-    var from: AccountID,
-    var paymentOp: PaymentOp,
-    var ext: DirectDebitOpExt
-  ) : XdrEncodable {
-
-  override fun toXdr(stream: XdrDataOutputStream) {
-    from.toXdr(stream)
-    paymentOp.toXdr(stream)
-    ext.toXdr(stream)
-  }
-
-  abstract class DirectDebitOpExt(val discriminant: LedgerVersion): XdrEncodable {
-    override fun toXdr(stream: XdrDataOutputStream) {
-        discriminant.toXdr(stream)
-    }
-
-    open class EmptyVersion: DirectDebitOpExt(LedgerVersion.EMPTY_VERSION)
-  }
-}
-
-// === xdr source ============================================================
-
-//  enum DirectDebitResultCode
-//  {
-//      // codes considered as "success" for the operation
-//      SUCCESS = 0, // payment successfuly completed
-//  
-//      // codes considered as "failure" for the operation
-//      MALFORMED = -1,       // bad input
-//      UNDERFUNDED = -2,     // not enough funds in source account
-//      LINE_FULL = -3,       // destination would go above their limit
-//  	FEE_MISMATCHED = -4,   // fee is not equal to expected fee
-//      BALANCE_NOT_FOUND = -5, // destination balance not found
-//      BALANCE_ACCOUNT_MISMATCHED = -6,
-//      BALANCE_ASSETS_MISMATCHED = -7,
-//  	SRC_BALANCE_NOT_FOUND = -8, // source balance not found
-//      REFERENCE_DUPLICATION = -9,
-//      STATS_OVERFLOW = -10,
-//      LIMITS_EXCEEDED = -11,
-//      NOT_ALLOWED_BY_ASSET_POLICY = -12,
-//      NO_TRUST = -13
-//  };
-
-//  ===========================================================================
-public enum class DirectDebitResultCode(val value: Int): XdrEncodable {
-  SUCCESS(0),
-  MALFORMED(-1),
-  UNDERFUNDED(-2),
-  LINE_FULL(-3),
-  FEE_MISMATCHED(-4),
-  BALANCE_NOT_FOUND(-5),
-  BALANCE_ACCOUNT_MISMATCHED(-6),
-  BALANCE_ASSETS_MISMATCHED(-7),
-  SRC_BALANCE_NOT_FOUND(-8),
-  REFERENCE_DUPLICATION(-9),
-  STATS_OVERFLOW(-10),
-  LIMITS_EXCEEDED(-11),
-  NOT_ALLOWED_BY_ASSET_POLICY(-12),
-  NO_TRUST(-13),
-  ;
-
-  override fun toXdr(stream: XdrDataOutputStream) {
-      value.toXdr(stream)
-  }
-}
-
-// === xdr source ============================================================
-
-//  struct DirectDebitSuccess {
-//  	PaymentResponse paymentResponse;
-//  	// reserved for future use
-//      union switch (LedgerVersion v)
-//      {
-//      case EMPTY_VERSION:
-//          void;
-//      }
-//      ext;
-//  };
-
-//  ===========================================================================
-open class DirectDebitSuccess(
-    var paymentResponse: PaymentResponse,
-    var ext: DirectDebitSuccessExt
-  ) : XdrEncodable {
-
-  override fun toXdr(stream: XdrDataOutputStream) {
-    paymentResponse.toXdr(stream)
-    ext.toXdr(stream)
-  }
-
-  abstract class DirectDebitSuccessExt(val discriminant: LedgerVersion): XdrEncodable {
-    override fun toXdr(stream: XdrDataOutputStream) {
-        discriminant.toXdr(stream)
-    }
-
-    open class EmptyVersion: DirectDebitSuccessExt(LedgerVersion.EMPTY_VERSION)
-  }
-}
-
-// === xdr source ============================================================
-
-//  union DirectDebitResult switch (DirectDebitResultCode code)
-//  {
-//  case SUCCESS:
-//      DirectDebitSuccess success;
-//  default:
-//      void;
-//  };
-
-//  ===========================================================================
-abstract class DirectDebitResult(val discriminant: DirectDebitResultCode): XdrEncodable {
-  override fun toXdr(stream: XdrDataOutputStream) {
-      discriminant.toXdr(stream)
-  }
-
-  open class Success(var success: DirectDebitSuccess): DirectDebitResult(DirectDebitResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
@@ -7376,9 +7570,29 @@ open class UpdateMaxIssuance(
 //      union switch (ManageAssetAction action)
 //  	{
 //  	case CREATE_ASSET_CREATION_REQUEST:
-//  		AssetCreationRequest createAsset;
+//  		struct {
+//              AssetCreationRequest createAsset;
+//              uint32* allTasks;
+//  			// reserved for future use
+//  			union switch (LedgerVersion v)
+//  			{
+//  			case EMPTY_VERSION:
+//  				void;
+//  			}
+//  			ext;
+//          } createAssetCreationRequest;
 //  	case CREATE_ASSET_UPDATE_REQUEST:
-//  		AssetUpdateRequest updateAsset;
+//  		struct {
+//              AssetUpdateRequest updateAsset;
+//              uint32* allTasks;
+//  			// reserved for future use
+//  			union switch (LedgerVersion v)
+//  			{
+//  			case EMPTY_VERSION:
+//  				void;
+//  			}
+//  			ext;
+//          } createAssetUpdateRequest;
 //  	case CANCEL_ASSET_REQUEST:
 //  		CancelAssetRequest cancelRequest;
 //  	case CHANGE_PREISSUED_ASSET_SIGNER:
@@ -7414,17 +7628,17 @@ open class ManageAssetOp(
         discriminant.toXdr(stream)
     }
 
-    open class CreateAssetCreationRequest(var createAsset: AssetCreationRequest): ManageAssetOpRequest(ManageAssetAction.CREATE_ASSET_CREATION_REQUEST) {
+    open class CreateAssetCreationRequest(var createAssetCreationRequest: ManageAssetOpCreateAssetCreationRequest): ManageAssetOpRequest(ManageAssetAction.CREATE_ASSET_CREATION_REQUEST) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
-        createAsset.toXdr(stream)
+        createAssetCreationRequest.toXdr(stream)
       }
     }
 
-    open class CreateAssetUpdateRequest(var updateAsset: AssetUpdateRequest): ManageAssetOpRequest(ManageAssetAction.CREATE_ASSET_UPDATE_REQUEST) {
+    open class CreateAssetUpdateRequest(var createAssetUpdateRequest: ManageAssetOpCreateAssetUpdateRequest): ManageAssetOpRequest(ManageAssetAction.CREATE_ASSET_UPDATE_REQUEST) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
-        updateAsset.toXdr(stream)
+        createAssetUpdateRequest.toXdr(stream)
       }
     }
 
@@ -7446,6 +7660,57 @@ open class ManageAssetOp(
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         updateMaxIssuance.toXdr(stream)
+      }
+    }
+
+    open class ManageAssetOpCreateAssetCreationRequest(
+        var createAsset: AssetCreationRequest,
+        var allTasks: Uint32?,
+        var ext: ManageAssetOpCreateAssetCreationRequestExt
+      ) : XdrEncodable {
+
+      override fun toXdr(stream: XdrDataOutputStream) {
+        createAsset.toXdr(stream)
+        if (allTasks != null) {
+          true.toXdr(stream)
+          allTasks?.toXdr(stream)
+        } else {
+          false.toXdr(stream)
+        }
+        ext.toXdr(stream)
+      }
+
+      abstract class ManageAssetOpCreateAssetCreationRequestExt(val discriminant: LedgerVersion): XdrEncodable {
+        override fun toXdr(stream: XdrDataOutputStream) {
+            discriminant.toXdr(stream)
+        }
+
+        open class EmptyVersion: ManageAssetOpCreateAssetCreationRequestExt(LedgerVersion.EMPTY_VERSION)
+      }
+    }
+    open class ManageAssetOpCreateAssetUpdateRequest(
+        var updateAsset: AssetUpdateRequest,
+        var allTasks: Uint32?,
+        var ext: ManageAssetOpCreateAssetUpdateRequestExt
+      ) : XdrEncodable {
+
+      override fun toXdr(stream: XdrDataOutputStream) {
+        updateAsset.toXdr(stream)
+        if (allTasks != null) {
+          true.toXdr(stream)
+          allTasks?.toXdr(stream)
+        } else {
+          false.toXdr(stream)
+        }
+        ext.toXdr(stream)
+      }
+
+      abstract class ManageAssetOpCreateAssetUpdateRequestExt(val discriminant: LedgerVersion): XdrEncodable {
+        override fun toXdr(stream: XdrDataOutputStream) {
+            discriminant.toXdr(stream)
+        }
+
+        open class EmptyVersion: ManageAssetOpCreateAssetUpdateRequestExt(LedgerVersion.EMPTY_VERSION)
       }
     }
   }
@@ -7479,7 +7744,10 @@ open class ManageAssetOp(
 //      INVALID_TRAILING_DIGITS_COUNT = -13,          // invalid number of trailing digits
 //      INVALID_PREISSUED_AMOUNT_PRECISION = -14,     // initial pre issued amount does not match precision set by trailing digits count
 //      INVALID_MAX_ISSUANCE_AMOUNT_PRECISION = -15,   // maximum issuance amount does not match precision set by trailing digits count
-//      INCOMPATIBLE_POLICIES = -16 // policies set in request are incompatible(i.e. WITHDRAWABLE and WITHDRAWA
+//      ASSET_CREATE_TASKS_NOT_FOUND = -16, 
+//      ASSET_UPDATE_TASKS_NOT_FOUND = -17,
+//      NOT_ALLOWED_TO_SET_TASKS_ON_UPDATE = -18,
+//      PENDING_REQUEST_UPDATE_NOT_ALLOWED = -19
 //  };
 
 //  ===========================================================================
@@ -7498,7 +7766,10 @@ public enum class ManageAssetResultCode(val value: Int): XdrEncodable {
   INVALID_TRAILING_DIGITS_COUNT(-13),
   INVALID_PREISSUED_AMOUNT_PRECISION(-14),
   INVALID_MAX_ISSUANCE_AMOUNT_PRECISION(-15),
-  INCOMPATIBLE_POLICIES(-16),
+  ASSET_CREATE_TASKS_NOT_FOUND(-16),
+  ASSET_UPDATE_TASKS_NOT_FOUND(-17),
+  NOT_ALLOWED_TO_SET_TASKS_ON_UPDATE(-18),
+  PENDING_REQUEST_UPDATE_NOT_ALLOWED(-19),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -7739,11 +8010,54 @@ public enum class ManageContractRequestAction(val value: Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  struct CreateContractRequest 
+//  {
+//      ContractRequest contractRequest;
+//      uint32* allTasks;
+//      
+//      // reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class CreateContractRequest(
+    var contractRequest: ContractRequest,
+    var allTasks: Uint32?,
+    var ext: CreateContractRequestExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    contractRequest.toXdr(stream)
+    if (allTasks != null) {
+      true.toXdr(stream)
+      allTasks?.toXdr(stream)
+    } else {
+      false.toXdr(stream)
+    }
+    ext.toXdr(stream)
+  }
+
+  abstract class CreateContractRequestExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: CreateContractRequestExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
 //  struct ManageContractRequestOp
 //  {
 //      union switch (ManageContractRequestAction action){
 //      case CREATE:
-//          ContractRequest contractRequest;
+//          CreateContractRequest createContractRequest;
 //      case REMOVE:
 //          uint64 requestID;
 //      } details;
@@ -7773,10 +8087,10 @@ open class ManageContractRequestOp(
         discriminant.toXdr(stream)
     }
 
-    open class Create(var contractRequest: ContractRequest): ManageContractRequestOpDetails(ManageContractRequestAction.CREATE) {
+    open class Create(var createContractRequest: CreateContractRequest): ManageContractRequestOpDetails(ManageContractRequestAction.CREATE) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
-        contractRequest.toXdr(stream)
+        createContractRequest.toXdr(stream)
       }
     }
 
@@ -7808,7 +8122,8 @@ open class ManageContractRequestOp(
 //      NOT_FOUND = -2, // not found contract request, when try to remove
 //      TOO_MANY_CONTRACTS = -3,
 //      NOT_ALLOWED_TO_REMOVE = -4, // only contract creator can remove contract
-//      DETAILS_TOO_LONG = -5
+//      DETAILS_TOO_LONG = -5,
+//      CONTRACT_CREATE_TASKS_NOT_FOUND = -6 // key-value not set
 //  };
 
 //  ===========================================================================
@@ -7819,6 +8134,7 @@ public enum class ManageContractRequestResultCode(val value: Int): XdrEncodable 
   TOO_MANY_CONTRACTS(-3),
   NOT_ALLOWED_TO_REMOVE(-4),
   DETAILS_TOO_LONG(-5),
+  CONTRACT_CREATE_TASKS_NOT_FOUND(-6),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -7831,6 +8147,7 @@ public enum class ManageContractRequestResultCode(val value: Int): XdrEncodable 
 //  struct CreateContractRequestResponse
 //  {
 //  	uint64 requestID;
+//      bool fulfilled;
 //  
 //  	union switch (LedgerVersion v)
 //      {
@@ -7843,11 +8160,13 @@ public enum class ManageContractRequestResultCode(val value: Int): XdrEncodable 
 //  ===========================================================================
 open class CreateContractRequestResponse(
     var requestID: Uint64,
+    var fulfilled: Boolean,
     var ext: CreateContractRequestResponseExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
     requestID.toXdr(stream)
+    fulfilled.toXdr(stream)
     ext.toXdr(stream)
   }
 
@@ -8314,8 +8633,7 @@ open class ManageExternalSystemAccountIdPoolEntryOp(
 //      // codes considered as "failure" for the operation
 //      MALFORMED = -1,
 //      ALREADY_EXISTS = -2,
-//      AUTO_GENERATED_TYPE_NOT_ALLOWED = -3,
-//      NOT_FOUND = -4
+//      NOT_FOUND = -3
 //  };
 
 //  ===========================================================================
@@ -8323,8 +8641,7 @@ public enum class ManageExternalSystemAccountIdPoolEntryResultCode(val value: In
   SUCCESS(0),
   MALFORMED(-1),
   ALREADY_EXISTS(-2),
-  AUTO_GENERATED_TYPE_NOT_ALLOWED(-3),
-  NOT_FOUND(-4),
+  NOT_FOUND(-3),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -8419,6 +8736,8 @@ public enum class ManageInvoiceRequestAction(val value: Int): XdrEncodable {
 //      uint64 *contractID;
 //      longstring details;
 //  
+//      uint32* allTasks;
+//  
 //      // reserved for future use
 //      union switch (LedgerVersion v)
 //      {
@@ -8435,6 +8754,7 @@ open class InvoiceCreationRequest(
     var amount: Uint64,
     var contractID: Uint64?,
     var details: Longstring,
+    var allTasks: Uint32?,
     var ext: InvoiceCreationRequestExt
   ) : XdrEncodable {
 
@@ -8449,6 +8769,12 @@ open class InvoiceCreationRequest(
       false.toXdr(stream)
     }
     details.toXdr(stream)
+    if (allTasks != null) {
+      true.toXdr(stream)
+      allTasks?.toXdr(stream)
+    } else {
+      false.toXdr(stream)
+    }
     ext.toXdr(stream)
   }
 
@@ -8537,7 +8863,8 @@ open class ManageInvoiceRequestOp(
 //      CONTRACT_NOT_FOUND = -7,
 //      ONLY_CONTRACTOR_CAN_ATTACH_INVOICE_TO_CONTRACT = -8,
 //      SENDER_ACCOUNT_MISMATCHED = -9,
-//      INVOICE_IS_APPROVED = -10 // not allowed to remove approved invoice
+//      INVOICE_IS_APPROVED = -10, // not allowed to remove approved invoice
+//      INVOICE_TASKS_NOT_FOUND = -11
 //  };
 
 //  ===========================================================================
@@ -8553,6 +8880,7 @@ public enum class ManageInvoiceRequestResultCode(val value: Int): XdrEncodable {
   ONLY_CONTRACTOR_CAN_ATTACH_INVOICE_TO_CONTRACT(-8),
   SENDER_ACCOUNT_MISMATCHED(-9),
   INVOICE_IS_APPROVED(-10),
+  INVOICE_TASKS_NOT_FOUND(-11),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -8608,6 +8936,7 @@ open class CreateInvoiceRequestResponse(
 //  case SUCCESS:
 //      struct
 //      {
+//          bool fulfilled;
 //          union switch (ManageInvoiceRequestAction action)
 //          {
 //          case CREATE:
@@ -8641,11 +8970,13 @@ abstract class ManageInvoiceRequestResult(val discriminant: ManageInvoiceRequest
   }
 
   open class ManageInvoiceRequestResultSuccess(
+      var fulfilled: Boolean,
       var details: ManageInvoiceRequestResultSuccessDetails,
       var ext: ManageInvoiceRequestResultSuccessExt
     ) : XdrEncodable {
 
     override fun toXdr(stream: XdrDataOutputStream) {
+      fulfilled.toXdr(stream)
       details.toXdr(stream)
       ext.toXdr(stream)
     }
@@ -8697,11 +9028,11 @@ public enum class ManageKVAction(val value: Int): XdrEncodable {
 
 //  struct ManageKeyValueOp
 //      {
-//          string256 key;
+//          longstring key;
 //          union switch(ManageKVAction action)
 //          {
 //              case PUT:
-//                  KeyValueEntry value;
+//                   KeyValueEntryValue value;
 //              case REMOVE:
 //                  void;
 //          }
@@ -8710,15 +9041,15 @@ public enum class ManageKVAction(val value: Int): XdrEncodable {
 //          // reserved for future use
 //          union switch (LedgerVersion v)
 //          {
-//          case EMPTY_VERSION:
-//              void;
+//              case EMPTY_VERSION:
+//                  void;
 //          }
 //          ext;
 //      };
 
 //  ===========================================================================
 open class ManageKeyValueOp(
-    var key: String256,
+    var key: Longstring,
     var action: ManageKeyValueOpAction,
     var ext: ManageKeyValueOpExt
   ) : XdrEncodable {
@@ -8734,7 +9065,7 @@ open class ManageKeyValueOp(
         discriminant.toXdr(stream)
     }
 
-    open class Put(var value: KeyValueEntry): ManageKeyValueOpAction(ManageKVAction.PUT) {
+    open class Put(var value: KeyValueEntryValue): ManageKeyValueOpAction(ManageKVAction.PUT) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         value.toXdr(stream)
@@ -8787,14 +9118,14 @@ open class ManageKeyValueSuccess(
 
 //  enum ManageKeyValueResultCode
 //      {
-//          SUCCESS = 1,
+//          SUCCESS = 0,
 //          NOT_FOUND = -1,
 //          INVALID_TYPE = -2
 //      };
 
 //  ===========================================================================
 public enum class ManageKeyValueResultCode(val value: Int): XdrEncodable {
-  SUCCESS(1),
+  SUCCESS(0),
   NOT_FOUND(-1),
   INVALID_TYPE(-2),
   ;
@@ -9454,19 +9785,13 @@ abstract class ManageOfferResult(val discriminant: ManageOfferResultCode): XdrEn
 //  enum ManageSaleAction
 //  {
 //      CREATE_UPDATE_DETAILS_REQUEST = 1,
-//      CANCEL = 2,
-//  	SET_STATE = 3,
-//  	CREATE_PROMOTION_UPDATE_REQUEST = 4,
-//  	CREATE_UPDATE_END_TIME_REQUEST = 5
+//      CANCEL = 2
 //  };
 
 //  ===========================================================================
 public enum class ManageSaleAction(val value: Int): XdrEncodable {
   CREATE_UPDATE_DETAILS_REQUEST(1),
   CANCEL(2),
-  SET_STATE(3),
-  CREATE_PROMOTION_UPDATE_REQUEST(4),
-  CREATE_UPDATE_END_TIME_REQUEST(5),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -9480,6 +9805,8 @@ public enum class ManageSaleAction(val value: Int): XdrEncodable {
 //      uint64 requestID; // if requestID is 0 - create request, else - update
 //      longstring newDetails;
 //  
+//      uint32* allTasks;
+//  
 //      // reserved for future use
 //      union switch (LedgerVersion v)
 //      {
@@ -9492,12 +9819,19 @@ public enum class ManageSaleAction(val value: Int): XdrEncodable {
 open class UpdateSaleDetailsData(
     var requestID: Uint64,
     var newDetails: Longstring,
+    var allTasks: Uint32?,
     var ext: UpdateSaleDetailsDataExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
     requestID.toXdr(stream)
     newDetails.toXdr(stream)
+    if (allTasks != null) {
+      true.toXdr(stream)
+      allTasks?.toXdr(stream)
+    } else {
+      false.toXdr(stream)
+    }
     ext.toXdr(stream)
   }
 
@@ -9512,77 +9846,6 @@ open class UpdateSaleDetailsData(
 
 // === xdr source ============================================================
 
-//  struct PromotionUpdateData {
-//      uint64 requestID; // if requestID is 0 - create request, else - update
-//      SaleCreationRequest newPromotionData;
-//  
-//      union switch (LedgerVersion v)
-//      {
-//      case EMPTY_VERSION:
-//          void;
-//      } ext;
-//  };
-
-//  ===========================================================================
-open class PromotionUpdateData(
-    var requestID: Uint64,
-    var newPromotionData: SaleCreationRequest,
-    var ext: PromotionUpdateDataExt
-  ) : XdrEncodable {
-
-  override fun toXdr(stream: XdrDataOutputStream) {
-    requestID.toXdr(stream)
-    newPromotionData.toXdr(stream)
-    ext.toXdr(stream)
-  }
-
-  abstract class PromotionUpdateDataExt(val discriminant: LedgerVersion): XdrEncodable {
-    override fun toXdr(stream: XdrDataOutputStream) {
-        discriminant.toXdr(stream)
-    }
-
-    open class EmptyVersion: PromotionUpdateDataExt(LedgerVersion.EMPTY_VERSION)
-  }
-}
-
-// === xdr source ============================================================
-
-//  struct UpdateSaleEndTimeData {
-//      uint64 requestID; // if requestID is 0 - create request, else - update
-//      uint64 newEndTime;
-//  
-//      // reserved for future use
-//      union switch (LedgerVersion v)
-//      {
-//      case EMPTY_VERSION:
-//          void;
-//      } ext;
-//  };
-
-//  ===========================================================================
-open class UpdateSaleEndTimeData(
-    var requestID: Uint64,
-    var newEndTime: Uint64,
-    var ext: UpdateSaleEndTimeDataExt
-  ) : XdrEncodable {
-
-  override fun toXdr(stream: XdrDataOutputStream) {
-    requestID.toXdr(stream)
-    newEndTime.toXdr(stream)
-    ext.toXdr(stream)
-  }
-
-  abstract class UpdateSaleEndTimeDataExt(val discriminant: LedgerVersion): XdrEncodable {
-    override fun toXdr(stream: XdrDataOutputStream) {
-        discriminant.toXdr(stream)
-    }
-
-    open class EmptyVersion: UpdateSaleEndTimeDataExt(LedgerVersion.EMPTY_VERSION)
-  }
-}
-
-// === xdr source ============================================================
-
 //  struct ManageSaleOp
 //  {
 //      uint64 saleID;
@@ -9592,12 +9855,6 @@ open class UpdateSaleEndTimeData(
 //          UpdateSaleDetailsData updateSaleDetailsData;
 //      case CANCEL:
 //          void;
-//  	case SET_STATE:
-//  		SaleState saleState;
-//      case CREATE_PROMOTION_UPDATE_REQUEST:
-//          PromotionUpdateData promotionUpdateData;
-//      case CREATE_UPDATE_END_TIME_REQUEST:
-//          UpdateSaleEndTimeData updateSaleEndTimeData;
 //      } data;
 //  
 //      // reserved for future use
@@ -9634,27 +9891,6 @@ open class ManageSaleOp(
     }
 
     open class Cancel: ManageSaleOpData(ManageSaleAction.CANCEL)
-
-    open class SetState(var saleState: SaleState): ManageSaleOpData(ManageSaleAction.SET_STATE) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        saleState.toXdr(stream)
-      }
-    }
-
-    open class CreatePromotionUpdateRequest(var promotionUpdateData: PromotionUpdateData): ManageSaleOpData(ManageSaleAction.CREATE_PROMOTION_UPDATE_REQUEST) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        promotionUpdateData.toXdr(stream)
-      }
-    }
-
-    open class CreateUpdateEndTimeRequest(var updateSaleEndTimeData: UpdateSaleEndTimeData): ManageSaleOpData(ManageSaleAction.CREATE_UPDATE_END_TIME_REQUEST) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        updateSaleEndTimeData.toXdr(stream)
-      }
-    }
   }
   abstract class ManageSaleOpExt(val discriminant: LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
@@ -9677,24 +9913,10 @@ open class ManageSaleOp(
 //      INVALID_NEW_DETAILS = -2, // newDetails field is invalid JSON
 //      UPDATE_DETAILS_REQUEST_ALREADY_EXISTS = -3,
 //      UPDATE_DETAILS_REQUEST_NOT_FOUND = -4,
-//  
-//      // errors related to action "SET_STATE"
-//      NOT_ALLOWED = -5, // it's not allowed to set state for non master account
-//  
-//      // errors related to action "CREATE_PROMOTION_UPDATE_REQUEST"
-//      PROMOTION_UPDATE_REQUEST_INVALID_ASSET_PAIR = -6, // one of the assets has invalid code or base asset is equal to quote asset
-//      PROMOTION_UPDATE_REQUEST_INVALID_PRICE = -7, // price cannot be 0
-//      PROMOTION_UPDATE_REQUEST_START_END_INVALID = -8, // sale ends before start
-//      PROMOTION_UPDATE_REQUEST_INVALID_CAP = -9, // hard cap is < soft cap
-//      PROMOTION_UPDATE_REQUEST_INVALID_DETAILS = -10, // details field is invalid JSON
-//      INVALID_SALE_STATE = -11, // sale state must be "PROMOTION"
-//      PROMOTION_UPDATE_REQUEST_ALREADY_EXISTS = -12,
-//      PROMOTION_UPDATE_REQUEST_NOT_FOUND = -13,
-//  
-//      // errors related to action "CREATE_UPDATE_END_TIME_REQUEST"
-//      INVALID_NEW_END_TIME = -14, // new end time is before start time or current ledger close time
-//      UPDATE_END_TIME_REQUEST_ALREADY_EXISTS = -15,
-//      UPDATE_END_TIME_REQUEST_NOT_FOUND = -16
+//      INVALID_UPDATE_DETAILS_REQUEST_DATA = -5, // not allowed to set allTasks on request update
+//      SALE_UPDATE_DETAILS_TASKS_NOT_FOUND = -6, // it's not allowed to set state for non master account
+//      NOT_ALLOWED_TO_SET_TASKS_ON_UPDATE = -7,
+//      PENDING_REQUEST_UPDATE_NOT_ALLOWED = -8
 //  };
 
 //  ===========================================================================
@@ -9704,18 +9926,10 @@ public enum class ManageSaleResultCode(val value: Int): XdrEncodable {
   INVALID_NEW_DETAILS(-2),
   UPDATE_DETAILS_REQUEST_ALREADY_EXISTS(-3),
   UPDATE_DETAILS_REQUEST_NOT_FOUND(-4),
-  NOT_ALLOWED(-5),
-  PROMOTION_UPDATE_REQUEST_INVALID_ASSET_PAIR(-6),
-  PROMOTION_UPDATE_REQUEST_INVALID_PRICE(-7),
-  PROMOTION_UPDATE_REQUEST_START_END_INVALID(-8),
-  PROMOTION_UPDATE_REQUEST_INVALID_CAP(-9),
-  PROMOTION_UPDATE_REQUEST_INVALID_DETAILS(-10),
-  INVALID_SALE_STATE(-11),
-  PROMOTION_UPDATE_REQUEST_ALREADY_EXISTS(-12),
-  PROMOTION_UPDATE_REQUEST_NOT_FOUND(-13),
-  INVALID_NEW_END_TIME(-14),
-  UPDATE_END_TIME_REQUEST_ALREADY_EXISTS(-15),
-  UPDATE_END_TIME_REQUEST_NOT_FOUND(-16),
+  INVALID_UPDATE_DETAILS_REQUEST_DATA(-5),
+  SALE_UPDATE_DETAILS_TASKS_NOT_FOUND(-6),
+  NOT_ALLOWED_TO_SET_TASKS_ON_UPDATE(-7),
+  PENDING_REQUEST_UPDATE_NOT_ALLOWED(-8),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -9727,17 +9941,13 @@ public enum class ManageSaleResultCode(val value: Int): XdrEncodable {
 
 //  struct ManageSaleResultSuccess
 //  {
+//      bool fulfilled; // can be used for any reviewable request type created with manage sale operation   
+//   
 //      union switch (ManageSaleAction action) {
 //      case CREATE_UPDATE_DETAILS_REQUEST:
 //          uint64 requestID;
 //      case CANCEL:
 //          void;
-//  	case SET_STATE:
-//  		void;
-//      case CREATE_PROMOTION_UPDATE_REQUEST:
-//          uint64 promotionUpdateRequestID;
-//  	case CREATE_UPDATE_END_TIME_REQUEST:
-//  	    uint64 updateEndTimeRequestID;
 //      } response;
 //  
 //      // reserved for future use
@@ -9745,19 +9955,19 @@ public enum class ManageSaleResultCode(val value: Int): XdrEncodable {
 //      {
 //      case EMPTY_VERSION:
 //          void;
-//      case ALLOW_TO_UPDATE_VOTING_SALES_AS_PROMOTION:
-//          bool fulfilled; // can be used for any reviewable request type created with manage sale operation
 //      }
 //      ext;
 //  };
 
 //  ===========================================================================
 open class ManageSaleResultSuccess(
+    var fulfilled: Boolean,
     var response: ManageSaleResultSuccessResponse,
     var ext: ManageSaleResultSuccessExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
+    fulfilled.toXdr(stream)
     response.toXdr(stream)
     ext.toXdr(stream)
   }
@@ -9775,22 +9985,6 @@ open class ManageSaleResultSuccess(
     }
 
     open class Cancel: ManageSaleResultSuccessResponse(ManageSaleAction.CANCEL)
-
-    open class SetState: ManageSaleResultSuccessResponse(ManageSaleAction.SET_STATE)
-
-    open class CreatePromotionUpdateRequest(var promotionUpdateRequestID: Uint64): ManageSaleResultSuccessResponse(ManageSaleAction.CREATE_PROMOTION_UPDATE_REQUEST) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        promotionUpdateRequestID.toXdr(stream)
-      }
-    }
-
-    open class CreateUpdateEndTimeRequest(var updateEndTimeRequestID: Uint64): ManageSaleResultSuccessResponse(ManageSaleAction.CREATE_UPDATE_END_TIME_REQUEST) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        updateEndTimeRequestID.toXdr(stream)
-      }
-    }
   }
   abstract class ManageSaleResultSuccessExt(val discriminant: LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
@@ -9798,13 +9992,6 @@ open class ManageSaleResultSuccess(
     }
 
     open class EmptyVersion: ManageSaleResultSuccessExt(LedgerVersion.EMPTY_VERSION)
-
-    open class AllowToUpdateVotingSalesAsPromotion(var fulfilled: Boolean): ManageSaleResultSuccessExt(LedgerVersion.ALLOW_TO_UPDATE_VOTING_SALES_AS_PROMOTION) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        fulfilled.toXdr(stream)
-      }
-    }
   }
 }
 
@@ -9834,51 +10021,10 @@ abstract class ManageSaleResult(val discriminant: ManageSaleResultCode): XdrEnco
 
 // === xdr source ============================================================
 
-//  struct FeeDataV2 {
-//      uint64 maxPaymentFee;
-//      uint64 fixedFee;
-//  
-//      // Cross asset fees
-//      AssetCode feeAsset;
-//  
-//  	// reserved for future use
-//      union switch (LedgerVersion v)
-//      {
-//      case EMPTY_VERSION:
-//          void;
-//      }
-//      ext;
-//  };
-
-//  ===========================================================================
-open class FeeDataV2(
-    var maxPaymentFee: Uint64,
-    var fixedFee: Uint64,
-    var feeAsset: AssetCode,
-    var ext: FeeDataV2Ext
-  ) : XdrEncodable {
-
-  override fun toXdr(stream: XdrDataOutputStream) {
-    maxPaymentFee.toXdr(stream)
-    fixedFee.toXdr(stream)
-    feeAsset.toXdr(stream)
-    ext.toXdr(stream)
-  }
-
-  abstract class FeeDataV2Ext(val discriminant: LedgerVersion): XdrEncodable {
-    override fun toXdr(stream: XdrDataOutputStream) {
-        discriminant.toXdr(stream)
-    }
-
-    open class EmptyVersion: FeeDataV2Ext(LedgerVersion.EMPTY_VERSION)
-  }
-}
-
-// === xdr source ============================================================
-
 //  struct PaymentFeeDataV2 {
-//      FeeDataV2 sourceFee;
-//      FeeDataV2 destinationFee;
+//      Fee sourceFee;
+//      Fee destinationFee;
+//  
 //      bool sourcePaysForDest; // if true - source account pays fee, else destination
 //  
 //      union switch (LedgerVersion v)
@@ -9891,8 +10037,8 @@ open class FeeDataV2(
 
 //  ===========================================================================
 open class PaymentFeeDataV2(
-    var sourceFee: FeeDataV2,
-    var destinationFee: FeeDataV2,
+    var sourceFee: Fee,
+    var destinationFee: Fee,
     var sourcePaysForDest: Boolean,
     var ext: PaymentFeeDataV2Ext
   ) : XdrEncodable {
@@ -10028,13 +10174,10 @@ open class PaymentOpV2(
 //      LIMITS_EXCEEDED = -9,
 //      NOT_ALLOWED_BY_ASSET_POLICY = -10,
 //      INVALID_DESTINATION_FEE = -11,
-//      INVALID_DESTINATION_FEE_ASSET = -12, // destination fee asset must be the same as source balance asset
-//      FEE_ASSET_MISMATCHED = -13,
-//      INSUFFICIENT_FEE_AMOUNT = -14,
-//      BALANCE_TO_CHARGE_FEE_FROM_NOT_FOUND = -15,
-//      PAYMENT_AMOUNT_IS_LESS_THAN_DEST_FEE = -16,
-//      DESTINATION_ACCOUNT_NOT_FOUND = -17,
-//      INCORRECT_AMOUNT_PRECISION = -18
+//      INSUFFICIENT_FEE_AMOUNT = -12,
+//      PAYMENT_AMOUNT_IS_LESS_THAN_DEST_FEE = -13,
+//      DESTINATION_ACCOUNT_NOT_FOUND = -14,
+//      INCORRECT_AMOUNT_PRECISION = -15
 //  
 //       // !!! Add new result code to review invoice op too !!!
 //  };
@@ -10053,13 +10196,10 @@ public enum class PaymentV2ResultCode(val value: Int): XdrEncodable {
   LIMITS_EXCEEDED(-9),
   NOT_ALLOWED_BY_ASSET_POLICY(-10),
   INVALID_DESTINATION_FEE(-11),
-  INVALID_DESTINATION_FEE_ASSET(-12),
-  FEE_ASSET_MISMATCHED(-13),
-  INSUFFICIENT_FEE_AMOUNT(-14),
-  BALANCE_TO_CHARGE_FEE_FROM_NOT_FOUND(-15),
-  PAYMENT_AMOUNT_IS_LESS_THAN_DEST_FEE(-16),
-  DESTINATION_ACCOUNT_NOT_FOUND(-17),
-  INCORRECT_AMOUNT_PRECISION(-18),
+  INSUFFICIENT_FEE_AMOUNT(-12),
+  PAYMENT_AMOUNT_IS_LESS_THAN_DEST_FEE(-13),
+  DESTINATION_ACCOUNT_NOT_FOUND(-14),
+  INCORRECT_AMOUNT_PRECISION(-15),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -10077,8 +10217,8 @@ public enum class PaymentV2ResultCode(val value: Int): XdrEncodable {
 //      uint64 sourceSentUniversal;
 //      uint64 paymentID;
 //  
-//      uint64 actualSourcePaymentFee;
-//      uint64 actualDestinationPaymentFee;
+//      Fee actualSourcePaymentFee;
+//      Fee actualDestinationPaymentFee;
 //  
 //      // reserved for future use
 //      union switch (LedgerVersion v)
@@ -10096,8 +10236,8 @@ open class PaymentV2Response(
     var asset: AssetCode,
     var sourceSentUniversal: Uint64,
     var paymentID: Uint64,
-    var actualSourcePaymentFee: Uint64,
-    var actualDestinationPaymentFee: Uint64,
+    var actualSourcePaymentFee: Fee,
+    var actualDestinationPaymentFee: Fee,
     var ext: PaymentV2ResponseExt
   ) : XdrEncodable {
 
@@ -10141,297 +10281,6 @@ abstract class PaymentV2Result(val discriminant: PaymentV2ResultCode): XdrEncoda
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       paymentV2Response.toXdr(stream)
-    }
-  }
-}
-
-// === xdr source ============================================================
-
-//  struct InvoiceReference {
-//      uint64 invoiceID;
-//      bool accept;
-//  	// reserved for future use
-//      union switch (LedgerVersion v)
-//      {
-//      case EMPTY_VERSION:
-//          void;
-//      }
-//      ext;
-//  };
-
-//  ===========================================================================
-open class InvoiceReference(
-    var invoiceID: Uint64,
-    var accept: Boolean,
-    var ext: InvoiceReferenceExt
-  ) : XdrEncodable {
-
-  override fun toXdr(stream: XdrDataOutputStream) {
-    invoiceID.toXdr(stream)
-    accept.toXdr(stream)
-    ext.toXdr(stream)
-  }
-
-  abstract class InvoiceReferenceExt(val discriminant: LedgerVersion): XdrEncodable {
-    override fun toXdr(stream: XdrDataOutputStream) {
-        discriminant.toXdr(stream)
-    }
-
-    open class EmptyVersion: InvoiceReferenceExt(LedgerVersion.EMPTY_VERSION)
-  }
-}
-
-// === xdr source ============================================================
-
-//  struct FeeData {
-//      int64 paymentFee;
-//      int64 fixedFee;
-//  	// reserved for future use
-//      union switch (LedgerVersion v)
-//      {
-//      case EMPTY_VERSION:
-//          void;
-//      }
-//      ext;
-//  };
-
-//  ===========================================================================
-open class FeeData(
-    var paymentFee: Int64,
-    var fixedFee: Int64,
-    var ext: FeeDataExt
-  ) : XdrEncodable {
-
-  override fun toXdr(stream: XdrDataOutputStream) {
-    paymentFee.toXdr(stream)
-    fixedFee.toXdr(stream)
-    ext.toXdr(stream)
-  }
-
-  abstract class FeeDataExt(val discriminant: LedgerVersion): XdrEncodable {
-    override fun toXdr(stream: XdrDataOutputStream) {
-        discriminant.toXdr(stream)
-    }
-
-    open class EmptyVersion: FeeDataExt(LedgerVersion.EMPTY_VERSION)
-  }
-}
-
-// === xdr source ============================================================
-
-//  struct PaymentFeeData {
-//      FeeData sourceFee;
-//      FeeData destinationFee;
-//      bool sourcePaysForDest;    // if true source account pays fee, else destination
-//  	// reserved for future use
-//      union switch (LedgerVersion v)
-//      {
-//      case EMPTY_VERSION:
-//          void;
-//      }
-//      ext;
-//  };
-
-//  ===========================================================================
-open class PaymentFeeData(
-    var sourceFee: FeeData,
-    var destinationFee: FeeData,
-    var sourcePaysForDest: Boolean,
-    var ext: PaymentFeeDataExt
-  ) : XdrEncodable {
-
-  override fun toXdr(stream: XdrDataOutputStream) {
-    sourceFee.toXdr(stream)
-    destinationFee.toXdr(stream)
-    sourcePaysForDest.toXdr(stream)
-    ext.toXdr(stream)
-  }
-
-  abstract class PaymentFeeDataExt(val discriminant: LedgerVersion): XdrEncodable {
-    override fun toXdr(stream: XdrDataOutputStream) {
-        discriminant.toXdr(stream)
-    }
-
-    open class EmptyVersion: PaymentFeeDataExt(LedgerVersion.EMPTY_VERSION)
-  }
-}
-
-// === xdr source ============================================================
-
-//  struct PaymentOp
-//  {
-//      BalanceID sourceBalanceID;
-//      BalanceID destinationBalanceID;
-//      int64 amount;          // amount they end up with
-//  
-//      PaymentFeeData feeData;
-//  
-//      string256 subject;
-//      string64 reference;
-//      
-//      InvoiceReference* invoiceReference;
-//  
-//  	// reserved for future use
-//      union switch (LedgerVersion v)
-//      {
-//      case EMPTY_VERSION:
-//          void;
-//      }
-//      ext;
-//  };
-
-//  ===========================================================================
-open class PaymentOp(
-    var sourceBalanceID: BalanceID,
-    var destinationBalanceID: BalanceID,
-    var amount: Int64,
-    var feeData: PaymentFeeData,
-    var subject: String256,
-    var reference: String64,
-    var invoiceReference: InvoiceReference?,
-    var ext: PaymentOpExt
-  ) : XdrEncodable {
-
-  override fun toXdr(stream: XdrDataOutputStream) {
-    sourceBalanceID.toXdr(stream)
-    destinationBalanceID.toXdr(stream)
-    amount.toXdr(stream)
-    feeData.toXdr(stream)
-    subject.toXdr(stream)
-    reference.toXdr(stream)
-    if (invoiceReference != null) {
-      true.toXdr(stream)
-      invoiceReference?.toXdr(stream)
-    } else {
-      false.toXdr(stream)
-    }
-    ext.toXdr(stream)
-  }
-
-  abstract class PaymentOpExt(val discriminant: LedgerVersion): XdrEncodable {
-    override fun toXdr(stream: XdrDataOutputStream) {
-        discriminant.toXdr(stream)
-    }
-
-    open class EmptyVersion: PaymentOpExt(LedgerVersion.EMPTY_VERSION)
-  }
-}
-
-// === xdr source ============================================================
-
-//  enum PaymentResultCode
-//  {
-//      // codes considered as "success" for the operation
-//      SUCCESS = 0, // payment successfuly completed
-//  
-//      // codes considered as "failure" for the operation
-//      MALFORMED = -1,       // bad input
-//      UNDERFUNDED = -2,     // not enough funds in source account
-//      LINE_FULL = -3,       // destination would go above their limit
-//  	FEE_MISMATCHED = -4,   // fee is not equal to expected fee
-//      BALANCE_NOT_FOUND = -5, // destination balance not found
-//      BALANCE_ACCOUNT_MISMATCHED = -6,
-//      BALANCE_ASSETS_MISMATCHED = -7,
-//  	SRC_BALANCE_NOT_FOUND = -8, // source balance not found
-//      REFERENCE_DUPLICATION = -9,
-//      STATS_OVERFLOW = -10,
-//      LIMITS_EXCEEDED = -11,
-//      NOT_ALLOWED_BY_ASSET_POLICY = -12,
-//      INVOICE_NOT_FOUND = -13,
-//      INVOICE_WRONG_AMOUNT = -14,
-//      INVOICE_BALANCE_MISMATCH = -15,
-//      INVOICE_ACCOUNT_MISMATCH = -16,
-//      INVOICE_ALREADY_PAID = -17,
-//      PAYMENT_V1_NO_LONGER_SUPPORTED = -18
-//  };
-
-//  ===========================================================================
-public enum class PaymentResultCode(val value: Int): XdrEncodable {
-  SUCCESS(0),
-  MALFORMED(-1),
-  UNDERFUNDED(-2),
-  LINE_FULL(-3),
-  FEE_MISMATCHED(-4),
-  BALANCE_NOT_FOUND(-5),
-  BALANCE_ACCOUNT_MISMATCHED(-6),
-  BALANCE_ASSETS_MISMATCHED(-7),
-  SRC_BALANCE_NOT_FOUND(-8),
-  REFERENCE_DUPLICATION(-9),
-  STATS_OVERFLOW(-10),
-  LIMITS_EXCEEDED(-11),
-  NOT_ALLOWED_BY_ASSET_POLICY(-12),
-  INVOICE_NOT_FOUND(-13),
-  INVOICE_WRONG_AMOUNT(-14),
-  INVOICE_BALANCE_MISMATCH(-15),
-  INVOICE_ACCOUNT_MISMATCH(-16),
-  INVOICE_ALREADY_PAID(-17),
-  PAYMENT_V1_NO_LONGER_SUPPORTED(-18),
-  ;
-
-  override fun toXdr(stream: XdrDataOutputStream) {
-      value.toXdr(stream)
-  }
-}
-
-// === xdr source ============================================================
-
-//  struct PaymentResponse {
-//      AccountID destination;
-//      uint64 paymentID;
-//      AssetCode asset;
-//      // reserved for future use
-//      union switch (LedgerVersion v)
-//      {
-//      case EMPTY_VERSION:
-//          void;
-//      }
-//      ext;
-//  };
-
-//  ===========================================================================
-open class PaymentResponse(
-    var destination: AccountID,
-    var paymentID: Uint64,
-    var asset: AssetCode,
-    var ext: PaymentResponseExt
-  ) : XdrEncodable {
-
-  override fun toXdr(stream: XdrDataOutputStream) {
-    destination.toXdr(stream)
-    paymentID.toXdr(stream)
-    asset.toXdr(stream)
-    ext.toXdr(stream)
-  }
-
-  abstract class PaymentResponseExt(val discriminant: LedgerVersion): XdrEncodable {
-    override fun toXdr(stream: XdrDataOutputStream) {
-        discriminant.toXdr(stream)
-    }
-
-    open class EmptyVersion: PaymentResponseExt(LedgerVersion.EMPTY_VERSION)
-  }
-}
-
-// === xdr source ============================================================
-
-//  union PaymentResult switch (PaymentResultCode code)
-//  {
-//  case SUCCESS:
-//      PaymentResponse paymentResponse;
-//  default:
-//      void;
-//  };
-
-//  ===========================================================================
-abstract class PaymentResult(val discriminant: PaymentResultCode): XdrEncodable {
-  override fun toXdr(stream: XdrDataOutputStream) {
-      discriminant.toXdr(stream)
-  }
-
-  open class Success(var paymentResponse: PaymentResponse): PaymentResult(PaymentResultCode.SUCCESS) {
-    override fun toXdr(stream: XdrDataOutputStream) {
-      super.toXdr(stream)
-      paymentResponse.toXdr(stream)
     }
   }
 }
@@ -10768,8 +10617,6 @@ open class AMLAlertDetails(
 // === xdr source ============================================================
 
 //  struct UpdateKYCDetails {
-//      uint32 tasksToAdd;
-//      uint32 tasksToRemove;
 //      string externalDetails<>;
 //      // Reserved for future use
 //      union switch (LedgerVersion v)
@@ -10782,15 +10629,11 @@ open class AMLAlertDetails(
 
 //  ===========================================================================
 open class UpdateKYCDetails(
-    var tasksToAdd: Uint32,
-    var tasksToRemove: Uint32,
     var externalDetails: String,
     var ext: UpdateKYCDetailsExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
-    tasksToAdd.toXdr(stream)
-    tasksToRemove.toXdr(stream)
     externalDetails.toXdr(stream)
     ext.toXdr(stream)
   }
@@ -10947,6 +10790,103 @@ open class SaleExtended(
 
 // === xdr source ============================================================
 
+//  struct ASwapBidExtended
+//  {
+//      uint64 bidID;
+//  
+//      // Reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class ASwapBidExtended(
+    var bidID: Uint64,
+    var ext: ASwapBidExtendedExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    bidID.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class ASwapBidExtendedExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: ASwapBidExtendedExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct ASwapExtended
+//  {
+//      uint64 bidID;
+//      AccountID bidOwnerID;
+//      AccountID purchaserID;
+//      AssetCode baseAsset;
+//      AssetCode quoteAsset;
+//      uint64 baseAmount;
+//      uint64 quoteAmount;
+//      uint64 price;
+//      BalanceID bidOwnerBaseBalanceID;
+//      BalanceID purchaserBaseBalanceID;
+//  
+//      // Reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class ASwapExtended(
+    var bidID: Uint64,
+    var bidOwnerID: AccountID,
+    var purchaserID: AccountID,
+    var baseAsset: AssetCode,
+    var quoteAsset: AssetCode,
+    var baseAmount: Uint64,
+    var quoteAmount: Uint64,
+    var price: Uint64,
+    var bidOwnerBaseBalanceID: BalanceID,
+    var purchaserBaseBalanceID: BalanceID,
+    var ext: ASwapExtendedExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    bidID.toXdr(stream)
+    bidOwnerID.toXdr(stream)
+    purchaserID.toXdr(stream)
+    baseAsset.toXdr(stream)
+    quoteAsset.toXdr(stream)
+    baseAmount.toXdr(stream)
+    quoteAmount.toXdr(stream)
+    price.toXdr(stream)
+    bidOwnerBaseBalanceID.toXdr(stream)
+    purchaserBaseBalanceID.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class ASwapExtendedExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: ASwapExtendedExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
 //  struct ExtendedResult {
 //      bool fulfilled;
 //  
@@ -10955,6 +10895,10 @@ open class SaleExtended(
 //          SaleExtended saleExtended;
 //      case NONE:
 //          void;
+//  	case CREATE_ATOMIC_SWAP_BID:
+//          ASwapBidExtended aSwapBidExtended;
+//      case ATOMIC_SWAP:
+//          ASwapExtended aSwapExtended;
 //      } typeExt;
 //  
 //     // Reserved for future use
@@ -10992,6 +10936,20 @@ open class ExtendedResult(
     }
 
     open class None: ExtendedResultTypeExt(ReviewableRequestType.NONE)
+
+    open class CreateAtomicSwapBid(var aSwapBidExtended: ASwapBidExtended): ExtendedResultTypeExt(ReviewableRequestType.CREATE_ATOMIC_SWAP_BID) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        aSwapBidExtended.toXdr(stream)
+      }
+    }
+
+    open class AtomicSwap(var aSwapExtended: ASwapExtended): ExtendedResultTypeExt(ReviewableRequestType.ATOMIC_SWAP) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        aSwapExtended.toXdr(stream)
+      }
+    }
   }
   abstract class ExtendedResultExt(val discriminant: LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
@@ -11013,8 +10971,6 @@ open class ExtendedResult(
 //  		WithdrawalDetails withdrawal;
 //      case LIMITS_UPDATE:
 //          LimitsUpdateDetails limitsUpdate;
-//  	case TWO_STEP_WITHDRAWAL:
-//  		WithdrawalDetails twoStepWithdrawal;
 //      case AML_ALERT:
 //          AMLAlertDetails amlAlertDetails;
 //      case UPDATE_KYC:
@@ -11028,13 +10984,14 @@ open class ExtendedResult(
 //  	} requestDetails;
 //  	ReviewRequestOpAction action;
 //  	longstring reason;
-//  	// reserved for future use
+//  	
+//      ReviewDetails reviewDetails;
+//      
+//      // reserved for future use
 //      union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
 //          void;
-//      case ADD_TASKS_TO_REVIEWABLE_REQUEST:
-//          ReviewDetails reviewDetails;
 //      }
 //      ext;
 //  };
@@ -11046,6 +11003,7 @@ open class ReviewRequestOp(
     var requestDetails: ReviewRequestOpRequestDetails,
     var action: ReviewRequestOpAction,
     var reason: Longstring,
+    var reviewDetails: ReviewDetails,
     var ext: ReviewRequestOpExt
   ) : XdrEncodable {
 
@@ -11055,6 +11013,7 @@ open class ReviewRequestOp(
     requestDetails.toXdr(stream)
     action.toXdr(stream)
     reason.toXdr(stream)
+    reviewDetails.toXdr(stream)
     ext.toXdr(stream)
   }
 
@@ -11074,13 +11033,6 @@ open class ReviewRequestOp(
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         limitsUpdate.toXdr(stream)
-      }
-    }
-
-    open class TwoStepWithdrawal(var twoStepWithdrawal: WithdrawalDetails): ReviewRequestOpRequestDetails(ReviewableRequestType.TWO_STEP_WITHDRAWAL) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        twoStepWithdrawal.toXdr(stream)
       }
     }
 
@@ -11118,13 +11070,6 @@ open class ReviewRequestOp(
     }
 
     open class EmptyVersion: ReviewRequestOpExt(LedgerVersion.EMPTY_VERSION)
-
-    open class AddTasksToReviewableRequest(var reviewDetails: ReviewDetails): ReviewRequestOpExt(LedgerVersion.ADD_TASKS_TO_REVIEWABLE_REQUEST) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        reviewDetails.toXdr(stream)
-      }
-    }
   }
 }
 
@@ -11146,72 +11091,75 @@ open class ReviewRequestOp(
 //  	REQUESTOR_IS_BLOCKED = -8,
 //  	PERMANENT_REJECT_NOT_ALLOWED = -9, // permanent reject not allowed, use reject
 //  
+//  	REMOVING_NOT_SET_TASKS = -100,// cannot remove tasks which are not set
+//  
 //  	// Asset requests
-//  	ASSET_ALREADY_EXISTS = -20,
-//  	ASSET_DOES_NOT_EXISTS = -21,
+//  	ASSET_ALREADY_EXISTS = -200,
+//  	ASSET_DOES_NOT_EXISTS = -210,
 //  
 //  	// Issuance requests
-//  	MAX_ISSUANCE_AMOUNT_EXCEEDED = -40,
-//  	INSUFFICIENT_AVAILABLE_FOR_ISSUANCE_AMOUNT = -41,
-//  	FULL_LINE = -42, // can't fund balance - total funds exceed UINT64_MAX
-//  	SYSTEM_TASKS_NOT_ALLOWED = -43,
-//      INCORRECT_PRECISION = -44,
+//  	MAX_ISSUANCE_AMOUNT_EXCEEDED = -400,
+//  	INSUFFICIENT_AVAILABLE_FOR_ISSUANCE_AMOUNT = -410,
+//  	FULL_LINE = -420, // can't fund balance - total funds exceed UINT64_MAX
+//  	SYSTEM_TASKS_NOT_ALLOWED = -430,
+//      INCORRECT_PRECISION = -440,
 //  
 //  	// Sale creation requests
-//  	BASE_ASSET_DOES_NOT_EXISTS = -50,
-//  	HARD_CAP_WILL_EXCEED_MAX_ISSUANCE = -51,
-//  	INSUFFICIENT_PREISSUED_FOR_HARD_CAP = -52,
+//  	BASE_ASSET_DOES_NOT_EXISTS = -500,
+//  	HARD_CAP_WILL_EXCEED_MAX_ISSUANCE = -510,
+//  	INSUFFICIENT_PREISSUED_FOR_HARD_CAP = -520,
+//  	BASE_ASSET_NOT_FOUND = -530,
+//  	QUOTE_ASSET_NOT_FOUND = -550,
 //  
 //  	// Update KYC requests
-//  	NON_ZERO_TASKS_TO_REMOVE_NOT_ALLOWED = -60,
+//  	NON_ZERO_TASKS_TO_REMOVE_NOT_ALLOWED = -600,
 //  
-//  	// Update sale details, end time and promotion requests
-//  	SALE_NOT_FOUND = -70,
-//  
-//  	// Promotion update requests
-//  	INVALID_SALE_STATE = -80, // sale state must be "PROMOTION"
-//  
-//  	// Update sale end time requests
-//      INVALID_SALE_NEW_END_TIME = -90, // new end time is before start time or current ledger close time
+//  	// Update sale details
+//  	SALE_NOT_FOUND = -700,
 //  
 //      // Invoice requests
-//      AMOUNT_MISMATCHED = -101, // amount does not match
-//      DESTINATION_BALANCE_MISMATCHED = -102, // invoice balance and payment balance do not match
-//      NOT_ALLOWED_ACCOUNT_DESTINATION = -103,
-//      REQUIRED_SOURCE_PAY_FOR_DESTINATION = -104, // not allowed shift fee responsibility to destination
-//      SOURCE_BALANCE_MISMATCHED = -105, // source balance must match invoice sender account
-//      CONTRACT_NOT_FOUND = -106,
-//      INVOICE_RECEIVER_BALANCE_LOCK_AMOUNT_OVERFLOW = -107,
-//      INVOICE_ALREADY_APPROVED = -108,
+//      AMOUNT_MISMATCHED = -1010, // amount does not match
+//      DESTINATION_BALANCE_MISMATCHED = -1020, // invoice balance and payment balance do not match
+//      NOT_ALLOWED_ACCOUNT_DESTINATION = -1030,
+//      REQUIRED_SOURCE_PAY_FOR_DESTINATION = -1040, // not allowed shift fee responsibility to destination
+//      SOURCE_BALANCE_MISMATCHED = -1050, // source balance must match invoice sender account
+//      CONTRACT_NOT_FOUND = -1060,
+//      INVOICE_RECEIVER_BALANCE_LOCK_AMOUNT_OVERFLOW = -1070,
+//      INVOICE_ALREADY_APPROVED = -1080,
 //  
 //      // codes considered as "failure" for the payment operation
-//      PAYMENT_V2_MALFORMED = -110, // bad input, requestID must be > 0
-//      UNDERFUNDED = -111, // not enough funds in source account
-//      LINE_FULL = -112, // destination would go above their limit
-//      DESTINATION_BALANCE_NOT_FOUND = -113,
-//      BALANCE_ASSETS_MISMATCHED = -114,
-//      SRC_BALANCE_NOT_FOUND = -115, // source balance not found
-//      REFERENCE_DUPLICATION = -116,
-//      STATS_OVERFLOW = -117,
-//      LIMITS_EXCEEDED = -118,
-//      NOT_ALLOWED_BY_ASSET_POLICY = -119,
-//      INVALID_DESTINATION_FEE = -120,
-//      INVALID_DESTINATION_FEE_ASSET = -121, // destination fee asset must be the same as source balance asset
-//      FEE_ASSET_MISMATCHED = -122,
-//      INSUFFICIENT_FEE_AMOUNT = -123,
-//      BALANCE_TO_CHARGE_FEE_FROM_NOT_FOUND = -124,
-//      PAYMENT_AMOUNT_IS_LESS_THAN_DEST_FEE = -125,
-//      DESTINATION_ACCOUNT_NOT_FOUND = -126,
+//      PAYMENT_V2_MALFORMED = -1100, // bad input0, requestID must be > 0
+//      UNDERFUNDED = -1110, // not enough funds in source account
+//      LINE_FULL = -1120, // destination would go above their limit
+//      DESTINATION_BALANCE_NOT_FOUND = -1130,
+//      BALANCE_ASSETS_MISMATCHED = -1140,
+//      SRC_BALANCE_NOT_FOUND = -1150, // source balance not found
+//      REFERENCE_DUPLICATION = -1160,
+//      STATS_OVERFLOW = -1170,
+//      LIMITS_EXCEEDED = -1180,
+//      NOT_ALLOWED_BY_ASSET_POLICY = -1190,
+//      INVALID_DESTINATION_FEE = -1200,
+//      INVALID_DESTINATION_FEE_ASSET = -1210, // destination fee asset must be the same as source balance asset
+//      FEE_ASSET_MISMATCHED = -1220,
+//      INSUFFICIENT_FEE_AMOUNT = -1230,
+//      BALANCE_TO_CHARGE_FEE_FROM_NOT_FOUND = -1240,
+//      PAYMENT_AMOUNT_IS_LESS_THAN_DEST_FEE = -1250,
+//      DESTINATION_ACCOUNT_NOT_FOUND = -1260,
 //  
 //      // Limits update requests
-//      CANNOT_CREATE_FOR_ACC_ID_AND_ACC_TYPE = 130, // limits cannot be created for account ID and account type simultaneously
-//      INVALID_LIMITS = 131,
+//      CANNOT_CREATE_FOR_ACC_ID_AND_ACC_TYPE = 1300, // limits cannot be created for account ID and account type simultaneously
+//      INVALID_LIMITS = 1310,
 //  
 //      // Contract requests
-//      CONTRACT_DETAILS_TOO_LONG = -140, // customer details reached length limit
+//      CONTRACT_DETAILS_TOO_LONG = -1400, // customer details reached length limit
 //  
-//  	//Withdrawal request 
-//  	REMOVING_NOT_SET_TASKS = -150 // cannot remove tasks which are not set 
+//  	// Atomic swap
+//  	BASE_ASSET_CANNOT_BE_SWAPPED = -1500,
+//  	QUOTE_ASSET_CANNOT_BE_SWAPPED = -1501,
+//  	ASSETS_ARE_EQUAL = -1502,
+//  	ASWAP_BID_UNDERFUNDED = -1503,
+//  	ASWAP_PURCHASER_FULL_LINE = -1504
+//  
 //  };
 
 //  ===========================================================================
@@ -11226,49 +11174,54 @@ public enum class ReviewRequestResultCode(val value: Int): XdrEncodable {
   INVALID_EXTERNAL_DETAILS(-7),
   REQUESTOR_IS_BLOCKED(-8),
   PERMANENT_REJECT_NOT_ALLOWED(-9),
-  ASSET_ALREADY_EXISTS(-20),
-  ASSET_DOES_NOT_EXISTS(-21),
-  MAX_ISSUANCE_AMOUNT_EXCEEDED(-40),
-  INSUFFICIENT_AVAILABLE_FOR_ISSUANCE_AMOUNT(-41),
-  FULL_LINE(-42),
-  SYSTEM_TASKS_NOT_ALLOWED(-43),
-  INCORRECT_PRECISION(-44),
-  BASE_ASSET_DOES_NOT_EXISTS(-50),
-  HARD_CAP_WILL_EXCEED_MAX_ISSUANCE(-51),
-  INSUFFICIENT_PREISSUED_FOR_HARD_CAP(-52),
-  NON_ZERO_TASKS_TO_REMOVE_NOT_ALLOWED(-60),
-  SALE_NOT_FOUND(-70),
-  INVALID_SALE_STATE(-80),
-  INVALID_SALE_NEW_END_TIME(-90),
-  AMOUNT_MISMATCHED(-101),
-  DESTINATION_BALANCE_MISMATCHED(-102),
-  NOT_ALLOWED_ACCOUNT_DESTINATION(-103),
-  REQUIRED_SOURCE_PAY_FOR_DESTINATION(-104),
-  SOURCE_BALANCE_MISMATCHED(-105),
-  CONTRACT_NOT_FOUND(-106),
-  INVOICE_RECEIVER_BALANCE_LOCK_AMOUNT_OVERFLOW(-107),
-  INVOICE_ALREADY_APPROVED(-108),
-  PAYMENT_V2_MALFORMED(-110),
-  UNDERFUNDED(-111),
-  LINE_FULL(-112),
-  DESTINATION_BALANCE_NOT_FOUND(-113),
-  BALANCE_ASSETS_MISMATCHED(-114),
-  SRC_BALANCE_NOT_FOUND(-115),
-  REFERENCE_DUPLICATION(-116),
-  STATS_OVERFLOW(-117),
-  LIMITS_EXCEEDED(-118),
-  NOT_ALLOWED_BY_ASSET_POLICY(-119),
-  INVALID_DESTINATION_FEE(-120),
-  INVALID_DESTINATION_FEE_ASSET(-121),
-  FEE_ASSET_MISMATCHED(-122),
-  INSUFFICIENT_FEE_AMOUNT(-123),
-  BALANCE_TO_CHARGE_FEE_FROM_NOT_FOUND(-124),
-  PAYMENT_AMOUNT_IS_LESS_THAN_DEST_FEE(-125),
-  DESTINATION_ACCOUNT_NOT_FOUND(-126),
-  CANNOT_CREATE_FOR_ACC_ID_AND_ACC_TYPE(130),
-  INVALID_LIMITS(131),
-  CONTRACT_DETAILS_TOO_LONG(-140),
-  REMOVING_NOT_SET_TASKS(-150),
+  REMOVING_NOT_SET_TASKS(-100),
+  ASSET_ALREADY_EXISTS(-200),
+  ASSET_DOES_NOT_EXISTS(-210),
+  MAX_ISSUANCE_AMOUNT_EXCEEDED(-400),
+  INSUFFICIENT_AVAILABLE_FOR_ISSUANCE_AMOUNT(-410),
+  FULL_LINE(-420),
+  SYSTEM_TASKS_NOT_ALLOWED(-430),
+  INCORRECT_PRECISION(-440),
+  BASE_ASSET_DOES_NOT_EXISTS(-500),
+  HARD_CAP_WILL_EXCEED_MAX_ISSUANCE(-510),
+  INSUFFICIENT_PREISSUED_FOR_HARD_CAP(-520),
+  BASE_ASSET_NOT_FOUND(-530),
+  QUOTE_ASSET_NOT_FOUND(-550),
+  NON_ZERO_TASKS_TO_REMOVE_NOT_ALLOWED(-600),
+  SALE_NOT_FOUND(-700),
+  AMOUNT_MISMATCHED(-1010),
+  DESTINATION_BALANCE_MISMATCHED(-1020),
+  NOT_ALLOWED_ACCOUNT_DESTINATION(-1030),
+  REQUIRED_SOURCE_PAY_FOR_DESTINATION(-1040),
+  SOURCE_BALANCE_MISMATCHED(-1050),
+  CONTRACT_NOT_FOUND(-1060),
+  INVOICE_RECEIVER_BALANCE_LOCK_AMOUNT_OVERFLOW(-1070),
+  INVOICE_ALREADY_APPROVED(-1080),
+  PAYMENT_V2_MALFORMED(-1100),
+  UNDERFUNDED(-1110),
+  LINE_FULL(-1120),
+  DESTINATION_BALANCE_NOT_FOUND(-1130),
+  BALANCE_ASSETS_MISMATCHED(-1140),
+  SRC_BALANCE_NOT_FOUND(-1150),
+  REFERENCE_DUPLICATION(-1160),
+  STATS_OVERFLOW(-1170),
+  LIMITS_EXCEEDED(-1180),
+  NOT_ALLOWED_BY_ASSET_POLICY(-1190),
+  INVALID_DESTINATION_FEE(-1200),
+  INVALID_DESTINATION_FEE_ASSET(-1210),
+  FEE_ASSET_MISMATCHED(-1220),
+  INSUFFICIENT_FEE_AMOUNT(-1230),
+  BALANCE_TO_CHARGE_FEE_FROM_NOT_FOUND(-1240),
+  PAYMENT_AMOUNT_IS_LESS_THAN_DEST_FEE(-1250),
+  DESTINATION_ACCOUNT_NOT_FOUND(-1260),
+  CANNOT_CREATE_FOR_ACC_ID_AND_ACC_TYPE(1300),
+  INVALID_LIMITS(1310),
+  CONTRACT_DETAILS_TOO_LONG(-1400),
+  BASE_ASSET_CANNOT_BE_SWAPPED(-1500),
+  QUOTE_ASSET_CANNOT_BE_SWAPPED(-1501),
+  ASSETS_ARE_EQUAL(-1502),
+  ASWAP_BID_UNDERFUNDED(-1503),
+  ASWAP_PURCHASER_FULL_LINE(-1504),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -11281,23 +11234,7 @@ public enum class ReviewRequestResultCode(val value: Int): XdrEncodable {
 //  union ReviewRequestResult switch (ReviewRequestResultCode code)
 //  {
 //  case SUCCESS:
-//  	struct {
-//  		// reserved for future use
-//  		union switch (LedgerVersion v)
-//  		{
-//  		case ADD_SALE_ID_REVIEW_REQUEST_RESULT:
-//  		    uint64 saleID;
-//  		case ADD_REVIEW_INVOICE_REQUEST_PAYMENT_RESPONSE:
-//  		    PaymentV2Response paymentV2Response;
-//  		case ADD_CONTRACT_ID_REVIEW_REQUEST_RESULT:
-//  		    uint64 contractID;
-//  		case EMPTY_VERSION:
-//  			void;
-//          case ADD_TASKS_TO_REVIEWABLE_REQUEST:
-//              ExtendedResult extendedResult;
-//  		}
-//  		ext;
-//  	} success;
+//  	ExtendedResult success;
 //  default:
 //      void;
 //  };
@@ -11308,55 +11245,10 @@ abstract class ReviewRequestResult(val discriminant: ReviewRequestResultCode): X
       discriminant.toXdr(stream)
   }
 
-  open class Success(var success: ReviewRequestResultSuccess): ReviewRequestResult(ReviewRequestResultCode.SUCCESS) {
+  open class Success(var success: ExtendedResult): ReviewRequestResult(ReviewRequestResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
-    }
-  }
-
-  open class ReviewRequestResultSuccess(
-      var ext: ReviewRequestResultSuccessExt
-    ) : XdrEncodable {
-
-    override fun toXdr(stream: XdrDataOutputStream) {
-      ext.toXdr(stream)
-    }
-
-    abstract class ReviewRequestResultSuccessExt(val discriminant: LedgerVersion): XdrEncodable {
-      override fun toXdr(stream: XdrDataOutputStream) {
-          discriminant.toXdr(stream)
-      }
-
-      open class AddSaleIdReviewRequestResult(var saleID: Uint64): ReviewRequestResultSuccessExt(LedgerVersion.ADD_SALE_ID_REVIEW_REQUEST_RESULT) {
-        override fun toXdr(stream: XdrDataOutputStream) {
-          super.toXdr(stream)
-          saleID.toXdr(stream)
-        }
-      }
-
-      open class AddReviewInvoiceRequestPaymentResponse(var paymentV2Response: PaymentV2Response): ReviewRequestResultSuccessExt(LedgerVersion.ADD_REVIEW_INVOICE_REQUEST_PAYMENT_RESPONSE) {
-        override fun toXdr(stream: XdrDataOutputStream) {
-          super.toXdr(stream)
-          paymentV2Response.toXdr(stream)
-        }
-      }
-
-      open class AddContractIdReviewRequestResult(var contractID: Uint64): ReviewRequestResultSuccessExt(LedgerVersion.ADD_CONTRACT_ID_REVIEW_REQUEST_RESULT) {
-        override fun toXdr(stream: XdrDataOutputStream) {
-          super.toXdr(stream)
-          contractID.toXdr(stream)
-        }
-      }
-
-      open class EmptyVersion: ReviewRequestResultSuccessExt(LedgerVersion.EMPTY_VERSION)
-
-      open class AddTasksToReviewableRequest(var extendedResult: ExtendedResult): ReviewRequestResultSuccessExt(LedgerVersion.ADD_TASKS_TO_REVIEWABLE_REQUEST) {
-        override fun toXdr(stream: XdrDataOutputStream) {
-          super.toXdr(stream)
-          extendedResult.toXdr(stream)
-        }
-      }
     }
   }
 }
@@ -11426,7 +11318,8 @@ open class SetFeesOp(
 //  		CROSS_ASSET_FEE_NOT_ALLOWED = -13, // feeAsset on payment fee type can differ from asset only if payment fee subtype is OUTGOING
 //  		FEE_ASSET_NOT_FOUND = -14,
 //  		ASSET_PAIR_NOT_FOUND = -15, // cannot create cross asset fee entry without existing asset pair
-//  		INVALID_ASSET_PAIR_PRICE = -16
+//  		INVALID_ASSET_PAIR_PRICE = -16,
+//  		INVALID_FEE_HASH = -17
 //      };
 
 //  ===========================================================================
@@ -11448,6 +11341,7 @@ public enum class SetFeesResultCode(val value: Int): XdrEncodable {
   FEE_ASSET_NOT_FOUND(-14),
   ASSET_PAIR_NOT_FOUND(-15),
   INVALID_ASSET_PAIR_PRICE(-16),
+  INVALID_FEE_HASH(-17),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -12260,13 +12154,14 @@ open class AMLAlertRequest(
 //      uint32 policies;
 //      longstring details;
 //  
-//  	// reserved for future use
+//  	uint32 sequenceNumber;
+//      uint32 trailingDigitsCount;
+//  
+//      // reserved for future use
 //      union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
 //          void;
-//      case ADD_ASSET_BALANCE_PRECISION:
-//          uint32 trailingDigitsCount;
 //      }
 //      ext;
 //  };
@@ -12279,6 +12174,8 @@ open class AssetCreationRequest(
     var initialPreissuedAmount: Uint64,
     var policies: Uint32,
     var details: Longstring,
+    var sequenceNumber: Uint32,
+    var trailingDigitsCount: Uint32,
     var ext: AssetCreationRequestExt
   ) : XdrEncodable {
 
@@ -12289,6 +12186,8 @@ open class AssetCreationRequest(
     initialPreissuedAmount.toXdr(stream)
     policies.toXdr(stream)
     details.toXdr(stream)
+    sequenceNumber.toXdr(stream)
+    trailingDigitsCount.toXdr(stream)
     ext.toXdr(stream)
   }
 
@@ -12298,13 +12197,6 @@ open class AssetCreationRequest(
     }
 
     open class EmptyVersion: AssetCreationRequestExt(LedgerVersion.EMPTY_VERSION)
-
-    open class AddAssetBalancePrecision(var trailingDigitsCount: Uint32): AssetCreationRequestExt(LedgerVersion.ADD_ASSET_BALANCE_PRECISION) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        trailingDigitsCount.toXdr(stream)
-      }
-    }
   }
 }
 
@@ -12315,6 +12207,7 @@ open class AssetCreationRequest(
 //  	longstring details;
 //  	uint32 policies;
 //  
+//  	uint32 sequenceNumber;
 //  	// reserved for future use
 //      union switch (LedgerVersion v)
 //      {
@@ -12329,6 +12222,7 @@ open class AssetUpdateRequest(
     var code: AssetCode,
     var details: Longstring,
     var policies: Uint32,
+    var sequenceNumber: Uint32,
     var ext: AssetUpdateRequestExt
   ) : XdrEncodable {
 
@@ -12336,6 +12230,7 @@ open class AssetUpdateRequest(
     code.toXdr(stream)
     details.toXdr(stream)
     policies.toXdr(stream)
+    sequenceNumber.toXdr(stream)
     ext.toXdr(stream)
   }
 
@@ -12381,6 +12276,92 @@ open class AssetChangePreissuedSigner(
     }
 
     open class EmptyVersion: AssetChangePreissuedSignerExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct ASwapBidCreationRequest
+//  {
+//      BalanceID baseBalance;
+//      uint64 amount;
+//      longstring details;
+//  
+//      ASwapBidQuoteAsset quoteAssets<>;
+//  
+//      // reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      } ext;
+//  };
+
+//  ===========================================================================
+open class ASwapBidCreationRequest(
+    var baseBalance: BalanceID,
+    var amount: Uint64,
+    var details: Longstring,
+    var quoteAssets: Array<ASwapBidQuoteAsset>,
+    var ext: ASwapBidCreationRequestExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    baseBalance.toXdr(stream)
+    amount.toXdr(stream)
+    details.toXdr(stream)
+    quoteAssets.size.toXdr(stream)
+    quoteAssets.forEach {
+      it.toXdr(stream)
+    }
+    ext.toXdr(stream)
+  }
+
+  abstract class ASwapBidCreationRequestExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: ASwapBidCreationRequestExt(LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct ASwapRequest
+//  {
+//      uint64 bidID;
+//      uint64 baseAmount;
+//      AssetCode quoteAsset;
+//  
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      } ext;
+//  };
+
+//  ===========================================================================
+open class ASwapRequest(
+    var bidID: Uint64,
+    var baseAmount: Uint64,
+    var quoteAsset: AssetCode,
+    var ext: ASwapRequestExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    bidID.toXdr(stream)
+    baseAmount.toXdr(stream)
+    quoteAsset.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class ASwapRequestExt(val discriminant: LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: ASwapRequestExt(LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -12583,14 +12564,13 @@ open class IssuanceRequest(
 
 //  struct LimitsUpdateRequest {
 //      Hash deprecatedDocumentHash;
+//      longstring details;
 //  
 //      // reserved for future use
 //      union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
 //          void;
-//      case LIMITS_UPDATE_REQUEST_DEPRECATED_DOCUMENT_HASH:
-//          longstring details;
 //      }
 //      ext;
 //  };
@@ -12598,11 +12578,13 @@ open class IssuanceRequest(
 //  ===========================================================================
 open class LimitsUpdateRequest(
     var deprecatedDocumentHash: Hash,
+    var details: Longstring,
     var ext: LimitsUpdateRequestExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
     deprecatedDocumentHash.toXdr(stream)
+    details.toXdr(stream)
     ext.toXdr(stream)
   }
 
@@ -12612,13 +12594,6 @@ open class LimitsUpdateRequest(
     }
 
     open class EmptyVersion: LimitsUpdateRequestExt(LedgerVersion.EMPTY_VERSION)
-
-    open class LimitsUpdateRequestDeprecatedDocumentHash(var details: Longstring): LimitsUpdateRequestExt(LedgerVersion.LIMITS_UPDATE_REQUEST_DEPRECATED_DOCUMENT_HASH) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        details.toXdr(stream)
-      }
-    }
   }
 }
 
@@ -12667,27 +12642,17 @@ open class SaleCreationRequestQuoteAsset(
 //  	uint64 softCap; // minimum amount of quote asset to be received at which sale will be considered a successful
 //  	uint64 hardCap; // max amount of quote asset to be received
 //  	longstring details; // sale specific details
+//      SaleTypeExt saleTypeExt;
+//      uint64 requiredBaseAssetForHardCap;
 //  
+//      uint32 sequenceNumber;
 //  	SaleCreationRequestQuoteAsset quoteAssets<100>;
 //  
 //  	union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
 //          void;
-//  	case TYPED_SALE:
-//  		SaleTypeExt saleTypeExt;
-//      case ALLOW_TO_SPECIFY_REQUIRED_BASE_ASSET_AMOUNT_FOR_HARD_CAP:
-//          struct {
-//              SaleTypeExt saleTypeExt;
-//              uint64 requiredBaseAssetForHardCap;
-//          } extV2;
-//  	case STATABLE_SALES:
-//  		struct {
-//  			SaleTypeExt saleTypeExt;
-//              uint64 requiredBaseAssetForHardCap;
-//  			SaleState state;
-//  		} extV3;
-//      }
+//  	}
 //      ext;
 //  };
 
@@ -12700,6 +12665,9 @@ open class SaleCreationRequest(
     var softCap: Uint64,
     var hardCap: Uint64,
     var details: Longstring,
+    var saleTypeExt: SaleTypeExt,
+    var requiredBaseAssetForHardCap: Uint64,
+    var sequenceNumber: Uint32,
     var quoteAssets: Array<SaleCreationRequestQuoteAsset>,
     var ext: SaleCreationRequestExt
   ) : XdrEncodable {
@@ -12712,6 +12680,9 @@ open class SaleCreationRequest(
     softCap.toXdr(stream)
     hardCap.toXdr(stream)
     details.toXdr(stream)
+    saleTypeExt.toXdr(stream)
+    requiredBaseAssetForHardCap.toXdr(stream)
+    sequenceNumber.toXdr(stream)
     quoteAssets.size.toXdr(stream)
     quoteAssets.forEach {
       it.toXdr(stream)
@@ -12725,50 +12696,6 @@ open class SaleCreationRequest(
     }
 
     open class EmptyVersion: SaleCreationRequestExt(LedgerVersion.EMPTY_VERSION)
-
-    open class TypedSale(var saleTypeExt: SaleTypeExt): SaleCreationRequestExt(LedgerVersion.TYPED_SALE) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        saleTypeExt.toXdr(stream)
-      }
-    }
-
-    open class AllowToSpecifyRequiredBaseAssetAmountForHardCap(var extV2: SaleCreationRequestExtV2): SaleCreationRequestExt(LedgerVersion.ALLOW_TO_SPECIFY_REQUIRED_BASE_ASSET_AMOUNT_FOR_HARD_CAP) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        extV2.toXdr(stream)
-      }
-    }
-
-    open class StatableSales(var extV3: SaleCreationRequestExtV3): SaleCreationRequestExt(LedgerVersion.STATABLE_SALES) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        extV3.toXdr(stream)
-      }
-    }
-
-    open class SaleCreationRequestExtV2(
-        var saleTypeExt: SaleTypeExt,
-        var requiredBaseAssetForHardCap: Uint64
-      ) : XdrEncodable {
-
-      override fun toXdr(stream: XdrDataOutputStream) {
-        saleTypeExt.toXdr(stream)
-        requiredBaseAssetForHardCap.toXdr(stream)
-      }
-    }
-    open class SaleCreationRequestExtV3(
-        var saleTypeExt: SaleTypeExt,
-        var requiredBaseAssetForHardCap: Uint64,
-        var state: SaleState
-      ) : XdrEncodable {
-
-      override fun toXdr(stream: XdrDataOutputStream) {
-        saleTypeExt.toXdr(stream)
-        requiredBaseAssetForHardCap.toXdr(stream)
-        state.toXdr(stream)
-      }
-    }
   }
 }
 
@@ -12779,10 +12706,6 @@ open class SaleCreationRequest(
 //  	AccountType accountTypeToSet;
 //  	uint32 kycLevel;
 //  	longstring kycData;
-//  
-//  	// Tasks are represented by a bit mask. Each flag(task) in mask refers to specific KYC data validity checker
-//  	uint32 allTasks;
-//  	uint32 pendingTasks;
 //  
 //  	// Sequence number increases when request is rejected
 //  	uint32 sequenceNumber;
@@ -12805,8 +12728,6 @@ open class UpdateKYCRequest(
     var accountTypeToSet: AccountType,
     var kycLevel: Uint32,
     var kycData: Longstring,
-    var allTasks: Uint32,
-    var pendingTasks: Uint32,
     var sequenceNumber: Uint32,
     var externalDetails: Array<Longstring>,
     var ext: UpdateKYCRequestExt
@@ -12817,8 +12738,6 @@ open class UpdateKYCRequest(
     accountTypeToSet.toXdr(stream)
     kycLevel.toXdr(stream)
     kycData.toXdr(stream)
-    allTasks.toXdr(stream)
-    pendingTasks.toXdr(stream)
     sequenceNumber.toXdr(stream)
     externalDetails.size.toXdr(stream)
     externalDetails.forEach {
@@ -12838,46 +12757,11 @@ open class UpdateKYCRequest(
 
 // === xdr source ============================================================
 
-//  struct PromotionUpdateRequest {
-//      uint64 promotionID;
-//      SaleCreationRequest newPromotionData;
-//  
-//      union switch (LedgerVersion v)
-//      {
-//      case EMPTY_VERSION:
-//          void;
-//      }
-//      ext;
-//  };
-
-//  ===========================================================================
-open class PromotionUpdateRequest(
-    var promotionID: Uint64,
-    var newPromotionData: SaleCreationRequest,
-    var ext: PromotionUpdateRequestExt
-  ) : XdrEncodable {
-
-  override fun toXdr(stream: XdrDataOutputStream) {
-    promotionID.toXdr(stream)
-    newPromotionData.toXdr(stream)
-    ext.toXdr(stream)
-  }
-
-  abstract class PromotionUpdateRequestExt(val discriminant: LedgerVersion): XdrEncodable {
-    override fun toXdr(stream: XdrDataOutputStream) {
-        discriminant.toXdr(stream)
-    }
-
-    open class EmptyVersion: PromotionUpdateRequestExt(LedgerVersion.EMPTY_VERSION)
-  }
-}
-
-// === xdr source ============================================================
-
 //  struct UpdateSaleDetailsRequest {
 //      uint64 saleID; // ID of sale to update details
 //      longstring newDetails;
 //  
+//      uint32 sequenceNumber;
 //      // Reserved for future use
 //      union switch (LedgerVersion v)
 //      {
@@ -12891,12 +12775,14 @@ open class PromotionUpdateRequest(
 open class UpdateSaleDetailsRequest(
     var saleID: Uint64,
     var newDetails: Longstring,
+    var sequenceNumber: Uint32,
     var ext: UpdateSaleDetailsRequestExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
     saleID.toXdr(stream)
     newDetails.toXdr(stream)
+    sequenceNumber.toXdr(stream)
     ext.toXdr(stream)
   }
 
@@ -12911,106 +12797,12 @@ open class UpdateSaleDetailsRequest(
 
 // === xdr source ============================================================
 
-//  struct UpdateSaleEndTimeRequest {
-//      uint64 saleID; // ID of the sale to update end time
-//      uint64 newEndTime;
-//  
-//      // Reserved for future use
-//      union switch (LedgerVersion v)
-//      {
-//      case EMPTY_VERSION:
-//          void;
-//      }
-//      ext;
-//  };
-
-//  ===========================================================================
-open class UpdateSaleEndTimeRequest(
-    var saleID: Uint64,
-    var newEndTime: Uint64,
-    var ext: UpdateSaleEndTimeRequestExt
-  ) : XdrEncodable {
-
-  override fun toXdr(stream: XdrDataOutputStream) {
-    saleID.toXdr(stream)
-    newEndTime.toXdr(stream)
-    ext.toXdr(stream)
-  }
-
-  abstract class UpdateSaleEndTimeRequestExt(val discriminant: LedgerVersion): XdrEncodable {
-    override fun toXdr(stream: XdrDataOutputStream) {
-        discriminant.toXdr(stream)
-    }
-
-    open class EmptyVersion: UpdateSaleEndTimeRequestExt(LedgerVersion.EMPTY_VERSION)
-  }
-}
-
-// === xdr source ============================================================
-
-//  enum WithdrawalType {
-//  	AUTO_CONVERSION = 0
-//  };
-
-//  ===========================================================================
-public enum class WithdrawalType(val value: Int): XdrEncodable {
-  AUTO_CONVERSION(0),
-  ;
-
-  override fun toXdr(stream: XdrDataOutputStream) {
-      value.toXdr(stream)
-  }
-}
-
-// === xdr source ============================================================
-
-//  struct AutoConversionWithdrawalDetails {
-//  	AssetCode destAsset; // asset in which withdrawal will be converted
-//  	uint64 expectedAmount; // expected amount to be received in specified asset
-//  
-//  	union switch (LedgerVersion v)
-//      {
-//      case EMPTY_VERSION:
-//          void;
-//      }
-//      ext;
-//  };
-
-//  ===========================================================================
-open class AutoConversionWithdrawalDetails(
-    var destAsset: AssetCode,
-    var expectedAmount: Uint64,
-    var ext: AutoConversionWithdrawalDetailsExt
-  ) : XdrEncodable {
-
-  override fun toXdr(stream: XdrDataOutputStream) {
-    destAsset.toXdr(stream)
-    expectedAmount.toXdr(stream)
-    ext.toXdr(stream)
-  }
-
-  abstract class AutoConversionWithdrawalDetailsExt(val discriminant: LedgerVersion): XdrEncodable {
-    override fun toXdr(stream: XdrDataOutputStream) {
-        discriminant.toXdr(stream)
-    }
-
-    open class EmptyVersion: AutoConversionWithdrawalDetailsExt(LedgerVersion.EMPTY_VERSION)
-  }
-}
-
-// === xdr source ============================================================
-
 //  struct WithdrawalRequest {
 //  	BalanceID balance; // balance id from which withdrawal will be performed
 //      uint64 amount; // amount to be withdrawn
 //      uint64 universalAmount; // amount in stats asset
 //  	Fee fee; // expected fee to be paid
 //      longstring externalDetails; // details of the withdrawal (External system id, etc.)
-//  	longstring preConfirmationDetails; // details provided by PSIM if two step withdrwal is required
-//  	union switch (WithdrawalType withdrawalType) {
-//  	case AUTO_CONVERSION:
-//  		AutoConversionWithdrawalDetails autoConversion;
-//  	} details;
 //  
 //  	union switch (LedgerVersion v)
 //      {
@@ -13027,8 +12819,6 @@ open class WithdrawalRequest(
     var universalAmount: Uint64,
     var fee: Fee,
     var externalDetails: Longstring,
-    var preConfirmationDetails: Longstring,
-    var details: WithdrawalRequestDetails,
     var ext: WithdrawalRequestExt
   ) : XdrEncodable {
 
@@ -13038,23 +12828,9 @@ open class WithdrawalRequest(
     universalAmount.toXdr(stream)
     fee.toXdr(stream)
     externalDetails.toXdr(stream)
-    preConfirmationDetails.toXdr(stream)
-    details.toXdr(stream)
     ext.toXdr(stream)
   }
 
-  abstract class WithdrawalRequestDetails(val discriminant: WithdrawalType): XdrEncodable {
-    override fun toXdr(stream: XdrDataOutputStream) {
-        discriminant.toXdr(stream)
-    }
-
-    open class AutoConversion(var autoConversion: AutoConversionWithdrawalDetails): WithdrawalRequestDetails(WithdrawalType.AUTO_CONVERSION) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        autoConversion.toXdr(stream)
-      }
-    }
-  }
   abstract class WithdrawalRequestExt(val discriminant: LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
@@ -13077,8 +12853,6 @@ open class WithdrawalRequest(
 //      {
 //      case CREATE_ACCOUNT:
 //          CreateAccountOp createAccountOp;
-//      case PAYMENT:
-//          PaymentOp paymentOp;
 //      case SET_OPTIONS:
 //          SetOptionsOp setOptionsOp;
 //  	case CREATE_ISSUANCE_REQUEST:
@@ -13097,8 +12871,6 @@ open class WithdrawalRequest(
 //          CreatePreIssuanceRequestOp createPreIssuanceRequest;
 //      case MANAGE_LIMITS:
 //          ManageLimitsOp manageLimitsOp;
-//      case DIRECT_DEBIT:
-//          DirectDebitOp directDebitOp;
 //  	case MANAGE_ASSET_PAIR:
 //  		ManageAssetPairOp manageAssetPairOp;
 //  	case MANAGE_OFFER:
@@ -13135,6 +12907,12 @@ open class WithdrawalRequest(
 //          ManageContractOp manageContractOp;
 //      case CANCEL_SALE_REQUEST:
 //          CancelSaleCreationRequestOp cancelSaleCreationRequestOp;
+//      case CREATE_ASWAP_BID_REQUEST:
+//          CreateASwapBidCreationRequestOp createASwapBidCreationRequestOp;
+//      case CANCEL_ASWAP_BID:
+//          CancelASwapBidOp cancelASwapBidOp;
+//      case CREATE_ASWAP_REQUEST:
+//          CreateASwapRequestOp createASwapRequestOp;
 //      case MANAGE_ACCOUNT_ROLE:
 //          ManageAccountRoleOp manageAccountRoleOp;
 //      case MANAGE_ACCOUNT_ROLE_PERMISSION:
@@ -13168,13 +12946,6 @@ open class Operation(
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         createAccountOp.toXdr(stream)
-      }
-    }
-
-    open class Payment(var paymentOp: PaymentOp): OperationBody(OperationType.PAYMENT) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        paymentOp.toXdr(stream)
       }
     }
 
@@ -13238,13 +13009,6 @@ open class Operation(
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         manageLimitsOp.toXdr(stream)
-      }
-    }
-
-    open class DirectDebit(var directDebitOp: DirectDebitOp): OperationBody(OperationType.DIRECT_DEBIT) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        directDebitOp.toXdr(stream)
       }
     }
 
@@ -13371,6 +13135,27 @@ open class Operation(
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         cancelSaleCreationRequestOp.toXdr(stream)
+      }
+    }
+
+    open class CreateAswapBidRequest(var createASwapBidCreationRequestOp: CreateASwapBidCreationRequestOp): OperationBody(OperationType.CREATE_ASWAP_BID_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        createASwapBidCreationRequestOp.toXdr(stream)
+      }
+    }
+
+    open class CancelAswapBid(var cancelASwapBidOp: CancelASwapBidOp): OperationBody(OperationType.CANCEL_ASWAP_BID) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        cancelASwapBidOp.toXdr(stream)
+      }
+    }
+
+    open class CreateAswapRequest(var createASwapRequestOp: CreateASwapRequestOp): OperationBody(OperationType.CREATE_ASWAP_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        createASwapRequestOp.toXdr(stream)
       }
     }
 
@@ -13509,8 +13294,6 @@ open class TimeBounds(
 //      {
 //      case EMPTY_VERSION:
 //          void;
-//      case ADD_TRANSACTION_FEE:
-//          uint64 maxTotalFee;
 //      }
 //      ext;
 //  };
@@ -13543,13 +13326,6 @@ open class Transaction(
     }
 
     open class EmptyVersion: TransactionExt(LedgerVersion.EMPTY_VERSION)
-
-    open class AddTransactionFee(var maxTotalFee: Uint64): TransactionExt(LedgerVersion.ADD_TRANSACTION_FEE) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        maxTotalFee.toXdr(stream)
-      }
-    }
   }
 }
 
@@ -13621,8 +13397,6 @@ public enum class OperationResultCode(val value: Int): XdrEncodable {
 //      {
 //      case CREATE_ACCOUNT:
 //          CreateAccountResult createAccountResult;
-//      case PAYMENT:
-//          PaymentResult paymentResult;
 //      case SET_OPTIONS:
 //          SetOptionsResult setOptionsResult;
 //  	case CREATE_ISSUANCE_REQUEST:
@@ -13641,8 +13415,6 @@ public enum class OperationResultCode(val value: Int): XdrEncodable {
 //          CreatePreIssuanceRequestResult createPreIssuanceRequestResult;
 //      case MANAGE_LIMITS:
 //          ManageLimitsResult manageLimitsResult;
-//      case DIRECT_DEBIT:
-//          DirectDebitResult directDebitResult;
 //  	case MANAGE_ASSET_PAIR:
 //  		ManageAssetPairResult manageAssetPairResult;
 //  	case MANAGE_OFFER:
@@ -13679,6 +13451,12 @@ public enum class OperationResultCode(val value: Int): XdrEncodable {
 //          ManageContractResult manageContractResult;
 //      case CANCEL_SALE_REQUEST:
 //          CancelSaleCreationRequestResult cancelSaleCreationRequestResult;
+//      case CREATE_ASWAP_BID_REQUEST:
+//          CreateASwapBidCreationRequestResult createASwapBidCreationRequestResult;
+//      case CANCEL_ASWAP_BID:
+//          CancelASwapBidResult cancelASwapBidResult;
+//      case CREATE_ASWAP_REQUEST:
+//          CreateASwapRequestResult createASwapRequestResult;
 //      case MANAGE_ACCOUNT_ROLE:
 //          ManageAccountRoleResult manageAccountRoleResult;
 //      case MANAGE_ACCOUNT_ROLE_PERMISSION:
@@ -13711,13 +13489,6 @@ abstract class OperationResult(val discriminant: OperationResultCode): XdrEncoda
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         createAccountResult.toXdr(stream)
-      }
-    }
-
-    open class Payment(var paymentResult: PaymentResult): OperationResultTr(OperationType.PAYMENT) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        paymentResult.toXdr(stream)
       }
     }
 
@@ -13781,13 +13552,6 @@ abstract class OperationResult(val discriminant: OperationResultCode): XdrEncoda
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         manageLimitsResult.toXdr(stream)
-      }
-    }
-
-    open class DirectDebit(var directDebitResult: DirectDebitResult): OperationResultTr(OperationType.DIRECT_DEBIT) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        directDebitResult.toXdr(stream)
       }
     }
 
@@ -13917,6 +13681,27 @@ abstract class OperationResult(val discriminant: OperationResultCode): XdrEncoda
       }
     }
 
+    open class CreateAswapBidRequest(var createASwapBidCreationRequestResult: CreateASwapBidCreationRequestResult): OperationResultTr(OperationType.CREATE_ASWAP_BID_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        createASwapBidCreationRequestResult.toXdr(stream)
+      }
+    }
+
+    open class CancelAswapBid(var cancelASwapBidResult: CancelASwapBidResult): OperationResultTr(OperationType.CANCEL_ASWAP_BID) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        cancelASwapBidResult.toXdr(stream)
+      }
+    }
+
+    open class CreateAswapRequest(var createASwapRequestResult: CreateASwapRequestResult): OperationResultTr(OperationType.CREATE_ASWAP_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        createASwapRequestResult.toXdr(stream)
+      }
+    }
+
     open class ManageAccountRole(var manageAccountRoleResult: ManageAccountRoleResult): OperationResultTr(OperationType.MANAGE_ACCOUNT_ROLE) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
@@ -14021,47 +13806,6 @@ open class OperationFee(
 
 // === xdr source ============================================================
 
-//  struct TransactionFee
-//  {
-//      AssetCode assetCode;
-//      OperationFee operationFees<100>;
-//  
-//      // reserved for future use
-//      union switch (LedgerVersion v)
-//      {
-//      case EMPTY_VERSION:
-//          void;
-//      }
-//      ext;
-//  };
-
-//  ===========================================================================
-open class TransactionFee(
-    var assetCode: AssetCode,
-    var operationFees: Array<OperationFee>,
-    var ext: TransactionFeeExt
-  ) : XdrEncodable {
-
-  override fun toXdr(stream: XdrDataOutputStream) {
-    assetCode.toXdr(stream)
-    operationFees.size.toXdr(stream)
-    operationFees.forEach {
-      it.toXdr(stream)
-    }
-    ext.toXdr(stream)
-  }
-
-  abstract class TransactionFeeExt(val discriminant: LedgerVersion): XdrEncodable {
-    override fun toXdr(stream: XdrDataOutputStream) {
-        discriminant.toXdr(stream)
-    }
-
-    open class EmptyVersion: TransactionFeeExt(LedgerVersion.EMPTY_VERSION)
-  }
-}
-
-// === xdr source ============================================================
-
 //  struct TransactionResult
 //  {
 //      int64 feeCharged; // actual fee charged for the transaction
@@ -14081,8 +13825,6 @@ open class TransactionFee(
 //      {
 //      case EMPTY_VERSION:
 //          void;
-//      case ADD_TRANSACTION_FEE:
-//          TransactionFee transactionFee;
 //      }
 //      ext;
 //  };
@@ -14131,13 +13873,6 @@ open class TransactionResult(
     }
 
     open class EmptyVersion: TransactionResultExt(LedgerVersion.EMPTY_VERSION)
-
-    open class AddTransactionFee(var transactionFee: TransactionFee): TransactionResultExt(LedgerVersion.ADD_TRANSACTION_FEE) {
-      override fun toXdr(stream: XdrDataOutputStream) {
-        super.toXdr(stream)
-        transactionFee.toXdr(stream)
-      }
-    }
   }
 }
 
@@ -14243,117 +13978,13 @@ abstract class PublicKey(val discriminant: CryptoKeyType): XdrEncodable {
 
 //  enum LedgerVersion {
 //  	EMPTY_VERSION = 0,
-//  	PASS_EXTERNAL_SYS_ACC_ID_IN_CREATE_ACC = 1,
-//  	DETAILED_LEDGER_CHANGES = 2, // write more all ledger changes to transaction meta
-//  	NEW_SIGNER_TYPES = 3, // use more comprehensive list of signer types
-//  	TYPED_SALE = 4, // sales can have type
-//  	UNIQUE_BALANCE_CREATION = 5, // allows to specify in manage balance that balance should not be created if one for such asset and account exists
-//  	ASSET_PREISSUER_MIGRATION = 6,
-//  	ASSET_PREISSUER_MIGRATED = 7,
-//  	USE_KYC_LEVEL = 8,
-//  	ERROR_ON_NON_ZERO_TASKS_TO_REMOVE_IN_REJECT_KYC = 9,
-//  	ALLOW_ACCOUNT_MANAGER_TO_CHANGE_KYC = 10,
-//  	CHANGE_ASSET_ISSUER_BAD_AUTH_EXTRA_FIXED = 11,
-//  	AUTO_CREATE_COMMISSION_BALANCE_ON_TRANSFER = 12,
-//      ALLOW_REJECT_REQUEST_OF_BLOCKED_REQUESTOR = 13,
-//  	ASSET_UPDATE_CHECK_REFERENCE_EXISTS = 14,
-//  	CROSS_ASSET_FEE = 15,
-//  	USE_PAYMENT_V2 = 16,
-//  	ALLOW_SYNDICATE_TO_UPDATE_KYC = 17,
-//  	DO_NOT_BUILD_ACCOUNT_IF_VERSION_EQUALS_OR_GREATER = 18,
-//  	ALLOW_TO_SPECIFY_REQUIRED_BASE_ASSET_AMOUNT_FOR_HARD_CAP = 19,
-//  	KYC_RULES = 20,
-//  	ALLOW_TO_CREATE_SEVERAL_SALES = 21,
-//  	KEY_VALUE_POOL_ENTRY_EXPIRES_AT = 22,
-//  	KEY_VALUE_UPDATE = 23,
-//  	ALLOW_TO_CANCEL_SALE_PARTICIP_WITHOUT_SPECIFING_BALANCE = 24,
-//  	DETAILS_MAX_LENGTH_EXTENDED = 25,
-//  	ALLOW_MASTER_TO_MANAGE_SALE = 26,
-//  	USE_SALE_ANTE = 27,
-//  	FIX_ASSET_PAIRS_CREATION_IN_SALE_CREATION = 28,
-//  	STATABLE_SALES = 29,
-//  	CREATE_ONLY_STATISTICS_V2 = 30,
-//  	LIMITS_UPDATE_REQUEST_DEPRECATED_DOCUMENT_HASH = 31,
-//  	FIX_PAYMENT_V2_FEE = 32,
-//  	ADD_SALE_ID_REVIEW_REQUEST_RESULT = 33,
-//  	FIX_SET_SALE_STATE_AND_CHECK_SALE_STATE_OPS = 34, // only master allowed to set sale state, max issuance after sale closure = pending + issued
-//  	FIX_UPDATE_MAX_ISSUANCE = 35,
-//  	ALLOW_CLOSE_SALE_WITH_NON_ZERO_BALANCE = 36,
-//  	ALLOW_TO_UPDATE_VOTING_SALES_AS_PROMOTION = 37,
-//  	ALLOW_TO_ISSUE_AFTER_SALE = 38,
-//  	FIX_PAYMENT_V2_SEND_TO_SELF = 39,
-//  	FIX_PAYMENT_V2_DEST_ACCOUNT_NOT_FOUND = 40,
-//  	FIX_CREATE_KYC_REQUEST_AUTO_APPROVE = 41,
-//  	ADD_TASKS_TO_REVIEWABLE_REQUEST = 42,
-//  	USE_ONLY_PAYMENT_V2 = 43,
-//      ADD_REVIEW_INVOICE_REQUEST_PAYMENT_RESPONSE = 44,
-//      ADD_CONTRACT_ID_REVIEW_REQUEST_RESULT = 45,
-//      ALLOW_TO_UPDATE_AND_REJECT_LIMITS_UPDATE_REQUESTS = 46,
-//      ADD_CUSTOMER_DETAILS_TO_CONTRACT = 47,
-//      ADD_CAPITAL_DEPLOYMENT_FEE_TYPE = 48,
-//      ADD_TRANSACTION_FEE = 49,
-//      ADD_DEFAULT_ISSUANCE_TASKS = 50,
-//  	ADD_ASSET_BALANCE_PRECISION = 51,
-//  	WITHDRAWAL_TASKS = 52,
-//      REPLACE_ACCOUNT_TYPES_WITH_POLICIES = 999999 // do not use it yet, there are features to be improved
+//      REPLACE_ACCOUNT_TYPES_WITH_POLICIES = 1 // do not use it yet, there are features to be improved
 //  };
 
 //  ===========================================================================
 public enum class LedgerVersion(val value: Int): XdrEncodable {
   EMPTY_VERSION(0),
-  PASS_EXTERNAL_SYS_ACC_ID_IN_CREATE_ACC(1),
-  DETAILED_LEDGER_CHANGES(2),
-  NEW_SIGNER_TYPES(3),
-  TYPED_SALE(4),
-  UNIQUE_BALANCE_CREATION(5),
-  ASSET_PREISSUER_MIGRATION(6),
-  ASSET_PREISSUER_MIGRATED(7),
-  USE_KYC_LEVEL(8),
-  ERROR_ON_NON_ZERO_TASKS_TO_REMOVE_IN_REJECT_KYC(9),
-  ALLOW_ACCOUNT_MANAGER_TO_CHANGE_KYC(10),
-  CHANGE_ASSET_ISSUER_BAD_AUTH_EXTRA_FIXED(11),
-  AUTO_CREATE_COMMISSION_BALANCE_ON_TRANSFER(12),
-  ALLOW_REJECT_REQUEST_OF_BLOCKED_REQUESTOR(13),
-  ASSET_UPDATE_CHECK_REFERENCE_EXISTS(14),
-  CROSS_ASSET_FEE(15),
-  USE_PAYMENT_V2(16),
-  ALLOW_SYNDICATE_TO_UPDATE_KYC(17),
-  DO_NOT_BUILD_ACCOUNT_IF_VERSION_EQUALS_OR_GREATER(18),
-  ALLOW_TO_SPECIFY_REQUIRED_BASE_ASSET_AMOUNT_FOR_HARD_CAP(19),
-  KYC_RULES(20),
-  ALLOW_TO_CREATE_SEVERAL_SALES(21),
-  KEY_VALUE_POOL_ENTRY_EXPIRES_AT(22),
-  KEY_VALUE_UPDATE(23),
-  ALLOW_TO_CANCEL_SALE_PARTICIP_WITHOUT_SPECIFING_BALANCE(24),
-  DETAILS_MAX_LENGTH_EXTENDED(25),
-  ALLOW_MASTER_TO_MANAGE_SALE(26),
-  USE_SALE_ANTE(27),
-  FIX_ASSET_PAIRS_CREATION_IN_SALE_CREATION(28),
-  STATABLE_SALES(29),
-  CREATE_ONLY_STATISTICS_V2(30),
-  LIMITS_UPDATE_REQUEST_DEPRECATED_DOCUMENT_HASH(31),
-  FIX_PAYMENT_V2_FEE(32),
-  ADD_SALE_ID_REVIEW_REQUEST_RESULT(33),
-  FIX_SET_SALE_STATE_AND_CHECK_SALE_STATE_OPS(34),
-  FIX_UPDATE_MAX_ISSUANCE(35),
-  ALLOW_CLOSE_SALE_WITH_NON_ZERO_BALANCE(36),
-  ALLOW_TO_UPDATE_VOTING_SALES_AS_PROMOTION(37),
-  ALLOW_TO_ISSUE_AFTER_SALE(38),
-  FIX_PAYMENT_V2_SEND_TO_SELF(39),
-  FIX_PAYMENT_V2_DEST_ACCOUNT_NOT_FOUND(40),
-  FIX_CREATE_KYC_REQUEST_AUTO_APPROVE(41),
-  ADD_TASKS_TO_REVIEWABLE_REQUEST(42),
-  USE_ONLY_PAYMENT_V2(43),
-  ADD_REVIEW_INVOICE_REQUEST_PAYMENT_RESPONSE(44),
-  ADD_CONTRACT_ID_REVIEW_REQUEST_RESULT(45),
-  ALLOW_TO_UPDATE_AND_REJECT_LIMITS_UPDATE_REQUESTS(46),
-  ADD_CUSTOMER_DETAILS_TO_CONTRACT(47),
-  ADD_CAPITAL_DEPLOYMENT_FEE_TYPE(48),
-  ADD_TRANSACTION_FEE(49),
-  ADD_DEFAULT_ISSUANCE_TASKS(50),
-  ADD_ASSET_BALANCE_PRECISION(51),
-  WITHDRAWAL_TASKS(52),
-  REPLACE_ACCOUNT_TYPES_WITH_POLICIES(999999),
+  REPLACE_ACCOUNT_TYPES_WITH_POLICIES(1),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -14562,7 +14193,6 @@ open class Fee(
 //  enum OperationType
 //  {
 //      CREATE_ACCOUNT = 0,
-//      PAYMENT = 1,
 //      SET_OPTIONS = 2,
 //      CREATE_ISSUANCE_REQUEST = 3,
 //      SET_FEES = 5,
@@ -14572,7 +14202,6 @@ open class Fee(
 //      MANAGE_ASSET = 11,
 //      CREATE_PREISSUANCE_REQUEST = 12,
 //      MANAGE_LIMITS = 13,
-//      DIRECT_DEBIT = 14,
 //  	MANAGE_ASSET_PAIR = 15,
 //  	MANAGE_OFFER = 16,
 //      MANAGE_INVOICE_REQUEST = 17,
@@ -14592,13 +14221,15 @@ open class Fee(
 //      CANCEL_SALE_REQUEST = 31,
 //      PAYOUT = 32,
 //      MANAGE_ACCOUNT_ROLE = 33,
-//      MANAGE_ACCOUNT_ROLE_PERMISSION = 34
+//      MANAGE_ACCOUNT_ROLE_PERMISSION = 34,
+//      CREATE_ASWAP_BID_REQUEST = 35,
+//      CANCEL_ASWAP_BID = 36,
+//      CREATE_ASWAP_REQUEST = 37
 //  };
 
 //  ===========================================================================
 public enum class OperationType(val value: Int): XdrEncodable {
   CREATE_ACCOUNT(0),
-  PAYMENT(1),
   SET_OPTIONS(2),
   CREATE_ISSUANCE_REQUEST(3),
   SET_FEES(5),
@@ -14608,7 +14239,6 @@ public enum class OperationType(val value: Int): XdrEncodable {
   MANAGE_ASSET(11),
   CREATE_PREISSUANCE_REQUEST(12),
   MANAGE_LIMITS(13),
-  DIRECT_DEBIT(14),
   MANAGE_ASSET_PAIR(15),
   MANAGE_OFFER(16),
   MANAGE_INVOICE_REQUEST(17),
@@ -14629,6 +14259,9 @@ public enum class OperationType(val value: Int): XdrEncodable {
   PAYOUT(32),
   MANAGE_ACCOUNT_ROLE(33),
   MANAGE_ACCOUNT_ROLE_PERMISSION(34),
+  CREATE_ASWAP_BID_REQUEST(35),
+  CANCEL_ASWAP_BID(36),
+  CREATE_ASWAP_REQUEST(37),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {

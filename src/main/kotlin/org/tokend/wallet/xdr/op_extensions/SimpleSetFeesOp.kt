@@ -15,7 +15,6 @@ open class SimpleSetFeesOp : SetFeesOp {
             upperBound: Int64,
             lowerBound: Int64,
             subtype: Int64 = 0L,
-            feeAsset: String? = null,
             accountId: String? = null,
             accountType: AccountType? = null
 
@@ -34,10 +33,7 @@ open class SimpleSetFeesOp : SetFeesOp {
                     lowerBound,
                     upperBound,
                     getHash(type, asset, subtype, accountId, accountType),
-                    if (feeAsset != null)
-                        FeeEntry.FeeEntryExt.CrossAssetFee(feeAsset)
-                    else
-                        FeeEntry.FeeEntryExt.EmptyVersion()
+                    FeeEntry.FeeEntryExt.EmptyVersion()
             ),
             isDelete,
             SetFeesOpExt.EmptyVersion()

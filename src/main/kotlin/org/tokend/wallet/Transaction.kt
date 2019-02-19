@@ -52,12 +52,6 @@ class Transaction {
      */
     val salt: Long
 
-    /**
-     * Optional maximal value of the fee charged for each operation.
-     * Not used by default.
-     */
-    val maxTotalFee: Long?
-
     private val mSignatures = mutableListOf<DecoratedSignature>()
 
     /**
@@ -75,9 +69,8 @@ class Transaction {
      * @param timeBounds time range during which the
      * transaction will be valid. Default transaction lifetime is [DEFAULT_LIFETIME_SECONDS]
      * @param salt optional unique value, random by default
-     * @param maxTotalFee system-specific feature, not used by default.
      *
-     * @throws IllegalStateException if no operations were added.
+     *  @throws IllegalStateException if no operations were added.
      */
     @JvmOverloads
     constructor(networkParams: NetworkParams,
@@ -85,8 +78,7 @@ class Transaction {
                 operations: List<Operation>,
                 memo: Memo? = null,
                 timeBounds: TimeBounds? = null,
-                salt: Long? = null,
-                maxTotalFee: Long? = null) {
+                salt: Long? = null) {
         if (operations.isEmpty()) {
             throw IllegalStateException("Transaction must contain at least one operation")
         }
@@ -94,7 +86,6 @@ class Transaction {
         this.networkParams = networkParams
         this.sourceAccountId = sourceAccountId
         this.operations = operations
-        this.maxTotalFee = maxTotalFee
 
         this.memo = memo ?: Memo.MemoNone()
         this.timeBounds = timeBounds
@@ -138,21 +129,13 @@ class Transaction {
     }
 
     private fun getXdrTransaction(): Transaction {
-        val ext =
-                if (maxTotalFee != null)
-                    Transaction.TransactionExt.AddTransactionFee(
-                            maxTotalFee
-                    )
-                else
-                    Transaction.TransactionExt.EmptyVersion()
-
         return Transaction(
                 sourceAccountId,
                 salt,
                 timeBounds,
                 memo,
                 operations.toTypedArray(),
-                ext
+                Transaction.TransactionExt.EmptyVersion()
         )
     }
 

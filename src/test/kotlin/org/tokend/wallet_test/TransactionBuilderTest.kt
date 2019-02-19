@@ -65,15 +65,4 @@ class TransactionBuilderTest {
 
         Assert.assertEquals(salt, transaction.salt)
     }
-
-    @Test
-    fun setFee() {
-        val fee = 12345L
-        val transaction = TransactionBuilder(NETWORK, SOURCE_ACCOUNT_PUBKEY)
-                .addOperation(Operation.OperationBody.ManageBalance(SIMPLE_OP))
-                .setMaxTotalFee(fee)
-                .build()
-
-        Assert.assertEquals(fee, transaction.maxTotalFee)
-    }
 }

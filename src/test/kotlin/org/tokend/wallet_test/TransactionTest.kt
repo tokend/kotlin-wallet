@@ -7,7 +7,7 @@ import org.tokend.wallet.NetworkParams
 import org.tokend.wallet.PublicKeyFactory
 import org.tokend.wallet.Transaction
 import org.tokend.wallet.xdr.*
-import org.tokend.wallet.xdr.op_extensions.BindExternalAccountOp
+import org.tokend.wallet.xdr.op_extensions.SimplePaymentOpV2
 
 class TransactionTest {
     val SOURCE_ACCOUNT_ID = "GDVJSBSBSERR3YP3LKLHTODWEFGCSLDWDIODER3CKLZXUMVPZOPT4MHY"
@@ -17,37 +17,33 @@ class TransactionTest {
     fun encoding() {
         val sourceBalance = "BBVRUASMC2OMFGWHQPD4TTXTZZ7ACOFWWFTB5Y3K6757FSUSAEPEPXAS"
         val sourceAccountSeed = "SBEBZQIXHAZ3BZXOJEN6R57KMEDISGBIIP6LAVRCNDM4WZIQPHNYZICC".toCharArray()
-        val destBalance = "BCN65IW4JYFLLJADTA5PNP2N27KPGDWUBD27UAHQITRTO3ADVST4WI3O"
+        val destAccount = "GDBTAGESMWHT2OISMGJ27HB6WQB2FVNEEIZL2SRBD2CXN26L6J4NKDP2"
         val account = Account.fromSecretSeed(sourceAccountSeed)
 
-        val paymentOp = PaymentOp(
-                PublicKeyFactory.fromBalanceId(sourceBalance),
-                PublicKeyFactory.fromBalanceId(destBalance),
-                1 * 1000000L,
-                PaymentFeeData(
-                        FeeData(0L, 0L, FeeData.FeeDataExt.EmptyVersion()),
-                        FeeData(0L, 0L, FeeData.FeeDataExt.EmptyVersion()),
+        val paymentOp = SimplePaymentOpV2(
+                sourceBalanceId = sourceBalance,
+                destAccountId =destAccount,
+                amount = 1 * 1000000L,
+                feeData = PaymentFeeDataV2(
+                        Fee(0L, 0L, Fee.FeeExt.EmptyVersion()),
+                        Fee(0L, 0L, Fee.FeeExt.EmptyVersion()),
                         false,
-                        PaymentFeeData.PaymentFeeDataExt.EmptyVersion()
+                        PaymentFeeDataV2.PaymentFeeDataV2Ext.EmptyVersion()
                 ),
-                "Test",
-                "",
-                null,
-                PaymentOp.PaymentOpExt.EmptyVersion()
+                subject = "Test"
         )
 
         val transaction = Transaction(
                 NETWORK,
                 PublicKeyFactory.fromAccountId(SOURCE_ACCOUNT_ID),
-                listOf(Operation(null, Operation.OperationBody.Payment(paymentOp))),
+                listOf(Operation(null, Operation.OperationBody.PaymentV2(paymentOp))),
                 Memo.MemoText("Sample text"),
                 TimeBounds(0L, 42L),
-                0L,
-                12345L
+                0L
         )
         transaction.addSignature(account)
 
-        val expectedEnvelope = "AAAAAOqZBkGRIx3h+1qWebh2IUwpLHYaHDJHYlLzejKvy58+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAqAAAAAQAAAAtTYW1wbGUgdGV4dAAAAAABAAAAAAAAAAEAAAAAaxoCTBacwprHg8fJzvPOfgE4trFmHuNq9/vyypIBHkcAAAAAm+6i3E4KtaQDmDr2v03X1PMO1Aj1+gDwROM3bAOsp8sAAAAAAA9CQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARUZXN0AAAAAAAAAAAAAAAAAAAAMQAAAAAAADA5AAAAAeNBOKkAAABAjLsz2UoLaZ0MWTatsoAufNJcOO0Yy8/Mug9ByC+kwjeYKwvxnuBuveqAzcpbJdMqa6fN0thoW1nYCIfxpSwsDg=="
+        val expectedEnvelope = "AAAAAOqZBkGRIx3h+1qWebh2IUwpLHYaHDJHYlLzejKvy58+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAqAAAAAQAAAAtTYW1wbGUgdGV4dAAAAAABAAAAAAAAABcAAAAAaxoCTBacwprHg8fJzvPOfgE4trFmHuNq9/vyypIBHkcAAAAAAAAAAMMwGJJljz05EmGTr5w+tAOi1aQiMr1KIR6FduvL8njVAAAAAAAPQkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEVGVzdAAAAAAAAAAAAAAAAAAAAAHjQTipAAAAQF34oMJ+LK2Zu5FQIxbCsETYs5ELbzp4QsjS/5iu5rwxSiNtKBOGPwN43O57bMOEetTYdPWC+J2BKASM7eXVKQ0="
         val envelope = transaction.getEnvelope().toBase64()
         Assert.assertEquals(expectedEnvelope, envelope)
     }
@@ -62,34 +58,5 @@ class TransactionTest {
             Assert.fail("Transactions with no operations can't be allowed")
         } catch (e: Exception) {
         }
-    }
-
-    @Test
-    fun emptyVersionExt() {
-        val transaction = Transaction(
-                NETWORK,
-                PublicKeyFactory.fromAccountId(SOURCE_ACCOUNT_ID),
-                listOf(
-                        Operation(null,
-                                Operation.OperationBody.BindExternalSystemAccountId(BindExternalAccountOp(42)))
-                ))
-
-        Assert.assertEquals(org.tokend.wallet.xdr.Transaction.TransactionExt.EmptyVersion::class.java,
-                transaction.getEnvelope().tx.ext.javaClass)
-    }
-
-    @Test
-    fun feeExt() {
-        val transaction = Transaction(
-                NETWORK,
-                PublicKeyFactory.fromAccountId(SOURCE_ACCOUNT_ID),
-                listOf(
-                        Operation(null,
-                                Operation.OperationBody.BindExternalSystemAccountId(BindExternalAccountOp(42)))
-                ),
-                maxTotalFee = 1783)
-
-        Assert.assertEquals(org.tokend.wallet.xdr.Transaction.TransactionExt.AddTransactionFee::class.java,
-                transaction.getEnvelope().tx.ext.javaClass)
     }
 }

@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/tokend/xdrgen.git
-  revision: 99a98bcd56561af7895f8278b8ff09f9ad55cc7d
+  revision: 4f95320de03dbc7737b531e3032e8b80e26bde3b
   specs:
     xdrgen (0.0.6)
       activesupport (~> 5)
@@ -11,7 +11,7 @@ GIT
 GEM
   remote: https://rubygems.org/
   specs:
-    activesupport (5.2.1)
+    activesupport (5.2.2)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 0.7, < 2)
       minitest (~> 5.1)
@@ -19,23 +19,23 @@ GEM
     addressable (2.5.2)
       public_suffix (>= 2.0.2, < 4.0)
     coderay (1.1.2)
-    concurrent-ruby (1.1.1)
-    faraday (0.15.3)
+    concurrent-ruby (1.1.4)
+    faraday (0.15.4)
       multipart-post (>= 1.2, < 3)
-    i18n (1.1.1)
+    i18n (1.5.3)
       concurrent-ruby (~> 1.0)
     memoist (0.11.0)
-    method_source (0.9.1)
+    method_source (0.9.2)
     minitest (5.11.3)
     multipart-post (2.0.0)
     octokit (4.13.0)
       sawyer (~> 0.8.0, >= 0.5.3)
     polyglot (0.3.5)
-    pry (0.12.0)
+    pry (0.12.2)
       coderay (~> 1.1.0)
       method_source (~> 0.9.0)
     public_suffix (3.0.3)
-    rake (12.3.1)
+    rake (12.3.2)
     sawyer (0.8.1)
       addressable (>= 2.3.5, < 2.6)
       faraday (~> 0.8, < 1.0)
