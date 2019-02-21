@@ -26,5 +26,5 @@ for further information about branching and tagging conventions.
 - Wrong value type for `KeyValueEntryValue`
 
 [Unreleased]: https://github.com/tokend/kotlin-wallet/compare/1.0.13...HEAD
-[3.0.1-x.1]: https://github.com/tokend/kotlin-wallet/compare/3.0.1-x.1...HEAD
-[3.0.1-x.2]: https://github.com/tokend/kotlin-wallet/compare/3.0.1-x.2...3.0.1-x.1
+[3.0.1-x.1]: https://github.com/tokend/kotlin-wallet/compare/1.0.13...3.0.1-x.1
+[3.0.1-x.2]: https://github.com/tokend/kotlin-wallet/compare/3.0.1-x.1...3.0.1-x.2
