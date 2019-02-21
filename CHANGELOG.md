@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Please check our [developers guide](https://gitlab.com/tokend/developers-guide)
 for further information about branching and tagging conventions.
 
+## [3.0.1-x.2] 2019-02-21
+
+### Fixed
+- Wrong Kotlin type for `UInt32`, was `Int`, now `Long`
+
 ## [3.0.1-x.1] 2019-02-21
 
 ### Added
@@ -22,3 +27,4 @@ for further information about branching and tagging conventions.
 
 [Unreleased]: https://github.com/tokend/kotlin-wallet/compare/1.0.13...HEAD
 [3.0.1-x.1]: https://github.com/tokend/kotlin-wallet/compare/3.0.1-x.1...HEAD
+[3.0.1-x.2]: https://github.com/tokend/kotlin-wallet/compare/3.0.1-x.2...3.0.1-x.1
