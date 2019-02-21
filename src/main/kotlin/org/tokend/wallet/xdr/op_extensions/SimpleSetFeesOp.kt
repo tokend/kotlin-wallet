@@ -16,7 +16,7 @@ open class SimpleSetFeesOp : SetFeesOp {
             lowerBound: Int64,
             subtype: Int64 = 0L,
             accountId: String? = null,
-            accountType: AccountType? = null
+            accountRole: Uint64? = null
 
     ) : super(
             FeeEntry(
@@ -28,11 +28,11 @@ open class SimpleSetFeesOp : SetFeesOp {
                         PublicKeyFactory.fromAccountId(accountId)
                     else
                         null,
-                    accountType,
+                    accountRole,
                     subtype,
                     lowerBound,
                     upperBound,
-                    getHash(type, asset, subtype, accountId, accountType),
+                    getHash(type, asset, subtype, accountId, accountRole),
                     FeeEntry.FeeEntryExt.EmptyVersion()
             ),
             isDelete,
@@ -42,7 +42,7 @@ open class SimpleSetFeesOp : SetFeesOp {
     companion object {
         @JvmStatic
         fun getHash(type: FeeType, asset: String, subtype: Int64,
-                    accountId: String?, accountType: AccountType?): Hash {
+                    accountId: String?, accountRole: Uint64?): Hash {
             var data =
                     "type:${type.value}asset:${asset}subtype:$subtype"
 
@@ -50,8 +50,8 @@ open class SimpleSetFeesOp : SetFeesOp {
                 data += "accountID:$accountId"
             }
 
-            if (accountType != null) {
-                data += "accountType:${accountType.value}"
+            if (accountRole != null) {
+                data += "accountRole:$accountRole"
             }
 
             return Hash(

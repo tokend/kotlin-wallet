@@ -1,8 +1,8 @@
 package org.tokend.wallet.xdr.op_extensions
 
-import org.tokend.wallet.xdr.AccountType
 import org.tokend.wallet.xdr.FeeType
 import org.tokend.wallet.xdr.Int64
+import org.tokend.wallet.xdr.Uint64
 
 class CreateFeeOp
 @JvmOverloads
@@ -15,6 +15,6 @@ constructor(
         lowerBound: Int64,
         subtype: Int64 = 0L,
         accountId: String? = null,
-        accountType: AccountType? = null
+        accountRole: Uint64? = null
 ) : SimpleSetFeesOp(false, type, asset, fixed, percent,
-        upperBound, lowerBound, subtype, accountId, accountType)
+        upperBound, lowerBound, subtype, accountId, accountRole)

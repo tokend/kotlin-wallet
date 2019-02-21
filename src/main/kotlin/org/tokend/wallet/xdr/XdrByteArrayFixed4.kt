@@ -6,7 +6,7 @@ package org.tokend.wallet.xdr
 import org.tokend.wallet.xdr.utils.*
 
 /// Fixed length byte array 
-class XdrByteArrayFixed4(byteArray: ByteArray): XdrFixedByteArray(byteArray) {
+class XdrByteArrayFixed4(byteArray: kotlin.ByteArray): XdrFixedByteArray(byteArray) {
     override val size: Int
         get() = 4
 }
