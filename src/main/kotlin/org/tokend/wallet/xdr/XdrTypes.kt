@@ -14809,7 +14809,7 @@ public typealias Uint256 = XdrByteArrayFixed32
 //  typedef unsigned int uint32;
 
 //  ===========================================================================
-public typealias Uint32 = kotlin.Long
+public typealias Uint32 = kotlin.Int
 
 // === xdr source ============================================================
 
