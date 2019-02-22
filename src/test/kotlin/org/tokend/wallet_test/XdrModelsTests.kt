@@ -3,6 +3,7 @@ package org.tokend.wallet_test
 import org.junit.Assert
 import org.junit.Test
 import org.tokend.wallet.Base32Check
+import org.tokend.wallet.PublicKeyFactory
 import org.tokend.wallet.xdr.*
 import org.tokend.wallet.xdr.op_extensions.SimplePaymentOp
 
@@ -54,6 +55,28 @@ class XdrModelsTests {
         val op = Operation(null, Operation.OperationBody.Payment(paymentOp))
 
         Assert.assertEquals("AAAAAAAAABcAAAAAP0ufW8kXWnr5KS7AE2nkEzMbZe5e6ugp3vomGd4J7RcAAAAAAAAAAHteR0/xHy/UY52BNKpS2XhbRQ9sVCsVfrSwiwW7X7B9AAAAAAC8YQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEVGVzdAAAAAAAAAAA",
+                op.toBase64())
+    }
+
+    @Test
+    fun testManageSignerOp() {
+        val manageOp = ManageSignerOp(
+                ManageSignerOp.ManageSignerOpData.Create(
+                        UpdateSignerData(
+                                publicKey = PublicKeyFactory.fromAccountId(ACCOUNT_ID),
+                                weight = 255,
+                                identity = 255,
+                                roleID = 255,
+                                details = "",
+                                ext = EmptyExt.EmptyVersion()
+                        )
+                ),
+                EmptyExt.EmptyVersion()
+        )
+
+        val op = Operation(null, Operation.OperationBody.ManageSigner(manageOp))
+
+        Assert.assertEquals("AAAAAAAAACYAAAAAAAAAAHteR0/xHy/UY52BNKpS2XhbRQ9sVCsVfrSwiwW7X7B9AAAAAAAAAP8AAAD/AAAA/wAAAAAAAAAAAAAAAA==",
                 op.toBase64())
     }
 }
