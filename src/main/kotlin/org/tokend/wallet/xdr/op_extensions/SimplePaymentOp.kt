@@ -3,35 +3,38 @@ package org.tokend.wallet.xdr.op_extensions
 import org.tokend.wallet.PublicKeyFactory
 import org.tokend.wallet.xdr.*
 
-class SimplePaymentOpV2 : PaymentOpV2 {
+class SimplePaymentOp : PaymentOp {
     @JvmOverloads
     constructor(
             sourceBalanceId: BalanceID,
             destAccountId: AccountID,
             amount: Int64,
-            feeData: PaymentFeeDataV2,
-            subject: String256 = ""
+            feeData: PaymentFeeData,
+            subject: String256 = "",
+            reference: Longstring = ""
     ) : super(
             sourceBalanceId,
-            PaymentOpV2Destination.Account(destAccountId),
+            PaymentOpDestination.Account(destAccountId),
             amount,
             feeData,
             subject,
-            "",
-            PaymentOpV2Ext.EmptyVersion())
+            reference,
+            PaymentOpExt.EmptyVersion())
 
     @JvmOverloads
     constructor(
             sourceBalanceId: String,
             destAccountId: String,
             amount: Long,
-            feeData: PaymentFeeDataV2,
-            subject: String = ""
+            feeData: PaymentFeeData,
+            subject: String = "",
+            reference: Longstring = ""
     ) : this(
             PublicKeyFactory.fromBalanceId(sourceBalanceId),
             PublicKeyFactory.fromAccountId(destAccountId),
             amount,
             feeData,
-            subject
+            subject,
+            reference
     )
 }

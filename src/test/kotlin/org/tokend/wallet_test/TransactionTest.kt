@@ -7,7 +7,7 @@ import org.tokend.wallet.NetworkParams
 import org.tokend.wallet.PublicKeyFactory
 import org.tokend.wallet.Transaction
 import org.tokend.wallet.xdr.*
-import org.tokend.wallet.xdr.op_extensions.SimplePaymentOpV2
+import org.tokend.wallet.xdr.op_extensions.SimplePaymentOp
 
 class TransactionTest {
     val SOURCE_ACCOUNT_ID = "GDVJSBSBSERR3YP3LKLHTODWEFGCSLDWDIODER3CKLZXUMVPZOPT4MHY"
@@ -20,15 +20,15 @@ class TransactionTest {
         val destAccount = "GDBTAGESMWHT2OISMGJ27HB6WQB2FVNEEIZL2SRBD2CXN26L6J4NKDP2"
         val account = Account.fromSecretSeed(sourceAccountSeed)
 
-        val paymentOp = SimplePaymentOpV2(
+        val paymentOp = SimplePaymentOp(
                 sourceBalanceId = sourceBalance,
                 destAccountId =destAccount,
                 amount = 1 * 1000000L,
-                feeData = PaymentFeeDataV2(
+                feeData = PaymentFeeData(
                         Fee(0L, 0L, Fee.FeeExt.EmptyVersion()),
                         Fee(0L, 0L, Fee.FeeExt.EmptyVersion()),
                         false,
-                        PaymentFeeDataV2.PaymentFeeDataV2Ext.EmptyVersion()
+                        PaymentFeeData.PaymentFeeDataExt.EmptyVersion()
                 ),
                 subject = "Test"
         )
@@ -36,7 +36,7 @@ class TransactionTest {
         val transaction = Transaction(
                 NETWORK,
                 PublicKeyFactory.fromAccountId(SOURCE_ACCOUNT_ID),
-                listOf(Operation(null, Operation.OperationBody.PaymentV2(paymentOp))),
+                listOf(Operation(null, Operation.OperationBody.Payment(paymentOp))),
                 Memo.MemoText("Sample text"),
                 TimeBounds(0L, 42L),
                 0L
