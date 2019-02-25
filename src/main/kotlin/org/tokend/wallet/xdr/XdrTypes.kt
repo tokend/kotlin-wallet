@@ -1326,6 +1326,56 @@ open class KeyValueEntry(
 
 // === xdr source ============================================================
 
+//  struct LicenseEntry
+//  {
+//      uint64 adminCount;
+//      uint64 dueDate;
+//      Hash ledgerHash;
+//      Hash prevLicenseHash;
+//      DecoratedSignature signatures<>;
+//  
+//       // reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class LicenseEntry(
+    var adminCount: org.tokend.wallet.xdr.Uint64,
+    var dueDate: org.tokend.wallet.xdr.Uint64,
+    var ledgerHash: org.tokend.wallet.xdr.Hash,
+    var prevLicenseHash: org.tokend.wallet.xdr.Hash,
+    var signatures: kotlin.Array<org.tokend.wallet.xdr.DecoratedSignature>,
+    var ext: LicenseEntryExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    adminCount.toXdr(stream)
+    dueDate.toXdr(stream)
+    ledgerHash.toXdr(stream)
+    prevLicenseHash.toXdr(stream)
+    signatures.size.toXdr(stream)
+    signatures.forEach {
+      it.toXdr(stream)
+    }
+    ext.toXdr(stream)
+  }
+
+  abstract class LicenseEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: LicenseEntryExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
 //  enum StatsOpType
 //  {
 //      PAYMENT_OUT = 1,
@@ -2298,6 +2348,44 @@ open class SignerEntry(
 
 // === xdr source ============================================================
 
+//  struct StampEntry
+//  {
+//      Hash ledgerHash;
+//      Hash licenseHash;
+//  
+//       // reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class StampEntry(
+    var ledgerHash: org.tokend.wallet.xdr.Hash,
+    var licenseHash: org.tokend.wallet.xdr.Hash,
+    var ext: StampEntryExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    ledgerHash.toXdr(stream)
+    licenseHash.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class StampEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: StampEntryExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
 //  struct StatisticsV2Entry
 //  {
 //      uint64      id;
@@ -2493,7 +2581,10 @@ public enum class ThresholdIndexes(val value: kotlin.Int): XdrEncodable {
 //          SignerRuleEntry signerRule;
 //      case SIGNER_ROLE:
 //          SignerRoleEntry signerRole;
-//      }
+//      case LICENSE:
+//          LicenseEntry license;
+//      case STAMP:
+//          StampEntry stamp;}
 //      data;
 //  
 //      // reserved for future use
@@ -2695,6 +2786,20 @@ open class LedgerEntry(
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         signerRole.toXdr(stream)
+      }
+    }
+
+    open class License(var license: org.tokend.wallet.xdr.LicenseEntry): LedgerEntryData(org.tokend.wallet.xdr.LedgerEntryType.LICENSE) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        license.toXdr(stream)
+      }
+    }
+
+    open class Stamp(var stamp: org.tokend.wallet.xdr.StampEntry): LedgerEntryData(org.tokend.wallet.xdr.LedgerEntryType.STAMP) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        stamp.toXdr(stream)
       }
     }
   }
@@ -3209,6 +3314,26 @@ abstract class LedgerUpgrade(val discriminant: org.tokend.wallet.xdr.LedgerUpgra
 //          }
 //          ext;
 //      } signerRule;
+//  case STAMP:
+//      struct {
+//          Hash ledgerHash;
+//          Hash licenseHash;
+//          union switch (LedgerVersion v)
+//          {
+//          case EMPTY_VERSION:
+//              void;
+//          }
+//          ext;
+//      } stamp;
+//  case LICENSE:
+//      struct {
+//          Hash licenseHash;
+//          union switch (LedgerVersion v)
+//          {
+//          case EMPTY_VERSION:
+//              void;
+//          } ext;
+//      } license;
 //  };
 
 //  ===========================================================================
@@ -3389,6 +3514,20 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       signerRule.toXdr(stream)
+    }
+  }
+
+  open class Stamp(var stamp: LedgerKeyStamp): LedgerKey(org.tokend.wallet.xdr.LedgerEntryType.STAMP) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      stamp.toXdr(stream)
+    }
+  }
+
+  open class License(var license: LedgerKeyLicense): LedgerKey(org.tokend.wallet.xdr.LedgerEntryType.LICENSE) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      license.toXdr(stream)
     }
   }
 
@@ -3846,6 +3985,44 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
       }
 
       open class EmptyVersion: LedgerKeySignerRuleExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+    }
+  }
+  open class LedgerKeyStamp(
+      var ledgerHash: org.tokend.wallet.xdr.Hash,
+      var licenseHash: org.tokend.wallet.xdr.Hash,
+      var ext: LedgerKeyStampExt
+    ) : XdrEncodable {
+
+    override fun toXdr(stream: XdrDataOutputStream) {
+      ledgerHash.toXdr(stream)
+      licenseHash.toXdr(stream)
+      ext.toXdr(stream)
+    }
+
+    abstract class LedgerKeyStampExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+      override fun toXdr(stream: XdrDataOutputStream) {
+          discriminant.toXdr(stream)
+      }
+
+      open class EmptyVersion: LedgerKeyStampExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+    }
+  }
+  open class LedgerKeyLicense(
+      var licenseHash: org.tokend.wallet.xdr.Hash,
+      var ext: LedgerKeyLicenseExt
+    ) : XdrEncodable {
+
+    override fun toXdr(stream: XdrDataOutputStream) {
+      licenseHash.toXdr(stream)
+      ext.toXdr(stream)
+    }
+
+    abstract class LedgerKeyLicenseExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+      override fun toXdr(stream: XdrDataOutputStream) {
+          discriminant.toXdr(stream)
+      }
+
+      open class EmptyVersion: LedgerKeyLicenseExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
     }
   }
 }
@@ -5555,7 +5732,6 @@ open class CreateChangeRoleRequestOp(
 //      REQUEST_ALREADY_EXISTS = -2,
 //  	SAME_ACC_TYPE_TO_SET = -3,
 //  	REQUEST_DOES_NOT_EXIST = -4,
-//  	PENDING_REQUEST_UPDATE_NOT_ALLOWED = -5,
 //  	NOT_ALLOWED_TO_UPDATE_REQUEST = -6, // master account can update request only through review request operation
 //  	INVALID_CHANGE_ROLE_REQUEST_DATA = -7,
 //  	INVALID_CREATOR_DETAILS = -8,
@@ -5569,7 +5745,6 @@ public enum class CreateChangeRoleRequestResultCode(val value: kotlin.Int): XdrE
   REQUEST_ALREADY_EXISTS(-2),
   SAME_ACC_TYPE_TO_SET(-3),
   REQUEST_DOES_NOT_EXIST(-4),
-  PENDING_REQUEST_UPDATE_NOT_ALLOWED(-5),
   NOT_ALLOWED_TO_UPDATE_REQUEST(-6),
   INVALID_CHANGE_ROLE_REQUEST_DATA(-7),
   INVALID_CREATOR_DETAILS(-8),
@@ -6140,7 +6315,7 @@ open class CreateSaleCreationRequestOp(
 //  	VERSION_IS_NOT_SUPPORTED_YET = -13, // version specified in request is not supported yet
 //      SALE_CREATE_TASKS_NOT_FOUND = -14,
 //      NOT_ALLOWED_TO_SET_TASKS_ON_UPDATE = -15, // can't set allTasks on request update
-//      PENDING_REQUEST_UPDATE_NOT_ALLOWED = -16
+//      AUTO_REVIEW_FAILED = -16 //: due to tasks been 0, we have tried to auto review request, hovewer it failed
 //  };
 
 //  ===========================================================================
@@ -6161,7 +6336,7 @@ public enum class CreateSaleCreationRequestResultCode(val value: kotlin.Int): Xd
   VERSION_IS_NOT_SUPPORTED_YET(-13),
   SALE_CREATE_TASKS_NOT_FOUND(-14),
   NOT_ALLOWED_TO_SET_TASKS_ON_UPDATE(-15),
-  PENDING_REQUEST_UPDATE_NOT_ALLOWED(-16),
+  AUTO_REVIEW_FAILED(-16),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -6210,10 +6385,46 @@ open class CreateSaleCreationSuccess(
 
 // === xdr source ============================================================
 
+//  struct CreateSaleCreationAutoReviewFailed {
+//  	//: auto review result
+//  	ReviewRequestResult reviewRequestRequest;
+//  	//: reserved for future use
+//  	union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class CreateSaleCreationAutoReviewFailed(
+    var reviewRequestRequest: org.tokend.wallet.xdr.ReviewRequestResult,
+    var ext: CreateSaleCreationAutoReviewFailedExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    reviewRequestRequest.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class CreateSaleCreationAutoReviewFailedExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: CreateSaleCreationAutoReviewFailedExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
 //  union CreateSaleCreationRequestResult switch (CreateSaleCreationRequestResultCode code)
 //  {
 //      case SUCCESS:
 //          CreateSaleCreationSuccess success;
+//  	case AUTO_REVIEW_FAILED:
+//  		CreateSaleCreationAutoReviewFailed autoReviewFailed;
 //      default:
 //          void;
 //  };
@@ -6228,6 +6439,13 @@ abstract class CreateSaleCreationRequestResult(val discriminant: org.tokend.wall
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
+    }
+  }
+
+  open class AutoReviewFailed(var autoReviewFailed: org.tokend.wallet.xdr.CreateSaleCreationAutoReviewFailed): CreateSaleCreationRequestResult(org.tokend.wallet.xdr.CreateSaleCreationRequestResultCode.AUTO_REVIEW_FAILED) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      autoReviewFailed.toXdr(stream)
     }
   }
 }
@@ -6384,6 +6602,136 @@ abstract class CreateWithdrawalRequestResult(val discriminant: org.tokend.wallet
   }
 
   open class Success(var success: org.tokend.wallet.xdr.CreateWithdrawalSuccess): CreateWithdrawalRequestResult(org.tokend.wallet.xdr.CreateWithdrawalRequestResultCode.SUCCESS) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      success.toXdr(stream)
+    }
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct LicenseOp
+//  {
+//      uint64 adminCount;
+//      uint64 dueDate;
+//      Hash ledgerHash;
+//      Hash prevLicenseHash;
+//      DecoratedSignature signatures<>;
+//  
+//  
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class LicenseOp(
+    var adminCount: org.tokend.wallet.xdr.Uint64,
+    var dueDate: org.tokend.wallet.xdr.Uint64,
+    var ledgerHash: org.tokend.wallet.xdr.Hash,
+    var prevLicenseHash: org.tokend.wallet.xdr.Hash,
+    var signatures: kotlin.Array<org.tokend.wallet.xdr.DecoratedSignature>,
+    var ext: LicenseOpExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    adminCount.toXdr(stream)
+    dueDate.toXdr(stream)
+    ledgerHash.toXdr(stream)
+    prevLicenseHash.toXdr(stream)
+    signatures.size.toXdr(stream)
+    signatures.forEach {
+      it.toXdr(stream)
+    }
+    ext.toXdr(stream)
+  }
+
+  abstract class LicenseOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: LicenseOpExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  enum LicenseResultCode
+//  {
+//      // codes considered as "success" for the operation
+//      SUCCESS = 0,
+//  
+//      // codes considered as "failure" for the operation
+//      INVALID_STAMP = -1,
+//      INVALID_DUE_DATE = -2,
+//      INVALID_SIGNATURE = -3
+//  };
+
+//  ===========================================================================
+public enum class LicenseResultCode(val value: kotlin.Int): XdrEncodable {
+  SUCCESS(0),
+  INVALID_STAMP(-1),
+  INVALID_DUE_DATE(-2),
+  INVALID_SIGNATURE(-3),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct LicenseSuccess {
+//      // reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class LicenseSuccess(
+    var ext: LicenseSuccessExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    ext.toXdr(stream)
+  }
+
+  abstract class LicenseSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: LicenseSuccessExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  union LicenseResult switch (LicenseResultCode code)
+//  {
+//  case SUCCESS:
+//      LicenseSuccess success;
+//  default:
+//      void;
+//  };
+
+//  ===========================================================================
+abstract class LicenseResult(val discriminant: org.tokend.wallet.xdr.LicenseResultCode): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  open class Success(var success: org.tokend.wallet.xdr.LicenseSuccess): LicenseResult(org.tokend.wallet.xdr.LicenseResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
@@ -7450,8 +7798,7 @@ open class ManageAssetOp(
 //      INVALID_MAX_ISSUANCE_AMOUNT_PRECISION = -15,   // maximum issuance amount does not match precision set by trailing digits count
 //      ASSET_CREATE_TASKS_NOT_FOUND = -16, 
 //      ASSET_UPDATE_TASKS_NOT_FOUND = -17,
-//      NOT_ALLOWED_TO_SET_TASKS_ON_UPDATE = -18,
-//      PENDING_REQUEST_UPDATE_NOT_ALLOWED = -19
+//      NOT_ALLOWED_TO_SET_TASKS_ON_UPDATE = -18
 //  };
 
 //  ===========================================================================
@@ -7475,7 +7822,6 @@ public enum class ManageAssetResultCode(val value: kotlin.Int): XdrEncodable {
   ASSET_CREATE_TASKS_NOT_FOUND(-16),
   ASSET_UPDATE_TASKS_NOT_FOUND(-17),
   NOT_ALLOWED_TO_SET_TASKS_ON_UPDATE(-18),
-  PENDING_REQUEST_UPDATE_NOT_ALLOWED(-19),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -8826,7 +9172,8 @@ open class ManageKeyValueSuccess(
 //      {
 //          SUCCESS = 0,
 //          NOT_FOUND = -1,
-//          INVALID_TYPE = -2
+//          INVALID_TYPE = -2,
+//          ZERO_VALUE_NOT_ALLOWED = -3
 //      };
 
 //  ===========================================================================
@@ -8834,6 +9181,7 @@ public enum class ManageKeyValueResultCode(val value: kotlin.Int): XdrEncodable 
   SUCCESS(0),
   NOT_FOUND(-1),
   INVALID_TYPE(-2),
+  ZERO_VALUE_NOT_ALLOWED(-3),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -9638,8 +9986,7 @@ open class ManageSaleOp(
 //      UPDATE_DETAILS_REQUEST_ALREADY_EXISTS = -3,
 //      UPDATE_DETAILS_REQUEST_NOT_FOUND = -4,
 //      NOT_ALLOWED_TO_SET_TASKS_ON_UPDATE = -5, // not allowed to set allTasks on request update
-//      SALE_UPDATE_DETAILS_TASKS_NOT_FOUND = -6, // it's not allowed to set state for non master account
-//      PENDING_REQUEST_UPDATE_NOT_ALLOWED = -7
+//      SALE_UPDATE_DETAILS_TASKS_NOT_FOUND = -6 // it's not allowed to set state for non master account
 //  };
 
 //  ===========================================================================
@@ -9651,7 +9998,6 @@ public enum class ManageSaleResultCode(val value: kotlin.Int): XdrEncodable {
   UPDATE_DETAILS_REQUEST_NOT_FOUND(-4),
   NOT_ALLOWED_TO_SET_TASKS_ON_UPDATE(-5),
   SALE_UPDATE_DETAILS_TASKS_NOT_FOUND(-6),
-  PENDING_REQUEST_UPDATE_NOT_ALLOWED(-7),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -11830,7 +12176,9 @@ open class SetFeesOp(
 //  		FEE_ASSET_NOT_FOUND = -14,
 //  		ASSET_PAIR_NOT_FOUND = -15, // cannot create cross asset fee entry without existing asset pair
 //  		INVALID_ASSET_PAIR_PRICE = -16,
-//  		INVALID_FEE_HASH = -17
+//  		INVALID_FEE_HASH = -17,
+//  		//: Fixed fee amount must fit asset precision
+//  		INVALID_AMOUNT_PRECISION = -18
 //      };
 
 //  ===========================================================================
@@ -11853,6 +12201,7 @@ public enum class SetFeesResultCode(val value: kotlin.Int): XdrEncodable {
   ASSET_PAIR_NOT_FOUND(-15),
   INVALID_ASSET_PAIR_PRICE(-16),
   INVALID_FEE_HASH(-17),
+  INVALID_AMOUNT_PRECISION(-18),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -11905,6 +12254,117 @@ abstract class SetFeesResult(val discriminant: org.tokend.wallet.xdr.SetFeesResu
       }
 
       open class EmptyVersion: SetFeesResultSuccessExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+    }
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct StampOp
+//  {
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class StampOp(
+    var ext: StampOpExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    ext.toXdr(stream)
+  }
+
+  abstract class StampOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: StampOpExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  enum StampResultCode
+//  {
+//      // codes considered as "success" for the operation
+//      SUCCESS = 0
+//  
+//      // codes considered as "failure" for the operation
+//  };
+
+//  ===========================================================================
+public enum class StampResultCode(val value: kotlin.Int): XdrEncodable {
+  SUCCESS(0),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct StampSuccess {
+//  
+//      Hash ledgerHash;
+//      Hash licenseHash;
+//      // reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class StampSuccess(
+    var ledgerHash: org.tokend.wallet.xdr.Hash,
+    var licenseHash: org.tokend.wallet.xdr.Hash,
+    var ext: StampSuccessExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    ledgerHash.toXdr(stream)
+    licenseHash.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class StampSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: StampSuccessExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  union StampResult switch (StampResultCode code)
+//  {
+//  case SUCCESS:
+//      StampSuccess success;
+//  default:
+//      void;
+//  };
+
+//  ===========================================================================
+abstract class StampResult(val discriminant: org.tokend.wallet.xdr.StampResultCode): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  open class Success(var success: org.tokend.wallet.xdr.StampSuccess): StampResult(org.tokend.wallet.xdr.StampResultCode.SUCCESS) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      success.toXdr(stream)
     }
   }
 }
@@ -12348,7 +12808,7 @@ abstract class AuthenticatedMessage(val discriminant: org.tokend.wallet.xdr.Ledg
 
 // === xdr source ============================================================
 
-//  union RequestTypedResource switch (ReviewableRequestType requestType)
+//  union ReviewableRequestResource switch (ReviewableRequestType requestType)
 //  {
 //  case CREATE_SALE:
 //      struct
@@ -12356,7 +12816,7 @@ abstract class AuthenticatedMessage(val discriminant: org.tokend.wallet.xdr.Ledg
 //          uint64 type;
 //  
 //          EmptyExt ext;
-//      } sale;
+//      } createSale;
 //  case CREATE_ISSUANCE:
 //      struct
 //      {
@@ -12364,7 +12824,7 @@ abstract class AuthenticatedMessage(val discriminant: org.tokend.wallet.xdr.Ledg
 //          uint64 assetType;
 //  
 //          EmptyExt ext;
-//      } issuance;
+//      } createIssuance;
 //  case CREATE_WITHDRAW:
 //      struct
 //      {
@@ -12372,39 +12832,39 @@ abstract class AuthenticatedMessage(val discriminant: org.tokend.wallet.xdr.Ledg
 //          uint64 assetType;
 //  
 //          EmptyExt ext;
-//      } withdraw;
+//      } createWithdraw;
 //  default:
 //      EmptyExt ext;
 //  };
 
 //  ===========================================================================
-abstract class RequestTypedResource(val discriminant: org.tokend.wallet.xdr.ReviewableRequestType): XdrEncodable {
+abstract class ReviewableRequestResource(val discriminant: org.tokend.wallet.xdr.ReviewableRequestType): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
 
-  open class CreateSale(var sale: RequestTypedResourceSale): RequestTypedResource(org.tokend.wallet.xdr.ReviewableRequestType.CREATE_SALE) {
+  open class CreateSale(var createSale: ReviewableRequestResourceCreateSale): ReviewableRequestResource(org.tokend.wallet.xdr.ReviewableRequestType.CREATE_SALE) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
-      sale.toXdr(stream)
+      createSale.toXdr(stream)
     }
   }
 
-  open class CreateIssuance(var issuance: RequestTypedResourceIssuance): RequestTypedResource(org.tokend.wallet.xdr.ReviewableRequestType.CREATE_ISSUANCE) {
+  open class CreateIssuance(var createIssuance: ReviewableRequestResourceCreateIssuance): ReviewableRequestResource(org.tokend.wallet.xdr.ReviewableRequestType.CREATE_ISSUANCE) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
-      issuance.toXdr(stream)
+      createIssuance.toXdr(stream)
     }
   }
 
-  open class CreateWithdraw(var withdraw: RequestTypedResourceWithdraw): RequestTypedResource(org.tokend.wallet.xdr.ReviewableRequestType.CREATE_WITHDRAW) {
+  open class CreateWithdraw(var createWithdraw: ReviewableRequestResourceCreateWithdraw): ReviewableRequestResource(org.tokend.wallet.xdr.ReviewableRequestType.CREATE_WITHDRAW) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
-      withdraw.toXdr(stream)
+      createWithdraw.toXdr(stream)
     }
   }
 
-  open class RequestTypedResourceSale(
+  open class ReviewableRequestResourceCreateSale(
       var type: org.tokend.wallet.xdr.Uint64,
       var ext: org.tokend.wallet.xdr.EmptyExt
     ) : XdrEncodable {
@@ -12414,7 +12874,7 @@ abstract class RequestTypedResource(val discriminant: org.tokend.wallet.xdr.Revi
       ext.toXdr(stream)
     }
   }
-  open class RequestTypedResourceIssuance(
+  open class ReviewableRequestResourceCreateIssuance(
       var assetCode: org.tokend.wallet.xdr.AssetCode,
       var assetType: org.tokend.wallet.xdr.Uint64,
       var ext: org.tokend.wallet.xdr.EmptyExt
@@ -12426,7 +12886,7 @@ abstract class RequestTypedResource(val discriminant: org.tokend.wallet.xdr.Revi
       ext.toXdr(stream)
     }
   }
-  open class RequestTypedResourceWithdraw(
+  open class ReviewableRequestResourceCreateWithdraw(
       var assetCode: org.tokend.wallet.xdr.AssetCode,
       var assetType: org.tokend.wallet.xdr.Uint64,
       var ext: org.tokend.wallet.xdr.EmptyExt
@@ -12444,8 +12904,6 @@ abstract class RequestTypedResource(val discriminant: org.tokend.wallet.xdr.Revi
 
 //  union AccountRuleResource switch (LedgerEntryType type)
 //  {
-//  case TRANSACTION:
-//      EmptyExt tx;
 //  case ASSET:
 //      struct
 //      {
@@ -12457,7 +12915,7 @@ abstract class RequestTypedResource(val discriminant: org.tokend.wallet.xdr.Revi
 //  case REVIEWABLE_REQUEST:
 //      struct
 //      {
-//          RequestTypedResource details;
+//          ReviewableRequestResource details;
 //  
 //          EmptyExt ext;
 //      } reviewableRequest;
@@ -12492,6 +12950,13 @@ abstract class RequestTypedResource(val discriminant: org.tokend.wallet.xdr.Revi
 //  
 //          EmptyExt ext;
 //      } atomicSwapBid;
+//  case KEY_VALUE:
+//      struct
+//      {
+//          longstring keyPrefix;
+//  
+//          EmptyExt ext;
+//      } keyValue;
 //  default:
 //      EmptyExt ext;
 //  };
@@ -12500,13 +12965,6 @@ abstract class RequestTypedResource(val discriminant: org.tokend.wallet.xdr.Revi
 abstract class AccountRuleResource(val discriminant: org.tokend.wallet.xdr.LedgerEntryType): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
-  }
-
-  open class Transaction(var tx: org.tokend.wallet.xdr.EmptyExt): AccountRuleResource(org.tokend.wallet.xdr.LedgerEntryType.TRANSACTION) {
-    override fun toXdr(stream: XdrDataOutputStream) {
-      super.toXdr(stream)
-      tx.toXdr(stream)
-    }
   }
 
   open class Asset(var asset: AccountRuleResourceAsset): AccountRuleResource(org.tokend.wallet.xdr.LedgerEntryType.ASSET) {
@@ -12546,6 +13004,13 @@ abstract class AccountRuleResource(val discriminant: org.tokend.wallet.xdr.Ledge
     }
   }
 
+  open class KeyValue(var keyValue: AccountRuleResourceKeyValue): AccountRuleResource(org.tokend.wallet.xdr.LedgerEntryType.KEY_VALUE) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      keyValue.toXdr(stream)
+    }
+  }
+
   open class AccountRuleResourceAsset(
       var assetCode: org.tokend.wallet.xdr.AssetCode,
       var assetType: org.tokend.wallet.xdr.Uint64,
@@ -12559,7 +13024,7 @@ abstract class AccountRuleResource(val discriminant: org.tokend.wallet.xdr.Ledge
     }
   }
   open class AccountRuleResourceReviewableRequest(
-      var details: org.tokend.wallet.xdr.RequestTypedResource,
+      var details: org.tokend.wallet.xdr.ReviewableRequestResource,
       var ext: org.tokend.wallet.xdr.EmptyExt
     ) : XdrEncodable {
 
@@ -12607,6 +13072,16 @@ abstract class AccountRuleResource(val discriminant: org.tokend.wallet.xdr.Ledge
     override fun toXdr(stream: XdrDataOutputStream) {
       assetType.toXdr(stream)
       assetCode.toXdr(stream)
+      ext.toXdr(stream)
+    }
+  }
+  open class AccountRuleResourceKeyValue(
+      var keyPrefix: org.tokend.wallet.xdr.Longstring,
+      var ext: org.tokend.wallet.xdr.EmptyExt
+    ) : XdrEncodable {
+
+    override fun toXdr(stream: XdrDataOutputStream) {
+      keyPrefix.toXdr(stream)
       ext.toXdr(stream)
     }
   }
@@ -12664,7 +13139,7 @@ public enum class AccountRuleAction(val value: kotlin.Int): XdrEncodable {
 //  case REVIEWABLE_REQUEST:
 //      struct
 //      {
-//          RequestTypedResource details;
+//          ReviewableRequestResource details;
 //  
 //          uint64 tasksToAdd;
 //          uint64 tasksToRemove;
@@ -12732,6 +13207,13 @@ public enum class AccountRuleAction(val value: kotlin.Int): XdrEncodable {
 //  
 //          EmptyExt ext;
 //      } signer;
+//  case KEY_VALUE:
+//      struct
+//      {
+//          longstring keyPrefix;
+//  
+//          EmptyExt ext;
+//      } keyValue;
 //  default:
 //      EmptyExt ext;
 //  };
@@ -12800,8 +13282,15 @@ abstract class SignerRuleResource(val discriminant: org.tokend.wallet.xdr.Ledger
     }
   }
 
+  open class KeyValue(var keyValue: SignerRuleResourceKeyValue): SignerRuleResource(org.tokend.wallet.xdr.LedgerEntryType.KEY_VALUE) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      keyValue.toXdr(stream)
+    }
+  }
+
   open class SignerRuleResourceReviewableRequest(
-      var details: org.tokend.wallet.xdr.RequestTypedResource,
+      var details: org.tokend.wallet.xdr.ReviewableRequestResource,
       var tasksToAdd: org.tokend.wallet.xdr.Uint64,
       var tasksToRemove: org.tokend.wallet.xdr.Uint64,
       var allTasks: org.tokend.wallet.xdr.Uint64,
@@ -12897,6 +13386,16 @@ abstract class SignerRuleResource(val discriminant: org.tokend.wallet.xdr.Ledger
 
     override fun toXdr(stream: XdrDataOutputStream) {
       roleID.toXdr(stream)
+      ext.toXdr(stream)
+    }
+  }
+  open class SignerRuleResourceKeyValue(
+      var keyPrefix: org.tokend.wallet.xdr.Longstring,
+      var ext: org.tokend.wallet.xdr.EmptyExt
+    ) : XdrEncodable {
+
+    override fun toXdr(stream: XdrDataOutputStream) {
+      keyPrefix.toXdr(stream)
       ext.toXdr(stream)
     }
   }
@@ -13767,6 +14266,10 @@ open class WithdrawalRequest(
 //          ManageSignerRoleOp manageSignerRoleOp;
 //      case MANAGE_SIGNER_RULE:
 //          ManageSignerRuleOp manageSignerRuleOp;
+//      case STAMP:
+//          StampOp stampOp;
+//      case LICENSE:
+//          LicenseOp licenseOp;
 //      }
 //      body;
 //  };
@@ -14029,6 +14532,20 @@ open class Operation(
         manageSignerRuleOp.toXdr(stream)
       }
     }
+
+    open class Stamp(var stampOp: org.tokend.wallet.xdr.StampOp): OperationBody(org.tokend.wallet.xdr.OperationType.STAMP) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        stampOp.toXdr(stream)
+      }
+    }
+
+    open class License(var licenseOp: org.tokend.wallet.xdr.LicenseOp): OperationBody(org.tokend.wallet.xdr.OperationType.LICENSE) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        licenseOp.toXdr(stream)
+      }
+    }
   }
 }
 
@@ -14225,7 +14742,8 @@ open class TransactionEnvelope(
 //      opBAD_AUTH_EXTRA = -8,
 //      opNO_ROLE_PERMISSION = -9, // not allowed for this role of source account
 //      opNO_ENTRY = -10,
-//      opNOT_SUPPORTED = -11
+//      opNOT_SUPPORTED = -11,
+//      opLICENSE_VIOLATION = -12// number of admins is greater than allowed
 //  };
 
 //  ===========================================================================
@@ -14242,10 +14760,42 @@ public enum class OperationResultCode(val value: kotlin.Int): XdrEncodable {
   opNO_ROLE_PERMISSION(-9),
   opNO_ENTRY(-10),
   opNOT_SUPPORTED(-11),
+  opLICENSE_VIOLATION(-12),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
       value.toXdr(stream)
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct AccountRuleRequirement
+//  {
+//  	//: defines resources to which access was denied
+//      AccountRuleResource resource;
+//  	//: defines action which was denied
+//      AccountRuleAction action;
+//  	//: defines account for which requirementes were not met
+//  	AccountID account;
+//  
+//  	//: reserved for future extention
+//      EmptyExt ext;
+//  };
+
+//  ===========================================================================
+open class AccountRuleRequirement(
+    var resource: org.tokend.wallet.xdr.AccountRuleResource,
+    var action: org.tokend.wallet.xdr.AccountRuleAction,
+    var account: org.tokend.wallet.xdr.AccountID,
+    var ext: org.tokend.wallet.xdr.EmptyExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    resource.toXdr(stream)
+    action.toXdr(stream)
+    account.toXdr(stream)
+    ext.toXdr(stream)
   }
 }
 
@@ -14324,10 +14874,16 @@ public enum class OperationResultCode(val value: kotlin.Int): XdrEncodable {
 //          ManageSignerRoleResult manageSignerRoleResult;
 //      case MANAGE_SIGNER_RULE:
 //          ManageSignerRuleResult manageSignerRuleResult;
+//      case STAMP:
+//          StampResult stampResult;
+//      case LICENSE:
+//          LicenseResult licenseResult;
 //      }
 //      tr;
 //  case opNO_ENTRY:
 //      LedgerEntryType entryType;
+//  case opNO_ROLE_PERMISSION:
+//      AccountRuleRequirement requirement;
 //  default:
 //      void;
 //  };
@@ -14349,6 +14905,13 @@ abstract class OperationResult(val discriminant: org.tokend.wallet.xdr.Operation
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       entryType.toXdr(stream)
+    }
+  }
+
+  open class OpnoRolePermission(var requirement: org.tokend.wallet.xdr.AccountRuleRequirement): OperationResult(org.tokend.wallet.xdr.OperationResultCode.opNO_ROLE_PERMISSION) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      requirement.toXdr(stream)
     }
   }
 
@@ -14594,6 +15157,20 @@ abstract class OperationResult(val discriminant: org.tokend.wallet.xdr.Operation
         manageSignerRuleResult.toXdr(stream)
       }
     }
+
+    open class Stamp(var stampResult: org.tokend.wallet.xdr.StampResult): OperationResultTr(org.tokend.wallet.xdr.OperationType.STAMP) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        stampResult.toXdr(stream)
+      }
+    }
+
+    open class License(var licenseResult: org.tokend.wallet.xdr.LicenseResult): OperationResultTr(org.tokend.wallet.xdr.OperationType.LICENSE) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        licenseResult.toXdr(stream)
+      }
+    }
   }
 }
 
@@ -14696,6 +15273,8 @@ open class OperationFee(
 //      case txSUCCESS:
 //      case txFAILED:
 //          OperationResult results<>;
+//      case txNO_ROLE_PERMISSION:
+//          AccountRuleRequirement requirement;
 //      default:
 //          void;
 //      }
@@ -14745,6 +15324,13 @@ open class TransactionResult(
         results.forEach {
           it.toXdr(stream)
         }
+      }
+    }
+
+    open class TxnoRolePermission(var requirement: org.tokend.wallet.xdr.AccountRuleRequirement): TransactionResultResult(org.tokend.wallet.xdr.TransactionResultCode.txNO_ROLE_PERMISSION) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        requirement.toXdr(stream)
       }
     }
   }
@@ -14920,7 +15506,9 @@ abstract class PublicKey(val discriminant: org.tokend.wallet.xdr.CryptoKeyType):
 //      ATOMIC_SWAP_BID = 28,
 //      TRANSACTION = 29, // is used for account rule resource
 //      SIGNER_RULE = 30,
-//      SIGNER_ROLE = 31
+//      SIGNER_ROLE = 31,
+//      STAMP = 32,
+//      LICENSE = 33
 //  };
 
 //  ===========================================================================
@@ -14954,6 +15542,8 @@ public enum class LedgerEntryType(val value: kotlin.Int): XdrEncodable {
   TRANSACTION(29),
   SIGNER_RULE(30),
   SIGNER_ROLE(31),
+  STAMP(32),
+  LICENSE(33),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -15194,7 +15784,9 @@ open class Fee(
 //      CREATE_ASWAP_REQUEST = 37,
 //      MANAGE_SIGNER = 38,
 //      MANAGE_SIGNER_ROLE = 39,
-//      MANAGE_SIGNER_RULE = 40
+//      MANAGE_SIGNER_RULE = 40,
+//      STAMP = 41,
+//      LICENSE = 42
 //  };
 
 //  ===========================================================================
@@ -15233,6 +15825,8 @@ public enum class OperationType(val value: kotlin.Int): XdrEncodable {
   MANAGE_SIGNER(38),
   MANAGE_SIGNER_ROLE(39),
   MANAGE_SIGNER_RULE(40),
+  STAMP(41),
+  LICENSE(42),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
