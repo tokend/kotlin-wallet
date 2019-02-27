@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Please check our [developers guide](https://gitlab.com/tokend/developers-guide)
 for further information about branching and tagging conventions.
 
+## [3.0.1-x.6] 2019-02-27
+
+### Changed
+- XDR version to 7e06563
+
 ## [3.0.1-x.5] 2019-02-25
 
 ### Changed
@@ -50,3 +55,4 @@ for further information about branching and tagging conventions.
 [3.0.1-x.3]: https://github.com/tokend/kotlin-wallet/compare/3.0.1-x.2...3.0.1-x.3
 [3.0.1-x.4]: https://github.com/tokend/kotlin-wallet/compare/3.0.1-x.3...3.0.1-x.4
 [3.0.1-x.5]: https://github.com/tokend/kotlin-wallet/compare/3.0.1-x.4...3.0.1-x.5
+[3.0.1-x.6]: https://github.com/tokend/kotlin-wallet/compare/3.0.1-x.4...3.0.1-x.6
