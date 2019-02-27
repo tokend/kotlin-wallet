@@ -10878,7 +10878,9 @@ open class ManageSignerOp(
 //      ALREADY_EXISTS = -2, // signer already exist
 //  	NO_SUCH_ROLE = -3,
 //  	INVALID_WEIGHT = -4, // more than 1000
-//  	NOT_FOUND = -5 // there is no signer with such public key
+//  	NOT_FOUND = -5, // there is no signer with such public key
+//  	//: only occurs on creation of signers for admins, if number of signers exceeds number specified in license
+//  	NUMBER_OF_ADMINS_EXCEEDS_LICENSE = -6
 //  };
 
 //  ===========================================================================
@@ -10889,6 +10891,7 @@ public enum class ManageSignerResultCode(val value: kotlin.Int): XdrEncodable {
   NO_SUCH_ROLE(-3),
   INVALID_WEIGHT(-4),
   NOT_FOUND(-5),
+  NUMBER_OF_ADMINS_EXCEEDS_LICENSE(-6),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -14743,7 +14746,9 @@ open class TransactionEnvelope(
 //      opNO_ROLE_PERMISSION = -9, // not allowed for this role of source account
 //      opNO_ENTRY = -10,
 //      opNOT_SUPPORTED = -11,
-//      opLICENSE_VIOLATION = -12// number of admins is greater than allowed
+//      opLICENSE_VIOLATION = -12, // number of admins is greater than allowed
+//      //: operation was skipped cause of failure validation of previous operation
+//      opSKIPPED = -13
 //  };
 
 //  ===========================================================================
@@ -14761,6 +14766,7 @@ public enum class OperationResultCode(val value: kotlin.Int): XdrEncodable {
   opNO_ENTRY(-10),
   opNOT_SUPPORTED(-11),
   opLICENSE_VIOLATION(-12),
+  opSKIPPED(-13),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
