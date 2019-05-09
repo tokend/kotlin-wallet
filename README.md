@@ -35,19 +35,17 @@ val decoratedSignature = account.signDecorated(DATA)
 Transaction creation:
 
 ```kotlin
-val SOURCE_ACCOUNT_ID = "GDVJSBSBSERR3YP3LKLHTODWEFGCSLDWDIODER3CKLZXUMVPZOPT4MHY"
 val SEED = "SBUFJEEK7FMWXPE4HGOWQZPHZ4V5TFKGSF664RAGT24NS662MKTQ7J6S".toCharArray()
 val NETWORK = NetworkParams("Example Test Network")
 
+val sourceAccount = Account.fromSecretSeed(SEED)
 val operation = CreateBalanceOp(SOURCE_ACCOUNT_ID, "OLE")
 
-val transaction = TransactionBuilder(NETWORK, SOURCE_ACCOUNT_ID)
+val transaction = TransactionBuilder(NETWORK, sourceAccount.accountId)
                     .addOperation(Operation.OperationBody.ManageBalance(operation))
                     .setMemo(Memo.MemoText("TokenD is awesome"))
+                    .addSigner(sourceAccount)
                     .build()
-
-val account = Account.fromSecretSeed(SEED)
-transaction.addSignature(account)
 
 val envelope = transaction.getEnvelope().toBase64()
 ```
@@ -56,7 +54,7 @@ val envelope = transaction.getEnvelope().toBase64()
 ## XDR Update
 XDR's are added as a git submodule so to get them after clone run the following command:
 ```
-git submodule update --init
+git submodule update --remote --init
 ```
 XDR generation requires Ruby. For initial dependencies installation run the following command:
 ```
