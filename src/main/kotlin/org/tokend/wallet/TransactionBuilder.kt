@@ -17,6 +17,7 @@ class TransactionBuilder(private val networkParams: NetworkParams,
     private var memo: Memo? = null
     private var timeBounds: TimeBounds? = null
     private var salt: Long? = null
+    private val signers = mutableListOf<Account>()
 
     /**
      * @param networkParams params of the network into which the transaction will be sent
@@ -72,17 +73,32 @@ class TransactionBuilder(private val networkParams: NetworkParams,
     }
 
     /**
+     * Adds given account as a signer of the result transaction
+     *
+     * @see Transaction.addSignature
+     */
+    fun addSigner(signer: Account): TransactionBuilder {
+        this.signers.add(signer)
+        return this
+    }
+
+    /**
      * Builds the result transaction.
      * @throws IllegalStateException if no operations were added.
      */
     fun build(): Transaction {
-        return Transaction(
-                networkParams,
-                sourceAccountId,
-                operations,
-                memo,
-                timeBounds,
-                salt
-        )
+        val transaction =
+                Transaction(
+                        networkParams,
+                        sourceAccountId,
+                        operations,
+                        memo,
+                        timeBounds,
+                        salt
+                )
+
+        signers.forEach(transaction::addSignature)
+
+        return transaction
     }
 }

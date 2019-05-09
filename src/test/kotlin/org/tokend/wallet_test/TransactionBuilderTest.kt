@@ -2,6 +2,7 @@ package org.tokend.wallet_test
 
 import org.junit.Assert
 import org.junit.Test
+import org.tokend.wallet.Account
 import org.tokend.wallet.NetworkParams
 import org.tokend.wallet.PublicKeyFactory
 import org.tokend.wallet.TransactionBuilder
@@ -64,5 +65,19 @@ class TransactionBuilderTest {
                 .build()
 
         Assert.assertEquals(salt, transaction.salt)
+    }
+
+    @Test
+    fun addSigner() {
+        val signer = Account.random()
+        val signatureHint = signer.signDecorated(byteArrayOf()).hint
+
+        val transaction = TransactionBuilder(NETWORK, SOURCE_ACCOUNT_PUBKEY)
+                .addOperation(Operation.OperationBody.ManageBalance(SIMPLE_OP))
+                .addSigner(signer)
+                .build()
+
+        Assert.assertEquals(1, transaction.signatures.size)
+        Assert.assertArrayEquals(signatureHint.wrapped, transaction.signatures[0].hint.wrapped)
     }
 }
