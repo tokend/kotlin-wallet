@@ -52,15 +52,12 @@ val envelope = transaction.getEnvelope().toBase64()
 
 
 ## XDR Update
-XDR's are added as a git submodule so to get them after clone run the following command:
-```
-git submodule update --remote --init
-```
-XDR generation requires Ruby. For initial dependencies installation run the following command:
-```
-bundle install
-```
-To update XDR classes run the following command:
-```
-rake xdr:generate
+XDR sources are located in [TokenD XDR repository](https://github.com/tokend/xdr/).
+You can generate new XDRs using our Docker-based XDR generator.
+[Docker](https://www.docker.com/) is required to perform this action.
+
+In order to generate new XDRs run `generateXDR` script with a source revision (tag or branch or commit) as an argument:
+
+```bash
+./generateXDR.sh master
 ```
