@@ -452,6 +452,56 @@ open class AccountRuleEntry(
 
 // === xdr source ============================================================
 
+//  struct AccountSpecificRuleEntry
+//  {
+//      uint64 id;
+//  
+//      LedgerKey ledgerKey;
+//      AccountID* accountID;
+//      bool forbids;
+//  
+//      // reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class AccountSpecificRuleEntry(
+    var id: org.tokend.wallet.xdr.Uint64,
+    var ledgerKey: org.tokend.wallet.xdr.LedgerKey,
+    var accountID: org.tokend.wallet.xdr.AccountID?,
+    var forbids: kotlin.Boolean,
+    var ext: AccountSpecificRuleEntryExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    id.toXdr(stream)
+    ledgerKey.toXdr(stream)
+    if (accountID != null) {
+      true.toXdr(stream)
+      accountID?.toXdr(stream)
+    } else {
+      false.toXdr(stream)
+    }
+    forbids.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class AccountSpecificRuleEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: AccountSpecificRuleEntryExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
 //  struct Limits
 //  {
 //      int64 dailyOut;
@@ -551,6 +601,7 @@ open class AccountEntry(
 
 // === xdr source ============================================================
 
+//  //: Policies that could be applied to AssetPair entry and define applicable operations for AssetPair
 //  enum AssetPairPolicy
 //  {
 //      //: If not set pair can not be traded on secondary market
@@ -575,6 +626,7 @@ public enum class AssetPairPolicy(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: `AssetPairEntry` is used in system to group different assets into pairs and set particular policies and properties for them
 //  struct AssetPairEntry
 //  {
 //      //: Code of base asset of the asset pair
@@ -1090,6 +1142,7 @@ open class ExternalSystemAccountID(
 
 // === xdr source ============================================================
 
+//  //: `FeeType` represents different types of fees for different operations (e.g. fee charged on withdrawal or on investment)
 //  enum FeeType
 //  {
 //      PAYMENT_FEE = 0,
@@ -1125,6 +1178,7 @@ public enum class FeeType(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: (not used) `EmissionFeeType` is a subtype of `ISSUANCE_FEE`
 //  enum EmissionFeeType
 //  {
 //      PRIMARY_MARKET = 1,
@@ -1144,6 +1198,7 @@ public enum class EmissionFeeType(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: `PaymentFeeType` is a subtype of the Fee used for payments
 //  enum PaymentFeeType
 //  {
 //      OUTGOING = 1,
@@ -1163,6 +1218,8 @@ public enum class PaymentFeeType(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: `FeeEntry` is used in the system configuration to set fees for different assets, operations (according to FeeType), particular account roles, particular accounts,
+//  //: or globally (only if both parameters particular account role and paticular account are not specified).
 //  struct FeeEntry
 //  {
 //      //: Type of a particular fee depending on the operation (e.g., PAYMENT_FEE for payment operation, WITHDRAWAL_FEE for withdrawal operation, etc.)
@@ -1250,7 +1307,8 @@ open class FeeEntry(
 
 // === xdr source ============================================================
 
-//  enum KeyValueEntryType
+//  //: `KeyValueEntryType` defines the type of value in the key-value entry
+//      enum KeyValueEntryType
 //      {
 //          UINT32 = 1,
 //          STRING = 2,
@@ -1271,7 +1329,8 @@ public enum class KeyValueEntryType(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
-//  union KeyValueEntryValue switch (KeyValueEntryType type)
+//  //: `KeyValueEntryValue` represents the value based on given `KeyValueEntryType`
+//      union KeyValueEntryValue switch (KeyValueEntryType type)
 //      {
 //          case UINT32:
 //              uint32 ui32Value;
@@ -1311,7 +1370,8 @@ abstract class KeyValueEntryValue(val discriminant: org.tokend.wallet.xdr.KeyVal
 
 // === xdr source ============================================================
 
-//  struct KeyValueEntry
+//  //: `KeyValueEntry` is an entry used to store key mapped values
+//      struct KeyValueEntry
 //      {
 //          //: String value that must be unique among other keys for kev-value pairs
 //          longstring key;
@@ -1403,6 +1463,7 @@ open class LicenseEntry(
 
 // === xdr source ============================================================
 
+//  //: `StatsOpType` is a type of operation for which statistics is maintained
 //  enum StatsOpType
 //  {
 //      PAYMENT_OUT = 1,
@@ -1428,6 +1489,9 @@ public enum class StatsOpType(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: `LimitsV2Entry` is used in the system configuration to set limits (daily, weekly, montly, annual)
+//  //: for different assets, operations (according to StatsOpType), particular account roles, particular accounts,
+//  //: or globally (only if both parameters particular account role and paticular account are not specified),
 //  struct LimitsV2Entry
 //  {
 //      //: ID of limits entry
@@ -1631,6 +1695,7 @@ open class PendingStatisticsEntry(
 
 // === xdr source ============================================================
 
+//  //: Functional type of poll
 //  enum PollType
 //  {
 //      SINGLE_CHOICE = 0
@@ -1648,6 +1713,7 @@ public enum class PollType(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: PollData is used to pass `PollType` with necessary params
 //  union PollData switch (PollType type)
 //  {
 //  case SINGLE_CHOICE:
@@ -2274,6 +2340,8 @@ open class SaleQuoteAsset(
 //      {
 //      case EMPTY_VERSION:
 //          void;
+//      case ADD_SALE_WHITELISTS:
+//          void;
 //      }
 //      ext;
 //  };
@@ -2326,6 +2394,8 @@ open class SaleEntry(
     }
 
     open class EmptyVersion: SaleEntryExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+
+    open class AddSaleWhitelists: SaleEntryExt(org.tokend.wallet.xdr.LedgerVersion.ADD_SALE_WHITELISTS)
   }
 }
 
@@ -2804,6 +2874,8 @@ public enum class ThresholdIndexes(val value: kotlin.Int): XdrEncodable {
 //          PollEntry poll;
 //      case VOTE:
 //          VoteEntry vote;
+//      case ACCOUNT_SPECIFIC_RULE:
+//          AccountSpecificRuleEntry accountSpecificRule;
 //      }
 //      data;
 //  
@@ -3036,6 +3108,13 @@ open class LedgerEntry(
         vote.toXdr(stream)
       }
     }
+
+    open class AccountSpecificRule(var accountSpecificRule: org.tokend.wallet.xdr.AccountSpecificRuleEntry): LedgerEntryData(org.tokend.wallet.xdr.LedgerEntryType.ACCOUNT_SPECIFIC_RULE) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        accountSpecificRule.toXdr(stream)
+      }
+    }
   }
   abstract class LedgerEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
@@ -3069,238 +3148,18 @@ public enum class EnvelopeType(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
-//  typedef opaque UpgradeType<128>;
-
-//  ===========================================================================
-public typealias UpgradeType = kotlin.ByteArray
-
-// === xdr source ============================================================
-
-//  struct StellarValue
-//  {
-//      Hash txSetHash;   // transaction set to apply to previous ledger
-//      uint64 closeTime; // network close time
-//  
-//      // upgrades to apply to the previous ledger (usually empty)
-//      // this is a vector of encoded 'LedgerUpgrade' so that nodes can drop
-//      // unknown steps during consensus if needed.
-//      // see notes below on 'LedgerUpgrade' for more detail
-//      // max size is dictated by number of upgrade types (+ room for future)
-//      UpgradeType upgrades<6>;
-//  
-//      // reserved for future use
-//      union switch (LedgerVersion v)
-//      {
-//      case EMPTY_VERSION:
-//          void;
-//      }
-//      ext;
-//  };
-
-//  ===========================================================================
-open class StellarValue(
-    var txSetHash: org.tokend.wallet.xdr.Hash,
-    var closeTime: org.tokend.wallet.xdr.Uint64,
-    var upgrades: kotlin.Array<org.tokend.wallet.xdr.UpgradeType>,
-    var ext: StellarValueExt
-  ) : XdrEncodable {
-
-  override fun toXdr(stream: XdrDataOutputStream) {
-    txSetHash.toXdr(stream)
-    closeTime.toXdr(stream)
-    upgrades.size.toXdr(stream)
-    upgrades.forEach {
-      it.toXdr(stream)
-    }
-    ext.toXdr(stream)
-  }
-
-  abstract class StellarValueExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
-    override fun toXdr(stream: XdrDataOutputStream) {
-        discriminant.toXdr(stream)
-    }
-
-    open class EmptyVersion: StellarValueExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
-  }
-}
-
-// === xdr source ============================================================
-
-//  struct IdGenerator {
-//  	LedgerEntryType entryType; // type of the entry, for which ids will be generated
-//  	uint64 idPool; // last used entry specific ID, used for generating entry of specified type
-//  };
-
-//  ===========================================================================
-open class IdGenerator(
-    var entryType: org.tokend.wallet.xdr.LedgerEntryType,
-    var idPool: org.tokend.wallet.xdr.Uint64
-  ) : XdrEncodable {
-
-  override fun toXdr(stream: XdrDataOutputStream) {
-    entryType.toXdr(stream)
-    idPool.toXdr(stream)
-  }
-}
-
-// === xdr source ============================================================
-
-//  struct LedgerHeader
-//  {
-//      uint32 ledgerVersion;    // the protocol version of the ledger
-//      Hash previousLedgerHash; // hash of the previous ledger header
-//      StellarValue scpValue;   // what consensus agreed to
-//      Hash txSetResultHash;    // the TransactionResultSet that led to this ledger
-//      Hash bucketListHash;     // hash of the ledger state
-//  
-//      uint32 ledgerSeq; // sequence number of this ledger
-//  
-//      IdGenerator idGenerators<>; // generators of ids
-//  
-//      uint32 baseFee;     // base fee per operation in stroops
-//      uint32 baseReserve; // account base reserve in stroops
-//  
-//      uint32 maxTxSetSize; // maximum size a transaction set can be
-//  
-//      int64 txExpirationPeriod;
-//      
-//      Hash skipList[4]; // hashes of ledgers in the past. allows you to jump back
-//                        // in time without walking the chain back ledger by ledger
-//                        // each slot contains the oldest ledger that is mod of
-//                        // either 50  5000  50000 or 500000 depending on index
-//                        // skipList[0] mod(50), skipList[1] mod(5000), etc
-//  
-//      // reserved for future use
-//      union switch (LedgerVersion v)
-//      {
-//      case EMPTY_VERSION:
-//          void;
-//      }
-//      ext;
-//  };
-
-//  ===========================================================================
-open class LedgerHeader(
-    var ledgerVersion: org.tokend.wallet.xdr.Uint32,
-    var previousLedgerHash: org.tokend.wallet.xdr.Hash,
-    var scpValue: org.tokend.wallet.xdr.StellarValue,
-    var txSetResultHash: org.tokend.wallet.xdr.Hash,
-    var bucketListHash: org.tokend.wallet.xdr.Hash,
-    var ledgerSeq: org.tokend.wallet.xdr.Uint32,
-    var idGenerators: kotlin.Array<org.tokend.wallet.xdr.IdGenerator>,
-    var baseFee: org.tokend.wallet.xdr.Uint32,
-    var baseReserve: org.tokend.wallet.xdr.Uint32,
-    var maxTxSetSize: org.tokend.wallet.xdr.Uint32,
-    var txExpirationPeriod: org.tokend.wallet.xdr.Int64,
-    var skipList: kotlin.Array<org.tokend.wallet.xdr.Hash>,
-    var ext: LedgerHeaderExt
-  ) : XdrEncodable {
-
-  override fun toXdr(stream: XdrDataOutputStream) {
-    ledgerVersion.toXdr(stream)
-    previousLedgerHash.toXdr(stream)
-    scpValue.toXdr(stream)
-    txSetResultHash.toXdr(stream)
-    bucketListHash.toXdr(stream)
-    ledgerSeq.toXdr(stream)
-    idGenerators.size.toXdr(stream)
-    idGenerators.forEach {
-      it.toXdr(stream)
-    }
-    baseFee.toXdr(stream)
-    baseReserve.toXdr(stream)
-    maxTxSetSize.toXdr(stream)
-    txExpirationPeriod.toXdr(stream)
-    skipList.forEach {
-      it.toXdr(stream)
-    }
-    ext.toXdr(stream)
-  }
-
-  abstract class LedgerHeaderExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
-    override fun toXdr(stream: XdrDataOutputStream) {
-        discriminant.toXdr(stream)
-    }
-
-    open class EmptyVersion: LedgerHeaderExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
-  }
-}
-
-// === xdr source ============================================================
-
-//  enum LedgerUpgradeType
-//  {
-//      VERSION = 1,
-//      MAX_TX_SET_SIZE = 2,
-//      TX_EXPIRATION_PERIOD = 3
-//  };
-
-//  ===========================================================================
-public enum class LedgerUpgradeType(val value: kotlin.Int): XdrEncodable {
-  VERSION(1),
-  MAX_TX_SET_SIZE(2),
-  TX_EXPIRATION_PERIOD(3),
-  ;
-
-  override fun toXdr(stream: XdrDataOutputStream) {
-      value.toXdr(stream)
-  }
-}
-
-// === xdr source ============================================================
-
-//  union LedgerUpgrade switch (LedgerUpgradeType type)
-//  {
-//  case VERSION:
-//      uint32 newLedgerVersion; // update ledgerVersion
-//  case MAX_TX_SET_SIZE:
-//      uint32 newMaxTxSetSize; // update maxTxSetSize
-//  case TX_EXPIRATION_PERIOD:
-//      int64 newTxExpirationPeriod;
-//  };
-
-//  ===========================================================================
-abstract class LedgerUpgrade(val discriminant: org.tokend.wallet.xdr.LedgerUpgradeType): XdrEncodable {
-  override fun toXdr(stream: XdrDataOutputStream) {
-      discriminant.toXdr(stream)
-  }
-
-  open class Version(var newLedgerVersion: org.tokend.wallet.xdr.Uint32): LedgerUpgrade(org.tokend.wallet.xdr.LedgerUpgradeType.VERSION) {
-    override fun toXdr(stream: XdrDataOutputStream) {
-      super.toXdr(stream)
-      newLedgerVersion.toXdr(stream)
-    }
-  }
-
-  open class MaxTxSetSize(var newMaxTxSetSize: org.tokend.wallet.xdr.Uint32): LedgerUpgrade(org.tokend.wallet.xdr.LedgerUpgradeType.MAX_TX_SET_SIZE) {
-    override fun toXdr(stream: XdrDataOutputStream) {
-      super.toXdr(stream)
-      newMaxTxSetSize.toXdr(stream)
-    }
-  }
-
-  open class TxExpirationPeriod(var newTxExpirationPeriod: org.tokend.wallet.xdr.Int64): LedgerUpgrade(org.tokend.wallet.xdr.LedgerUpgradeType.TX_EXPIRATION_PERIOD) {
-    override fun toXdr(stream: XdrDataOutputStream) {
-      super.toXdr(stream)
-      newTxExpirationPeriod.toXdr(stream)
-    }
-  }
-}
-
-// === xdr source ============================================================
-
 //  union LedgerKey switch (LedgerEntryType type)
 //  {
 //  case ACCOUNT:
 //      struct
 //      {
 //          AccountID accountID;
-//  		union switch (LedgerVersion v)
-//  		{
-//  		case EMPTY_VERSION:
-//  			void;
-//  		}
-//  		ext;
+//          union switch (LedgerVersion v)
+//         {
+//         case EMPTY_VERSION:
+//            void;
+//         }
+//         ext;
 //      } account;
 //  case SIGNER:
 //      struct
@@ -3318,36 +3177,36 @@ abstract class LedgerUpgrade(val discriminant: org.tokend.wallet.xdr.LedgerUpgra
 //  case FEE:
 //      struct {
 //          Hash hash;
-//  		int64 lowerBound;
-//  		int64 upperBound;
-//  		 union switch (LedgerVersion v)
-//  		{
-//  		case EMPTY_VERSION:
-//  			void;
-//  		}
-//  		ext;
+//          int64 lowerBound;
+//          int64 upperBound;
+//          union switch (LedgerVersion v)
+//          {
+//          case EMPTY_VERSION:
+//              void;
+//          }
+//          ext;
 //      } feeState;
 //  case BALANCE:
 //      struct
 //      {
-//  		BalanceID balanceID;
-//  		union switch (LedgerVersion v)
-//  		{
-//  		case EMPTY_VERSION:
-//  			void;
-//  		}
-//  		ext;
+//          BalanceID balanceID;
+//          union switch (LedgerVersion v)
+//          {
+//          case EMPTY_VERSION:
+//              void;
+//          }
+//          ext;
 //      } balance;
 //  case ASSET:
 //      struct
 //      {
-//  		AssetCode code;
-//  		union switch (LedgerVersion v)
-//  		{
-//  		case EMPTY_VERSION:
-//  			void;
-//  		}
-//  		ext;
+//          AssetCode code;
+//          union switch (LedgerVersion v)
+//          {
+//          case EMPTY_VERSION:
+//              void;
+//          }
+//          ext;
 //      } asset;
 //  case REFERENCE_ENTRY:
 //      struct
@@ -3382,30 +3241,30 @@ abstract class LedgerUpgrade(val discriminant: org.tokend.wallet.xdr.LedgerUpgra
 //  		ext;
 //      } accountLimits;
 //  case ASSET_PAIR:
-//  	struct {
-//           AssetCode base;
-//  		 AssetCode quote;
-//  		 union switch (LedgerVersion v)
-//  		{
-//  		case EMPTY_VERSION:
-//  			void;
-//  		}
-//  		ext;
+//      struct {
+//          AssetCode base;
+//          AssetCode quote;
+//          union switch (LedgerVersion v)
+//          {
+//          case EMPTY_VERSION:
+//              void;
+//          }
+//          ext;
 //      } assetPair;
 //  case OFFER_ENTRY:
-//  	struct {
-//  		uint64 offerID;
-//  		AccountID ownerID;
-//  	} offer;
+//      struct {
+//          uint64 offerID;
+//          AccountID ownerID;
+//      } offer;
 //  case REVIEWABLE_REQUEST:
 //      struct {
 //          uint64 requestID;
-//  		union switch (LedgerVersion v)
-//  		{
-//  		case EMPTY_VERSION:
-//  			void;
-//  		}
-//  		ext;
+//          union switch (LedgerVersion v)
+//          {
+//          case EMPTY_VERSION:
+//              void;
+//          }
+//          ext;
 //      } reviewableRequest;
 //  case EXTERNAL_SYSTEM_ACCOUNT_ID:
 //  	struct {
@@ -3419,22 +3278,22 @@ abstract class LedgerUpgrade(val discriminant: org.tokend.wallet.xdr.LedgerUpgra
 //  		ext;
 //  	} externalSystemAccountID;
 //  case SALE:
-//  	struct {
-//  		uint64 saleID;
-//  		union switch (LedgerVersion v)
-//  		{
-//  		case EMPTY_VERSION:
-//  			void;
-//  		}
-//  		ext;
-//  	} sale;
+//      struct {
+//          uint64 saleID;
+//          union switch (LedgerVersion v)
+//          {
+//          case EMPTY_VERSION:
+//              void;
+//          }
+//          ext;
+//      } sale;
 //  case KEY_VALUE:
 //      struct {
 //          longstring key;
 //          union switch (LedgerVersion v)
 //          {
-//          	case EMPTY_VERSION:
-//          		void;
+//          case EMPTY_VERSION:
+//              void;
 //          }
 //          ext;
 //      } keyValue;
@@ -3581,6 +3440,12 @@ abstract class LedgerUpgrade(val discriminant: org.tokend.wallet.xdr.LedgerUpgra
 //  
 //          EmptyExt ext;
 //      } vote;
+//  case ACCOUNT_SPECIFIC_RULE:
+//      struct {
+//          uint64 id;
+//  
+//          EmptyExt ext;
+//      } accountSpecificRule;
 //  };
 
 //  ===========================================================================
@@ -3789,6 +3654,13 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       vote.toXdr(stream)
+    }
+  }
+
+  open class AccountSpecificRule(var accountSpecificRule: LedgerKeyAccountSpecificRule): LedgerKey(org.tokend.wallet.xdr.LedgerEntryType.ACCOUNT_SPECIFIC_RULE) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      accountSpecificRule.toXdr(stream)
     }
   }
 
@@ -4308,6 +4180,236 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
       ext.toXdr(stream)
     }
   }
+  open class LedgerKeyAccountSpecificRule(
+      var id: org.tokend.wallet.xdr.Uint64,
+      var ext: org.tokend.wallet.xdr.EmptyExt
+    ) : XdrEncodable {
+
+    override fun toXdr(stream: XdrDataOutputStream) {
+      id.toXdr(stream)
+      ext.toXdr(stream)
+    }
+  }
+}
+
+// === xdr source ============================================================
+
+//  typedef opaque UpgradeType<128>;
+
+//  ===========================================================================
+public typealias UpgradeType = kotlin.ByteArray
+
+// === xdr source ============================================================
+
+//  struct StellarValue
+//  {
+//      Hash txSetHash;   // transaction set to apply to previous ledger
+//      uint64 closeTime; // network close time
+//  
+//      // upgrades to apply to the previous ledger (usually empty)
+//      // this is a vector of encoded 'LedgerUpgrade' so that nodes can drop
+//      // unknown steps during consensus if needed.
+//      // see notes below on 'LedgerUpgrade' for more detail
+//      // max size is dictated by number of upgrade types (+ room for future)
+//      UpgradeType upgrades<6>;
+//  
+//      // reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class StellarValue(
+    var txSetHash: org.tokend.wallet.xdr.Hash,
+    var closeTime: org.tokend.wallet.xdr.Uint64,
+    var upgrades: kotlin.Array<org.tokend.wallet.xdr.UpgradeType>,
+    var ext: StellarValueExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    txSetHash.toXdr(stream)
+    closeTime.toXdr(stream)
+    upgrades.size.toXdr(stream)
+    upgrades.forEach {
+      it.toXdr(stream)
+    }
+    ext.toXdr(stream)
+  }
+
+  abstract class StellarValueExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: StellarValueExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct IdGenerator {
+//  	LedgerEntryType entryType; // type of the entry, for which ids will be generated
+//  	uint64 idPool; // last used entry specific ID, used for generating entry of specified type
+//  };
+
+//  ===========================================================================
+open class IdGenerator(
+    var entryType: org.tokend.wallet.xdr.LedgerEntryType,
+    var idPool: org.tokend.wallet.xdr.Uint64
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    entryType.toXdr(stream)
+    idPool.toXdr(stream)
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct LedgerHeader
+//  {
+//      uint32 ledgerVersion;    // the protocol version of the ledger
+//      Hash previousLedgerHash; // hash of the previous ledger header
+//      StellarValue scpValue;   // what consensus agreed to
+//      Hash txSetResultHash;    // the TransactionResultSet that led to this ledger
+//      Hash bucketListHash;     // hash of the ledger state
+//  
+//      uint32 ledgerSeq; // sequence number of this ledger
+//  
+//      IdGenerator idGenerators<>; // generators of ids
+//  
+//      uint32 baseFee;     // base fee per operation in stroops
+//      uint32 baseReserve; // account base reserve in stroops
+//  
+//      uint32 maxTxSetSize; // maximum size a transaction set can be
+//  
+//      int64 txExpirationPeriod;
+//      
+//      Hash skipList[4]; // hashes of ledgers in the past. allows you to jump back
+//                        // in time without walking the chain back ledger by ledger
+//                        // each slot contains the oldest ledger that is mod of
+//                        // either 50  5000  50000 or 500000 depending on index
+//                        // skipList[0] mod(50), skipList[1] mod(5000), etc
+//  
+//      // reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class LedgerHeader(
+    var ledgerVersion: org.tokend.wallet.xdr.Uint32,
+    var previousLedgerHash: org.tokend.wallet.xdr.Hash,
+    var scpValue: org.tokend.wallet.xdr.StellarValue,
+    var txSetResultHash: org.tokend.wallet.xdr.Hash,
+    var bucketListHash: org.tokend.wallet.xdr.Hash,
+    var ledgerSeq: org.tokend.wallet.xdr.Uint32,
+    var idGenerators: kotlin.Array<org.tokend.wallet.xdr.IdGenerator>,
+    var baseFee: org.tokend.wallet.xdr.Uint32,
+    var baseReserve: org.tokend.wallet.xdr.Uint32,
+    var maxTxSetSize: org.tokend.wallet.xdr.Uint32,
+    var txExpirationPeriod: org.tokend.wallet.xdr.Int64,
+    var skipList: kotlin.Array<org.tokend.wallet.xdr.Hash>,
+    var ext: LedgerHeaderExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    ledgerVersion.toXdr(stream)
+    previousLedgerHash.toXdr(stream)
+    scpValue.toXdr(stream)
+    txSetResultHash.toXdr(stream)
+    bucketListHash.toXdr(stream)
+    ledgerSeq.toXdr(stream)
+    idGenerators.size.toXdr(stream)
+    idGenerators.forEach {
+      it.toXdr(stream)
+    }
+    baseFee.toXdr(stream)
+    baseReserve.toXdr(stream)
+    maxTxSetSize.toXdr(stream)
+    txExpirationPeriod.toXdr(stream)
+    skipList.forEach {
+      it.toXdr(stream)
+    }
+    ext.toXdr(stream)
+  }
+
+  abstract class LedgerHeaderExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: LedgerHeaderExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  enum LedgerUpgradeType
+//  {
+//      VERSION = 1,
+//      MAX_TX_SET_SIZE = 2,
+//      TX_EXPIRATION_PERIOD = 3
+//  };
+
+//  ===========================================================================
+public enum class LedgerUpgradeType(val value: kotlin.Int): XdrEncodable {
+  VERSION(1),
+  MAX_TX_SET_SIZE(2),
+  TX_EXPIRATION_PERIOD(3),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+}
+
+// === xdr source ============================================================
+
+//  union LedgerUpgrade switch (LedgerUpgradeType type)
+//  {
+//  case VERSION:
+//      uint32 newLedgerVersion; // update ledgerVersion
+//  case MAX_TX_SET_SIZE:
+//      uint32 newMaxTxSetSize; // update maxTxSetSize
+//  case TX_EXPIRATION_PERIOD:
+//      int64 newTxExpirationPeriod;
+//  };
+
+//  ===========================================================================
+abstract class LedgerUpgrade(val discriminant: org.tokend.wallet.xdr.LedgerUpgradeType): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  open class Version(var newLedgerVersion: org.tokend.wallet.xdr.Uint32): LedgerUpgrade(org.tokend.wallet.xdr.LedgerUpgradeType.VERSION) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      newLedgerVersion.toXdr(stream)
+    }
+  }
+
+  open class MaxTxSetSize(var newMaxTxSetSize: org.tokend.wallet.xdr.Uint32): LedgerUpgrade(org.tokend.wallet.xdr.LedgerUpgradeType.MAX_TX_SET_SIZE) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      newMaxTxSetSize.toXdr(stream)
+    }
+  }
+
+  open class TxExpirationPeriod(var newTxExpirationPeriod: org.tokend.wallet.xdr.Int64): LedgerUpgrade(org.tokend.wallet.xdr.LedgerUpgradeType.TX_EXPIRATION_PERIOD) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      newTxExpirationPeriod.toXdr(stream)
+    }
+  }
 }
 
 // === xdr source ============================================================
@@ -4736,6 +4838,7 @@ abstract class TransactionMeta(val discriminant: org.tokend.wallet.xdr.LedgerVer
 
 // === xdr source ============================================================
 
+//  //: BindExternalSystemAccountIdOp is used to bind a particular account to the external system account which is represented by account ID taken from the pool
 //  struct BindExternalSystemAccountIdOp
 //  {
 //      //: Type of external system to bind
@@ -4772,6 +4875,7 @@ open class BindExternalSystemAccountIdOp(
 
 // === xdr source ============================================================
 
+//  //: Result codes of BindExternalSystemAccountIdOp
 //  enum BindExternalSystemAccountIdResultCode
 //  {
 //      // codes considered as "success" for the operation
@@ -4799,6 +4903,7 @@ public enum class BindExternalSystemAccountIdResultCode(val value: kotlin.Int): 
 
 // === xdr source ============================================================
 
+//  //: `BindExternalSystemAccountIdSuccess` represents details of successful result of operation application
 //  struct BindExternalSystemAccountIdSuccess
 //  {
 //      //: `data` is used to pass data about account from external system ID
@@ -4835,6 +4940,7 @@ open class BindExternalSystemAccountIdSuccess(
 
 // === xdr source ============================================================
 
+//  //: Result of operation application
 //  union BindExternalSystemAccountIdResult switch (BindExternalSystemAccountIdResultCode code)
 //  {
 //  case SUCCESS:
@@ -4971,6 +5077,133 @@ abstract class CancelASwapBidResult(val discriminant: org.tokend.wallet.xdr.Canc
 
 // === xdr source ============================================================
 
+//  //: CancelChangeRoleRequestOp is used to cancel reviwable request for changing role.
+//  //: If successful, request with the corresponding ID will be deleted
+//  struct CancelChangeRoleRequestOp
+//  {
+//      //: ID of the ChangeRoleRequest request to be canceled
+//      uint64 requestID;
+//  
+//      //: Reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  
+//  };
+
+//  ===========================================================================
+open class CancelChangeRoleRequestOp(
+    var requestID: org.tokend.wallet.xdr.Uint64,
+    var ext: CancelChangeRoleRequestOpExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    requestID.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class CancelChangeRoleRequestOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: CancelChangeRoleRequestOpExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Result codes for CancelChangeRoleRequest operation
+//  enum CancelChangeRoleRequestResultCode
+//  {
+//      // codes considered as "success" for the operation
+//      //: Operation is successfully applied
+//      SUCCESS = 0,
+//  
+//      // codes considered as "failure" for the operation
+//      //: ID of a request cannot be 0
+//      REQUEST_ID_INVALID = -1, // request id can not be equal zero
+//      //: ChangeRole request with provided ID is not found
+//      REQUEST_NOT_FOUND = -2 // trying to cancel not existing reviewable request
+//  };
+
+//  ===========================================================================
+public enum class CancelChangeRoleRequestResultCode(val value: kotlin.Int): XdrEncodable {
+  SUCCESS(0),
+  REQUEST_ID_INVALID(-1),
+  REQUEST_NOT_FOUND(-2),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Result of successful `CancelChangeRoleRequestOp` application
+//  struct CancelChangeRoleSuccess {
+//  
+//      //: Reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class CancelChangeRoleSuccess(
+    var ext: CancelChangeRoleSuccessExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    ext.toXdr(stream)
+  }
+
+  abstract class CancelChangeRoleSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: CancelChangeRoleSuccessExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Result of CancelChangeRoleRequest operation application along with the result code
+//  union CancelChangeRoleRequestResult switch (CancelChangeRoleRequestResultCode code)
+//  {
+//      case SUCCESS:
+//          CancelSaleCreationSuccess success;
+//      default:
+//          void;
+//  };
+
+//  ===========================================================================
+abstract class CancelChangeRoleRequestResult(val discriminant: org.tokend.wallet.xdr.CancelChangeRoleRequestResultCode): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  open class Success(var success: org.tokend.wallet.xdr.CancelSaleCreationSuccess): CancelChangeRoleRequestResult(org.tokend.wallet.xdr.CancelChangeRoleRequestResultCode.SUCCESS) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      success.toXdr(stream)
+    }
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: CancelSaleCreationRequest operation is used to cancel sale creation request.
+//  //: If successful, request with the corresponding ID will be deleted
+//  //: SaleCreationRequest with provided ID
 //  struct CancelSaleCreationRequestOp
 //  {
 //      //: ID of the SaleCreation request to be canceled
@@ -5008,6 +5241,7 @@ open class CancelSaleCreationRequestOp(
 
 // === xdr source ============================================================
 
+//  //: Result codes for CancelSaleCreationRequest operation
 //  enum CancelSaleCreationRequestResultCode
 //  {
 //      // codes considered as "success" for the operation
@@ -5035,6 +5269,7 @@ public enum class CancelSaleCreationRequestResultCode(val value: kotlin.Int): Xd
 
 // === xdr source ============================================================
 
+//  //: Result of successful `CancelSaleCreationRequestOp` application 
 //  struct CancelSaleCreationSuccess {
 //  
 //      //: Reserved for future use
@@ -5066,6 +5301,7 @@ open class CancelSaleCreationSuccess(
 
 // === xdr source ============================================================
 
+//  //: Result of CancelSaleCreationRequest operation application along with the result code
 //  union CancelSaleCreationRequestResult switch (CancelSaleCreationRequestResultCode code)
 //  {
 //      case SUCCESS:
@@ -5090,6 +5326,7 @@ abstract class CancelSaleCreationRequestResult(val discriminant: org.tokend.wall
 
 // === xdr source ============================================================
 
+//  //: CheckSaleState operation is used to perform check on sale state - whether the sale was successful or not
 //  struct CheckSaleStateOp
 //  {
 //      //:ID of the sale to check
@@ -5125,6 +5362,7 @@ open class CheckSaleStateOp(
 
 // === xdr source ============================================================
 
+//  //: Result codes of CheckSaleState operation
 //  enum CheckSaleStateResultCode
 //  {
 //      // codes considered as "success" for the operation
@@ -5152,6 +5390,7 @@ public enum class CheckSaleStateResultCode(val value: kotlin.Int): XdrEncodable 
 
 // === xdr source ============================================================
 
+//  //: Effect of performed check sale state operation
 //  enum CheckSaleStateEffect {
 //      //: Sale hasn't reached the soft cap before end time
 //      CANCELED = 1,
@@ -5175,6 +5414,7 @@ public enum class CheckSaleStateEffect(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: Entry for additional information regarding sale cancel
 //  struct SaleCanceled {
 //      //: Reserved for future use
 //      union switch (LedgerVersion v)
@@ -5205,6 +5445,7 @@ open class SaleCanceled(
 
 // === xdr source ============================================================
 
+//  //: Entry for additional information regarding sale update
 //  struct SaleUpdated {
 //      //: Reserved for future use
 //      union switch (LedgerVersion v)
@@ -5235,6 +5476,7 @@ open class SaleUpdated(
 
 // === xdr source ============================================================
 
+//  //: Entry for additional information regarding sub sale closing
 //  struct CheckSubSaleClosedResult {
 //      //: Balance in base asset of the closed sale
 //      BalanceID saleBaseBalance;
@@ -5277,6 +5519,7 @@ open class CheckSubSaleClosedResult(
 
 // === xdr source ============================================================
 
+//  //: Entry for additional information regarding sale closing
 //  struct CheckSaleClosedResult {
 //      //: AccountID of the sale owner
 //      AccountID saleOwner;
@@ -5318,6 +5561,7 @@ open class CheckSaleClosedResult(
 
 // === xdr source ============================================================
 
+//  //: Result of the successful application of CheckSaleState operation
 //  struct CheckSaleStateSuccess
 //  {
 //      //: ID of the sale being checked
@@ -5392,6 +5636,7 @@ open class CheckSaleStateSuccess(
 
 // === xdr source ============================================================
 
+//  //: Result of the CheckSaleState operation along with the result code
 //  union CheckSaleStateResult switch (CheckSaleStateResultCode code)
 //  {
 //  case SUCCESS:
@@ -5416,6 +5661,8 @@ abstract class CheckSaleStateResult(val discriminant: org.tokend.wallet.xdr.Chec
 
 // === xdr source ============================================================
 
+//  //: CreateAMLAlertRequest operation creates a reviewable request 
+//  //: that will void the specified amount from target balance after the reviewer's approval
 //  struct CreateAMLAlertRequestOp
 //  {
 //      //: Reference of AMLAlertRequest
@@ -5467,40 +5714,59 @@ open class CreateAMLAlertRequestOp(
 
 // === xdr source ============================================================
 
+//  //: Result codes for CreateAMLAlert operation
 //  enum CreateAMLAlertRequestResultCode
 //  {
 //      // codes considered as "success" for the operation
 //      //: Operation has been successfully performed
 //      SUCCESS = 0,
-//      //: Balance with provided balance ID does not exist
-//      BALANCE_NOT_EXIST = 1, // balance doesn't exist
-//      //: Creator details are not in a valid JSON format
-//      INVALID_CREATOR_DETAILS = 2, //invalid reason for request
-//      //: Specified amount is greater than the amount on the balance
-//      UNDERFUNDED = 3, //when couldn't lock balance
-//      //: AML Alert request with the same reference already exists
-//      REFERENCE_DUPLICATION = 4, // reference already exists
-//      //: Amount must be positive
-//      INVALID_AMOUNT = 5, // amount must be positive
-//      //: Amount precision and asset precision set in the system are mismatched
-//      INCORRECT_PRECISION = 6,
+//      //: DEPRECATED: Balance with provided balance ID does not exist
+//      OLD_BALANCE_NOT_EXIST = 1, // balance doesn't exist
+//      //: DEPRECATED: Creator details are not in a valid JSON format
+//      OLD_INVALID_CREATOR_DETAILS = 2, //invalid reason for request
+//      //: DEPRECATED: Specified amount is greater than the amount on the balance
+//      OLD_UNDERFUNDED = 3, //when couldn't lock balance
+//      //: DEPRECATED: AML Alert request with the same reference already exists
+//      OLD_REFERENCE_DUPLICATION = 4, // reference already exists
+//      //: DEPRECATED: Amount must be positive
+//      OLD_INVALID_AMOUNT = 5, // amount must be positive
+//      //: DEPRECATED: Amount precision and asset precision set in the system are mismatched
+//      OLD_INCORRECT_PRECISION = 6,
 //  
 //      //codes considered as "failure" for the operation
 //      //: Update aml alert tasks are not set in the system, i.e. it's not allowed to perform aml alert
-//      AML_ALERT_TASKS_NOT_FOUND = -1
+//      AML_ALERT_TASKS_NOT_FOUND = -1,
+//      //: Balance with provided balance ID does not exist
+//      BALANCE_NOT_EXIST = -2, // balance doesn't exist
+//      //: Creator details are not in a valid JSON format
+//      INVALID_CREATOR_DETAILS = -3, //invalid reason for request
+//      //: Specified amount is greater than the amount on the balance
+//      UNDERFUNDED = -4, //when couldn't lock balance
+//      //: AML Alert request with the same reference already exists
+//      REFERENCE_DUPLICATION = -5, // reference already exists
+//      //: Amount must be positive
+//      INVALID_AMOUNT = -6, // amount must be positive
+//      //: Amount precision and asset precision set in the system are mismatched
+//      INCORRECT_PRECISION = -7
 //  
 //  };
 
 //  ===========================================================================
 public enum class CreateAMLAlertRequestResultCode(val value: kotlin.Int): XdrEncodable {
   SUCCESS(0),
-  BALANCE_NOT_EXIST(1),
-  INVALID_CREATOR_DETAILS(2),
-  UNDERFUNDED(3),
-  REFERENCE_DUPLICATION(4),
-  INVALID_AMOUNT(5),
-  INCORRECT_PRECISION(6),
+  OLD_BALANCE_NOT_EXIST(1),
+  OLD_INVALID_CREATOR_DETAILS(2),
+  OLD_UNDERFUNDED(3),
+  OLD_REFERENCE_DUPLICATION(4),
+  OLD_INVALID_AMOUNT(5),
+  OLD_INCORRECT_PRECISION(6),
   AML_ALERT_TASKS_NOT_FOUND(-1),
+  BALANCE_NOT_EXIST(-2),
+  INVALID_CREATOR_DETAILS(-3),
+  UNDERFUNDED(-4),
+  REFERENCE_DUPLICATION(-5),
+  INVALID_AMOUNT(-6),
+  INCORRECT_PRECISION(-7),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -5510,6 +5776,7 @@ public enum class CreateAMLAlertRequestResultCode(val value: kotlin.Int): XdrEnc
 
 // === xdr source ============================================================
 
+//  //: Result of successful application of `CreateAMLAlertRequest` operation
 //  struct CreateAMLAlertRequestSuccess {
 //      //: ID of a newly created reviewable request
 //      uint64 requestID;
@@ -5548,6 +5815,7 @@ open class CreateAMLAlertRequestSuccess(
 
 // === xdr source ============================================================
 
+//  //: Result of `CreateAMLAlertRequest` operation application along with the result code
 //  union CreateAMLAlertRequestResult switch (CreateAMLAlertRequestResultCode code)
 //  {
 //      case SUCCESS:
@@ -5572,6 +5840,7 @@ abstract class CreateAMLAlertRequestResult(val discriminant: org.tokend.wallet.x
 
 // === xdr source ============================================================
 
+//  //: CreateAccountOp is used to create new account
 //  struct CreateAccountOp
 //  {
 //      //: ID of account to be created
@@ -5630,6 +5899,7 @@ open class CreateAccountOp(
 
 // === xdr source ============================================================
 
+//  //: Result codes of CreateAccountOp
 //  enum CreateAccountResultCode
 //  {
 //      //: Means that `destination` account has been successfully created with signers specified in `signersData`
@@ -5669,6 +5939,7 @@ public enum class CreateAccountResultCode(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: Result of successful application of `CreateAccount` operation
 //  struct CreateAccountSuccess
 //  {
 //      //: Unique unsigned integer identifier of the new account
@@ -5705,6 +5976,7 @@ open class CreateAccountSuccess(
 
 // === xdr source ============================================================
 
+//  //: Result of operation application
 //  union CreateAccountResult switch (CreateAccountResultCode code)
 //  {
 //  case SUCCESS:
@@ -6010,6 +6282,9 @@ abstract class CreateASwapRequestResult(val discriminant: org.tokend.wallet.xdr.
 
 // === xdr source ============================================================
 
+//  //: `CreateChangeRoleRequestOp` is used to create reviewable requests
+//  //: that, with admin's approval, will change the role of `destinationAccount`
+//  //: from current role to `accountRoleToSet`
 //  struct CreateChangeRoleRequestOp
 //  {
 //      //: Set zero to create new request, set non zero to update existing request
@@ -6069,6 +6344,7 @@ open class CreateChangeRoleRequestOp(
 
 // === xdr source ============================================================
 
+//  //: Result codes of CreateChangeRoleRequestOp
 //  enum CreateChangeRoleRequestResultCode
 //  {
 //      //: Change role request has either been successfully created
@@ -6092,7 +6368,9 @@ open class CreateChangeRoleRequestOp(
 //      INVALID_CREATOR_DETAILS = -8,
 //      //: There is no key-value entry by `change_role_tasks` key in the system;
 //      //: configuration does not allow changing the role from current to `accountRoleToSet`
-//      CHANGE_ROLE_TASKS_NOT_FOUND = -9
+//      CHANGE_ROLE_TASKS_NOT_FOUND = -9,
+//      //: There is no account role with provided id
+//      ACCOUNT_ROLE_TO_SET_DOES_NOT_EXIST = -10
 //  };
 
 //  ===========================================================================
@@ -6105,6 +6383,7 @@ public enum class CreateChangeRoleRequestResultCode(val value: kotlin.Int): XdrE
   INVALID_CHANGE_ROLE_REQUEST_DATA(-7),
   INVALID_CREATOR_DETAILS(-8),
   CHANGE_ROLE_TASKS_NOT_FOUND(-9),
+  ACCOUNT_ROLE_TO_SET_DOES_NOT_EXIST(-10),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -6114,6 +6393,7 @@ public enum class CreateChangeRoleRequestResultCode(val value: kotlin.Int): XdrE
 
 // === xdr source ============================================================
 
+//  //: Result of operation application 
 //  union CreateChangeRoleRequestResult switch (CreateChangeRoleRequestResultCode code)
 //  {
 //  case SUCCESS:
@@ -6172,6 +6452,8 @@ abstract class CreateChangeRoleRequestResult(val discriminant: org.tokend.wallet
 
 // === xdr source ============================================================
 
+//  //: CreateIssuanceRequestOp is used to create a reviewable request that, after reviewer's approval,
+//  //: will issue the specified amount of asset to a receiver's balance
 //  struct CreateIssuanceRequestOp
 //  {
 //      //: Issuance request to create
@@ -6221,6 +6503,7 @@ open class CreateIssuanceRequestOp(
 
 // === xdr source ============================================================
 
+//  //: Result codes of the CreateIssuanceRequestOp
 //  enum CreateIssuanceRequestResultCode
 //  {
 //      // codes considered as "success" for the operation
@@ -6284,6 +6567,7 @@ public enum class CreateIssuanceRequestResultCode(val value: kotlin.Int): XdrEnc
 
 // === xdr source ============================================================
 
+//  //:Result of successful application of CreateIssuanceRequest operation
 //  struct CreateIssuanceRequestSuccess {
 //      //: ID of a newly created issuance request
 //      uint64 requestID;
@@ -6330,6 +6614,7 @@ open class CreateIssuanceRequestSuccess(
 
 // === xdr source ============================================================
 
+//  //: Create issuance request result with result code
 //  union CreateIssuanceRequestResult switch (CreateIssuanceRequestResultCode code)
 //  {
 //  case SUCCESS:
@@ -6354,6 +6639,7 @@ abstract class CreateIssuanceRequestResult(val discriminant: org.tokend.wallet.x
 
 // === xdr source ============================================================
 
+//  //: CreateManageLimitsRequestOp is used to create a reviewable request which, after approval, will update the limits set in the system
 //  struct CreateManageLimitsRequestOp
 //  {
 //      //: Body of the `UpdateLimits` reviewable request to be created
@@ -6405,6 +6691,7 @@ open class CreateManageLimitsRequestOp(
 
 // === xdr source ============================================================
 
+//  //: Result codes for CreateManageLimitsRequest operation
 //  enum CreateManageLimitsRequestResultCode
 //  {
 //      // codes considered as "success" for the operation
@@ -6444,6 +6731,7 @@ public enum class CreateManageLimitsRequestResultCode(val value: kotlin.Int): Xd
 
 // === xdr source ============================================================
 
+//  //: `CreateManageLimitsRequestResult` represents the result of the `CreateManageLimitsRequestOp` with corresponding details based on given `CreateManageLimitsRequestResultCode`
 //  union CreateManageLimitsRequestResult switch (CreateManageLimitsRequestResultCode code)
 //  {
 //  case SUCCESS:
@@ -6501,6 +6789,8 @@ abstract class CreateManageLimitsRequestResult(val discriminant: org.tokend.wall
 
 // === xdr source ============================================================
 
+//  //: CreatePreIssuanceRequestOp is used to create a reviewable request,
+//  //: which, after admin's approval, will change `availableForIssuance` amount of asset
 //  struct CreatePreIssuanceRequestOp
 //  {
 //      //: Body of PreIssuanceRequest to be created
@@ -6547,6 +6837,7 @@ open class CreatePreIssuanceRequestOp(
 
 // === xdr source ============================================================
 
+//  //: Result codes of CreatePreIssuanceRequestOp
 //  enum CreatePreIssuanceRequestResultCode
 //  {
 //      //: Preissuance request is either successfully created
@@ -6598,6 +6889,7 @@ public enum class CreatePreIssuanceRequestResultCode(val value: kotlin.Int): Xdr
 
 // === xdr source ============================================================
 
+//  //: Result of `CreatePreIssuanceRequest` operation application along with the result code
 //  union CreatePreIssuanceRequestResult switch (CreatePreIssuanceRequestResultCode code)
 //  {
 //  case SUCCESS:
@@ -6657,6 +6949,7 @@ abstract class CreatePreIssuanceRequestResult(val discriminant: org.tokend.walle
 
 // === xdr source ============================================================
 
+//  //: CreateSaleCreationRequest operation creates SaleCreationRequest or updates the rejected request
 //  struct CreateSaleCreationRequestOp
 //  {
 //      //: ID of the SaleCreationRequest. If set to 0, a new request is created
@@ -6708,6 +7001,7 @@ open class CreateSaleCreationRequestOp(
 
 // === xdr source ============================================================
 
+//  //: CreateSaleCreationRequest result codes
 //  enum CreateSaleCreationRequestResultCode
 //  {
 //      // codes considered as "success" for the operation
@@ -6746,7 +7040,17 @@ open class CreateSaleCreationRequestOp(
 //      //: It is not allowed to set all tasks on rejected SaleCreationRequest update
 //      NOT_ALLOWED_TO_SET_TASKS_ON_UPDATE = -15,
 //      //: Auto review failed due to a particular reason (e.g., hard cap exceeded either max issuance amount or preissued amount of an asset)
-//      AUTO_REVIEW_FAILED = -16 
+//      AUTO_REVIEW_FAILED = -16,
+//      //: Not allowed to pass more account sale rule than allowed by `max_sale_rules_number` key value
+//      EXCEEDED_MAX_RULES_SIZE = -17,
+//      //: Not allowed to pass rules with the same ledger key and null accountID
+//      GLOBAL_SPECIFIC_RULE_DUPLICATION = -18,
+//      //: Not allowed to pass rules with the same accountID and ledger key
+//      ACCOUNT_SPECIFIC_RULE_DUPLICATION = -19,
+//      //: Not allowed to pass rules with out global one (`accountID == null`)
+//      GLOBAL_SPECIFIC_RULE_REQUIRED = -20,
+//      //: There is no account with id specified in sale rules
+//      ACCOUNT_NOT_FOUND = -21
 //  };
 
 //  ===========================================================================
@@ -6768,6 +7072,11 @@ public enum class CreateSaleCreationRequestResultCode(val value: kotlin.Int): Xd
   SALE_CREATE_TASKS_NOT_FOUND(-14),
   NOT_ALLOWED_TO_SET_TASKS_ON_UPDATE(-15),
   AUTO_REVIEW_FAILED(-16),
+  EXCEEDED_MAX_RULES_SIZE(-17),
+  GLOBAL_SPECIFIC_RULE_DUPLICATION(-18),
+  ACCOUNT_SPECIFIC_RULE_DUPLICATION(-19),
+  GLOBAL_SPECIFIC_RULE_REQUIRED(-20),
+  ACCOUNT_NOT_FOUND(-21),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -6777,6 +7086,7 @@ public enum class CreateSaleCreationRequestResultCode(val value: kotlin.Int): Xd
 
 // === xdr source ============================================================
 
+//  //: Result of the successful application of CreateSaleCreationRequest operation
 //  struct CreateSaleCreationSuccess {
 //      //: ID of the SaleCreation request
 //      uint64 requestID;
@@ -6818,6 +7128,7 @@ open class CreateSaleCreationSuccess(
 
 // === xdr source ============================================================
 
+//  //: specifies details on why an auto review has failed
 //  struct CreateSaleCreationAutoReviewFailed {
 //      //: auto review result
 //      ReviewRequestResult reviewRequestRequest;
@@ -6852,6 +7163,7 @@ open class CreateSaleCreationAutoReviewFailed(
 
 // === xdr source ============================================================
 
+//  //: CreateSaleCreationRequest result along with the result code
 //  union CreateSaleCreationRequestResult switch (CreateSaleCreationRequestResultCode code)
 //  {
 //  case SUCCESS:
@@ -6885,6 +7197,8 @@ abstract class CreateSaleCreationRequestResult(val discriminant: org.tokend.wall
 
 // === xdr source ============================================================
 
+//  //: CreateWithdrawalRequest operation is used to create a reviewable request,
+//  //: which, after reviewer's approval, will charge the specified amount from balance and send it to external wallet/account
 //  struct CreateWithdrawalRequestOp
 //  {
 //      //: Withdrawal request to create 
@@ -6931,6 +7245,7 @@ open class CreateWithdrawalRequestOp(
 
 // === xdr source ============================================================
 
+//  //: CreateWithdrawalRequest operation result codes
 //  enum CreateWithdrawalRequestResultCode
 //  {
 //      // codes considered as "success" for the operation
@@ -7006,6 +7321,7 @@ public enum class CreateWithdrawalRequestResultCode(val value: kotlin.Int): XdrE
 
 // === xdr source ============================================================
 
+//  //: Result of the successful withdrawal request creation
 //  struct CreateWithdrawalSuccess {
 //      //: ID of a newly created WithdrawalRequest
 //      uint64 requestID;
@@ -7044,6 +7360,7 @@ open class CreateWithdrawalSuccess(
 
 // === xdr source ============================================================
 
+//  //: Result of applying CreateWithdrawalRequst operation along with the result code
 //  union CreateWithdrawalRequestResult switch (CreateWithdrawalRequestResultCode code)
 //  {
 //      case SUCCESS:
@@ -7068,6 +7385,7 @@ abstract class CreateWithdrawalRequestResult(val discriminant: org.tokend.wallet
 
 // === xdr source ============================================================
 
+//  //: License operation is used to increase the allowed number of admins and due date
 //  struct LicenseOp
 //  {
 //      //: Allowed number of admins to set in the system
@@ -7123,6 +7441,7 @@ open class LicenseOp(
 
 // === xdr source ============================================================
 
+//  //: Result code of the License operation application 
 //  enum LicenseResultCode
 //  {
 //      //: License submit was successful, provided adminCount and dueDate were set in the system
@@ -7152,6 +7471,7 @@ public enum class LicenseResultCode(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: LicenseSuccess is a result of successful LicenseOp application
 //  struct LicenseSuccess {
 //      //: Reserved for future use
 //      union switch (LedgerVersion v)
@@ -7182,6 +7502,7 @@ open class LicenseSuccess(
 
 // === xdr source ============================================================
 
+//  //: Result of the License operation application
 //  union LicenseResult switch (LicenseResultCode code)
 //  {
 //  case SUCCESS:
@@ -7206,6 +7527,7 @@ abstract class LicenseResult(val discriminant: org.tokend.wallet.xdr.LicenseResu
 
 // === xdr source ============================================================
 
+//  //: Actions that can be performed with the account role
 //  enum ManageAccountRoleAction
 //  {
 //      CREATE = 0,
@@ -7227,6 +7549,7 @@ public enum class ManageAccountRoleAction(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: CreateAccountRoleData is used to pass necessary params to create a new account role
 //  struct CreateAccountRoleData
 //  {
 //      //: Arbitrary stringified json object that will be attached to the role
@@ -7269,6 +7592,7 @@ open class CreateAccountRoleData(
 
 // === xdr source ============================================================
 
+//  //: UpdateAccountRoleData is used to pass necessary params to update existing account role
 //  struct UpdateAccountRoleData
 //  {
 //      //: Identifier of existing signer role
@@ -7315,6 +7639,7 @@ open class UpdateAccountRoleData(
 
 // === xdr source ============================================================
 
+//  //: RemoveAccountRoleData is used to pass necessary params to remove an existing account role
 //  struct RemoveAccountRoleData
 //  {
 //      //: Identifier of an existing account role
@@ -7350,6 +7675,7 @@ open class RemoveAccountRoleData(
 
 // === xdr source ============================================================
 
+//  //: ManageAccountRoleOp is used to create, update or remove account role
 //  struct ManageAccountRoleOp
 //  {
 //      //: data is used to pass one of `ManageAccountRoleAction` with required params
@@ -7420,6 +7746,7 @@ open class ManageAccountRoleOp(
 
 // === xdr source ============================================================
 
+//  //: Result codes of ManageAccountRoleResultCode
 //  enum ManageAccountRoleResultCode
 //  {
 //      //: This means that the specified action in `data` of ManageAccountRoleOp was successfully performed
@@ -7455,6 +7782,7 @@ public enum class ManageAccountRoleResultCode(val value: kotlin.Int): XdrEncodab
 
 // === xdr source ============================================================
 
+//  //: Result of the operation performed 
 //  union ManageAccountRoleResult switch (ManageAccountRoleResultCode code)
 //  {
 //      case SUCCESS:
@@ -7528,6 +7856,7 @@ abstract class ManageAccountRoleResult(val discriminant: org.tokend.wallet.xdr.M
 
 // === xdr source ============================================================
 
+//  //: Actions that can be performed with account rule
 //  enum ManageAccountRuleAction
 //  {
 //      CREATE = 0,
@@ -7549,6 +7878,7 @@ public enum class ManageAccountRuleAction(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: CreateAccountRuleData is used to pass necessary params to create a new account rule
 //  struct CreateAccountRuleData
 //  {
 //      //: Resource is used to specify an entity (for some - with properties) that can be managed through operations
@@ -7596,6 +7926,7 @@ open class CreateAccountRuleData(
 
 // === xdr source ============================================================
 
+//  //: UpdateAccountRuleData is used to pass necessary params to update existing account rule
 //  struct UpdateAccountRuleData
 //  {
 //      //: Identifier of existing signer rule
@@ -7647,6 +7978,7 @@ open class UpdateAccountRuleData(
 
 // === xdr source ============================================================
 
+//  //: RemoveAccountRuleData is used to pass necessary params to remove existing account rule
 //  struct RemoveAccountRuleData
 //  {
 //      //: Identifier of existing account rule
@@ -7682,6 +8014,7 @@ open class RemoveAccountRuleData(
 
 // === xdr source ============================================================
 
+//  //: ManageAccountRuleOp is used to create, update or remove account rule
 //  struct ManageAccountRuleOp
 //  {
 //      //: data is used to pass one of `ManageAccountRuleAction` with required params
@@ -7752,6 +8085,7 @@ open class ManageAccountRuleOp(
 
 // === xdr source ============================================================
 
+//  //: Result codes of ManageAccountRuleResultCode
 //  enum ManageAccountRuleResultCode
 //  {
 //      //: Means that specified action in `data` of ManageAccountRuleOp was successfully performed
@@ -7781,6 +8115,7 @@ public enum class ManageAccountRuleResultCode(val value: kotlin.Int): XdrEncodab
 
 // === xdr source ============================================================
 
+//  //: Result of operation applying
 //  union ManageAccountRuleResult switch (ManageAccountRuleResultCode code)
 //  {
 //      case SUCCESS:
@@ -7849,6 +8184,278 @@ abstract class ManageAccountRuleResult(val discriminant: org.tokend.wallet.xdr.M
 
 // === xdr source ============================================================
 
+//  //: Actions that can be performed with account specific rule
+//  enum ManageAccountSpecificRuleAction
+//  {
+//      CREATE = 0,
+//      REMOVE = 1
+//  };
+
+//  ===========================================================================
+public enum class ManageAccountSpecificRuleAction(val value: kotlin.Int): XdrEncodable {
+  CREATE(0),
+  REMOVE(1),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: CreateAccountSpecificRuleData is used to pass necessary params to create a new account specific rule
+//  struct CreateAccountSpecificRuleData
+//  {
+//      //: ledgerKey is used to specify an entity with primary key that can be used through operations
+//      LedgerKey ledgerKey;
+//      //: Certain account for which rule is applied, null means rule is global
+//      AccountID* accountID;
+//      //: True if such rule is deniable, otherwise allows
+//      bool forbids;
+//  
+//      //: reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      } ext;
+//  };
+
+//  ===========================================================================
+open class CreateAccountSpecificRuleData(
+    var ledgerKey: org.tokend.wallet.xdr.LedgerKey,
+    var accountID: org.tokend.wallet.xdr.AccountID?,
+    var forbids: kotlin.Boolean,
+    var ext: CreateAccountSpecificRuleDataExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    ledgerKey.toXdr(stream)
+    if (accountID != null) {
+      true.toXdr(stream)
+      accountID?.toXdr(stream)
+    } else {
+      false.toXdr(stream)
+    }
+    forbids.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class CreateAccountSpecificRuleDataExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: CreateAccountSpecificRuleDataExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: RemoveAccountSpecificRuleData is used to pass necessary params to remove existing account specific rule
+//  struct RemoveAccountSpecificRuleData
+//  {
+//      //: Identifier of existing account specific rule
+//      uint64 ruleID;
+//  
+//      //: reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      } ext;
+//  };
+
+//  ===========================================================================
+open class RemoveAccountSpecificRuleData(
+    var ruleID: org.tokend.wallet.xdr.Uint64,
+    var ext: RemoveAccountSpecificRuleDataExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    ruleID.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class RemoveAccountSpecificRuleDataExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: RemoveAccountSpecificRuleDataExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: ManageAccountSpecificRuleOp is used to create or remove account specific rule
+//  struct ManageAccountSpecificRuleOp
+//  {
+//      //: data is used to pass one of `ManageAccountSpecificRuleAction` with required params
+//      union switch (ManageAccountSpecificRuleAction action)
+//      {
+//      case CREATE:
+//          CreateAccountSpecificRuleData createData;
+//      case REMOVE:
+//          RemoveAccountSpecificRuleData removeData;
+//      } data;
+//  
+//      //: reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class ManageAccountSpecificRuleOp(
+    var data: ManageAccountSpecificRuleOpData,
+    var ext: ManageAccountSpecificRuleOpExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    data.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class ManageAccountSpecificRuleOpData(val discriminant: org.tokend.wallet.xdr.ManageAccountSpecificRuleAction): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class Create(var createData: org.tokend.wallet.xdr.CreateAccountSpecificRuleData): ManageAccountSpecificRuleOpData(org.tokend.wallet.xdr.ManageAccountSpecificRuleAction.CREATE) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        createData.toXdr(stream)
+      }
+    }
+
+    open class Remove(var removeData: org.tokend.wallet.xdr.RemoveAccountSpecificRuleData): ManageAccountSpecificRuleOpData(org.tokend.wallet.xdr.ManageAccountSpecificRuleAction.REMOVE) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        removeData.toXdr(stream)
+      }
+    }
+  }
+  abstract class ManageAccountSpecificRuleOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: ManageAccountSpecificRuleOpExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Result codes of ManageAccountSpecificRuleResult
+//  enum ManageAccountSpecificRuleResultCode
+//  {
+//      //: Means that specified action in `data` of ManageAccountSpecificRuleOp was successfully performed
+//      SUCCESS = 0,
+//  
+//      // codes considered as "failure" for the operation
+//      //: There is no rule with such id
+//      NOT_FOUND = -1,
+//      //: There is no sale with such id
+//      SALE_NOT_FOUND = -2,
+//      //: Only entry (sale) owner or admin can perform such operation
+//      NOT_AUTHORIZED = -3,
+//      //: Not allowed to create duplicated rules
+//      ALREADY_EXISTS = -4,
+//      //: Not allowed to create rule with the same accountID and ledger key, but different forbids value
+//      REVERSED_ALREADY_EXISTS = -5,
+//      //: Not allowed to use such entry type in ledger key
+//      ENTRY_TYPE_NOT_SUPPORTED = -6,
+//      //: There is no account rule with such id
+//      ACCOUNT_NOT_FOUND = -7,
+//      //: Version of entry does not allow to add specific rules
+//      SPECIFIC_RULE_NOT_SUPPORTED = -8,
+//      //: Not allowed to remove global rule
+//      REMOVING_GLOBAL_RULE_FORBIDDEN = -9
+//  };
+
+//  ===========================================================================
+public enum class ManageAccountSpecificRuleResultCode(val value: kotlin.Int): XdrEncodable {
+  SUCCESS(0),
+  NOT_FOUND(-1),
+  SALE_NOT_FOUND(-2),
+  NOT_AUTHORIZED(-3),
+  ALREADY_EXISTS(-4),
+  REVERSED_ALREADY_EXISTS(-5),
+  ENTRY_TYPE_NOT_SUPPORTED(-6),
+  ACCOUNT_NOT_FOUND(-7),
+  SPECIFIC_RULE_NOT_SUPPORTED(-8),
+  REMOVING_GLOBAL_RULE_FORBIDDEN(-9),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Result of operation applying
+//  union ManageAccountSpecificRuleResult switch (ManageAccountSpecificRuleResultCode code)
+//  {
+//  case SUCCESS:
+//      //: Is used to pass useful params if operation is success
+//      struct {
+//          //: id of the rule that was managed
+//          uint64 ruleID;
+//  
+//          //: reserved for future use
+//          union switch (LedgerVersion v)
+//          {
+//          case EMPTY_VERSION:
+//              void;
+//          }
+//          ext;
+//      } success;
+//  default:
+//      void;
+//  };
+
+//  ===========================================================================
+abstract class ManageAccountSpecificRuleResult(val discriminant: org.tokend.wallet.xdr.ManageAccountSpecificRuleResultCode): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  open class Success(var success: ManageAccountSpecificRuleResultSuccess): ManageAccountSpecificRuleResult(org.tokend.wallet.xdr.ManageAccountSpecificRuleResultCode.SUCCESS) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      success.toXdr(stream)
+    }
+  }
+
+  open class ManageAccountSpecificRuleResultSuccess(
+      var ruleID: org.tokend.wallet.xdr.Uint64,
+      var ext: ManageAccountSpecificRuleResultSuccessExt
+    ) : XdrEncodable {
+
+    override fun toXdr(stream: XdrDataOutputStream) {
+      ruleID.toXdr(stream)
+      ext.toXdr(stream)
+    }
+
+    abstract class ManageAccountSpecificRuleResultSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+      override fun toXdr(stream: XdrDataOutputStream) {
+          discriminant.toXdr(stream)
+      }
+
+      open class EmptyVersion: ManageAccountSpecificRuleResultSuccessExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+    }
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Actions that can be performed on the asset pair
 //  enum ManageAssetPairAction
 //  {
 //      //: Create new asset pair
@@ -7873,6 +8480,7 @@ public enum class ManageAssetPairAction(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: `ManageAssetPairOp` either creates new asset pairs or updates prices or policies of existing [asset pairs](#operation/assetPairResources)
 //  struct ManageAssetPairOp
 //  {
 //      //: Defines a ManageBalanceAction that will be performed on an asset pair
@@ -7936,6 +8544,7 @@ open class ManageAssetPairOp(
 
 // === xdr source ============================================================
 
+//  //: Result codes for ManageAssetPair operation
 //  enum ManageAssetPairResultCode
 //  {
 //      // codes considered as "success" for the operation
@@ -7979,6 +8588,7 @@ public enum class ManageAssetPairResultCode(val value: kotlin.Int): XdrEncodable
 
 // === xdr source ============================================================
 
+//  //: `ManageAssetPairSuccess` represents a successful result of `ManageAssetPairOp`
 //  struct ManageAssetPairSuccess
 //  {
 //      //: Price of an asset pair after the operation
@@ -8014,6 +8624,7 @@ open class ManageAssetPairSuccess(
 
 // === xdr source ============================================================
 
+//  //: `ManageAssetPairResult` defines the result of `ManageBalanceOp` based on given `ManageAssetPairResultCode`
 //  union ManageAssetPairResult switch (ManageAssetPairResultCode code)
 //  {
 //  case SUCCESS:
@@ -8038,6 +8649,7 @@ abstract class ManageAssetPairResult(val discriminant: org.tokend.wallet.xdr.Man
 
 // === xdr source ============================================================
 
+//  //: ManageAssetAction is used to specify an action to be performed with an asset or asset create/update request
 //  enum ManageAssetAction
 //  {
 //      CREATE_ASSET_CREATION_REQUEST = 0,
@@ -8063,6 +8675,7 @@ public enum class ManageAssetAction(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: CancelAssetRequest is used to cancel an `UPDATE_ASSET` or `CREATE_ASSET` request
 //  struct CancelAssetRequest
 //  {
 //      //: reserved for future use
@@ -8094,6 +8707,7 @@ open class CancelAssetRequest(
 
 // === xdr source ============================================================
 
+//  //: UpdateMaxIssuance is used to update max issuance amount of an asset.
 //  struct UpdateMaxIssuance
 //  {
 //      //: `assetCode` defines an asset entry that will be updated
@@ -8134,6 +8748,12 @@ open class UpdateMaxIssuance(
 
 // === xdr source ============================================================
 
+//  //: ManageAssetOp is used to:
+//  //: * create or update `CREATE_ASSET` request;
+//  //: * create or update `UPDATE_ASSET` request;
+//  //: * cancel `CREATE_ASSET` or `UPDATE_ASSET` request
+//  //: * change asset pre issuer
+//  //: * update max issuance of an asset
 //  struct ManageAssetOp
 //  {
 //      //: ID of a reviewable request
@@ -8314,6 +8934,7 @@ open class ManageAssetOp(
 
 // === xdr source ============================================================
 
+//  //: Result codes of ManageAssetOp
 //  enum ManageAssetResultCode
 //  {
 //      //: Specified action in `data` of ManageSignerOp was successfully performed
@@ -8391,6 +9012,7 @@ public enum class ManageAssetResultCode(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: Is used to pass useful params after the successful operation application
 //  struct ManageAssetSuccess
 //  {
 //      //: ID of the request that was created in the process of operation application 
@@ -8430,6 +9052,7 @@ open class ManageAssetSuccess(
 
 // === xdr source ============================================================
 
+//  //: Is used to return the result of operation application
 //  union ManageAssetResult switch (ManageAssetResultCode code)
 //  {
 //  case SUCCESS:
@@ -8455,11 +9078,12 @@ abstract class ManageAssetResult(val discriminant: org.tokend.wallet.xdr.ManageA
 
 // === xdr source ============================================================
 
+//  //: Actions that can be performed on balances
 //  enum ManageBalanceAction
 //  {
 //      //: Create new balance
 //      CREATE = 0,
-//      //: Delete existing balance by ID
+//      //: Delete existing balance by ID. Is reserved and not implemented yet.
 //      DELETE_BALANCE = 1,
 //      //: Ensures that the balance will not be created if the balance of the provided asset exists and is attached to the provided account
 //      CREATE_UNIQUE = 2
@@ -8479,9 +9103,11 @@ public enum class ManageBalanceAction(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: `ManageBalanceOp` applies an `action` of the `ManageBalanceAction` type on the balance of a particular `asset` (referenced to by its AssetCode)
+//  //: of the `destination` account (referenced to by its AccountID)
 //  struct ManageBalanceOp
 //  {
-//      //: Defines a ManageBalanceAction to be performed
+//      //: Defines a ManageBalanceAction to be performed. `DELETE_BALANCE` is reserved and not implemented yet.
 //      ManageBalanceAction action;
 //      //: Defines an account whose balance will be managed
 //      AccountID destination;
@@ -8521,6 +9147,7 @@ open class ManageBalanceOp(
 
 // === xdr source ============================================================
 
+//  //: Result codes for the ManageBalance operation
 //  enum ManageBalanceResultCode
 //  {
 //      // codes considered as "success" for the operation
@@ -9103,6 +9730,7 @@ abstract class ManageContractResult(val discriminant: org.tokend.wallet.xdr.Mana
 
 // === xdr source ============================================================
 
+//  //: Actions that can be applied to a `CREATE_POLL` request
 //  enum ManageCreatePollRequestAction
 //  {
 //      CREATE = 0,
@@ -9122,6 +9750,7 @@ public enum class ManageCreatePollRequestAction(val value: kotlin.Int): XdrEncod
 
 // === xdr source ============================================================
 
+//  //: CreatePollRequestData is used to pass necessary data to create a `CREATE_POLL` request
 //  struct CreatePollRequestData
 //  {
 //      //: Body of `CREATE_POLL` request
@@ -9169,6 +9798,7 @@ open class CreatePollRequestData(
 
 // === xdr source ============================================================
 
+//  //: CancelPollRequestData is used to pass necessary data to remove a `CREATE_POLL` request
 //  struct CancelPollRequestData
 //  {
 //      //: ID of `CREATE_POLL` request to remove
@@ -9205,6 +9835,7 @@ open class CancelPollRequestData(
 
 // === xdr source ============================================================
 
+//  //: ManageCreatePollRequestOp is used to create or remove a `CREATE_POLL` request
 //  struct ManageCreatePollRequestOp
 //  {
 //      //: data is used to pass one of `ManageCreatePollRequestAction` with required params
@@ -9267,6 +9898,7 @@ open class ManageCreatePollRequestOp(
 
 // === xdr source ============================================================
 
+//  //: Result codes of ManageCreatePollRequestOp
 //  enum ManageCreatePollRequestResultCode
 //  {
 //      //: `CREATE_POLL` request has either been successfully created
@@ -9310,6 +9942,7 @@ public enum class ManageCreatePollRequestResultCode(val value: kotlin.Int): XdrE
 
 // === xdr source ============================================================
 
+//  //: CreatePollRequestResponse is used to pass useful fields after `CREATE_POLL` request creation
 //  struct CreatePollRequestResponse
 //  {
 //      //: ID of a created request
@@ -9318,6 +9951,9 @@ public enum class ManageCreatePollRequestResultCode(val value: kotlin.Int): XdrE
 //      //: Indicates whether or not the `CREATE_POLL` request was auto approved and fulfilled
 //      //: True means that poll was successfully created
 //      bool fulfilled;
+//  
+//      //: ID of created poll if request was fulfilled
+//      uint64* pollID;
 //  
 //      //: reserved for the future use
 //      union switch (LedgerVersion v)
@@ -9332,12 +9968,19 @@ public enum class ManageCreatePollRequestResultCode(val value: kotlin.Int): XdrE
 open class CreatePollRequestResponse(
     var requestID: org.tokend.wallet.xdr.Uint64,
     var fulfilled: kotlin.Boolean,
+    var pollID: org.tokend.wallet.xdr.Uint64?,
     var ext: CreatePollRequestResponseExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
     requestID.toXdr(stream)
     fulfilled.toXdr(stream)
+    if (pollID != null) {
+      true.toXdr(stream)
+      pollID?.toXdr(stream)
+    } else {
+      false.toXdr(stream)
+    }
     ext.toXdr(stream)
   }
 
@@ -9352,6 +9995,7 @@ open class CreatePollRequestResponse(
 
 // === xdr source ============================================================
 
+//  //: Success result of operation application
 //  struct ManageCreatePollRequestSuccessResult
 //  {
 //      //: `details` id used to pass useful fields
@@ -9408,6 +10052,7 @@ open class ManageCreatePollRequestSuccessResult(
 
 // === xdr source ============================================================
 
+//  //: Result of ManageCreatePollRequestOp application
 //  union ManageCreatePollRequestResult switch (ManageCreatePollRequestResultCode code)
 //  {
 //  case SUCCESS:
@@ -9432,6 +10077,7 @@ abstract class ManageCreatePollRequestResult(val discriminant: org.tokend.wallet
 
 // === xdr source ============================================================
 
+//  //: Actions that can be performed with an external system account ID in the external system ID pool
 //  enum ManageExternalSystemAccountIdPoolEntryAction
 //  {
 //      CREATE = 0,
@@ -9451,6 +10097,8 @@ public enum class ManageExternalSystemAccountIdPoolEntryAction(val value: kotlin
 
 // === xdr source ============================================================
 
+//  //: CreateExternalSystemAccountIdPoolEntryActionInput is used to
+//  //: pass necessary params to create a new external system account ID in the external system ID pool
 //  struct CreateExternalSystemAccountIdPoolEntryActionInput
 //  {
 //      //: Type of external system, selected arbitrarily
@@ -9495,6 +10143,8 @@ open class CreateExternalSystemAccountIdPoolEntryActionInput(
 
 // === xdr source ============================================================
 
+//  //: DeleteExternalSystemAccountIdPoolEntryActionInput is used to
+//  //: pass necessary params to remove an existing external system account ID in the external system ID pool
 //  struct DeleteExternalSystemAccountIdPoolEntryActionInput
 //  {
 //      //: ID of an existing external system account ID pool
@@ -9531,6 +10181,8 @@ open class DeleteExternalSystemAccountIdPoolEntryActionInput(
 
 // === xdr source ============================================================
 
+//  //: ManageExternalSystemAccountIdPoolEntryOp is used to create or remove
+//  //: an external system account ID from the external system ID pool
 //  struct ManageExternalSystemAccountIdPoolEntryOp
 //  {
 //      //: `actionInput` is used to pass one of
@@ -9593,6 +10245,7 @@ open class ManageExternalSystemAccountIdPoolEntryOp(
 
 // === xdr source ============================================================
 
+//  //: Result codes of ManageExternalSystemAccountIdPoolEntryOp
 //  enum ManageExternalSystemAccountIdPoolEntryResultCode
 //  {
 //      //: Specified action in `actionInput` of ManageExternalSystemAccountIdPoolEntryOp
@@ -9624,6 +10277,7 @@ public enum class ManageExternalSystemAccountIdPoolEntryResultCode(val value: ko
 
 // === xdr source ============================================================
 
+//  //: Success result of operation application
 //  struct ManageExternalSystemAccountIdPoolEntrySuccess
 //  {
 //      //: ID of the created external system account ID pool
@@ -9660,6 +10314,7 @@ open class ManageExternalSystemAccountIdPoolEntrySuccess(
 
 // === xdr source ============================================================
 
+//  //: Result of operation application
 //  union ManageExternalSystemAccountIdPoolEntryResult switch (ManageExternalSystemAccountIdPoolEntryResultCode code)
 //  {
 //  case SUCCESS:
@@ -9983,7 +10638,8 @@ abstract class ManageInvoiceRequestResult(val discriminant: org.tokend.wallet.xd
 
 // === xdr source ============================================================
 
-//  enum ManageKVAction
+//  //: Actions that can be performed on `KeyValueEntry`
+//      enum ManageKVAction
 //      {
 //          PUT = 1,
 //          REMOVE = 2
@@ -10002,7 +10658,8 @@ public enum class ManageKVAction(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
-//  struct ManageKeyValueOp
+//  //: `ManageKeyValueOp` is used to create the manage key-value operation which, if applied successfully, will update the key-value entry present in the system
+//      struct ManageKeyValueOp
 //      {
 //          //: `key` is the key for KeyValueEntry
 //          longstring key;
@@ -10065,7 +10722,8 @@ open class ManageKeyValueOp(
 
 // === xdr source ============================================================
 
-//  struct ManageKeyValueSuccess
+//  //: `ManageKeyValueSuccess` represents details returned after the successful application of `ManageKeyValueOp`
+//      struct ManageKeyValueSuccess
 //      {
 //          //: reserved for future use
 //          union switch (LedgerVersion v)
@@ -10096,7 +10754,8 @@ open class ManageKeyValueSuccess(
 
 // === xdr source ============================================================
 
-//  enum ManageKeyValueResultCode
+//  //: Result codes for `ManageKeyValueOp`
+//      enum ManageKeyValueResultCode
 //      {
 //          //: `ManageKeyValueOp` is applied successfully
 //          SUCCESS = 0,
@@ -10123,7 +10782,8 @@ public enum class ManageKeyValueResultCode(val value: kotlin.Int): XdrEncodable 
 
 // === xdr source ============================================================
 
-//  union ManageKeyValueResult switch (ManageKeyValueResultCode code)
+//  //: `ManageKeyValueResult` represents the result of ManageKeyValueOp
+//      union ManageKeyValueResult switch (ManageKeyValueResultCode code)
 //      {
 //          case SUCCESS:
 //              ManageKeyValueSuccess success;
@@ -10147,6 +10807,7 @@ abstract class ManageKeyValueResult(val discriminant: org.tokend.wallet.xdr.Mana
 
 // === xdr source ============================================================
 
+//  //: `ManageLimitsAction` defines which action can be performed on the Limits entry
 //  enum ManageLimitsAction
 //  {
 //      CREATE = 0,
@@ -10166,6 +10827,9 @@ public enum class ManageLimitsAction(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: `LimitsCreateDetails` is used in the system configuration to set limits (daily, weekly, montly, annual)
+//  //: for different assets, operations (according to StatsOpType), particular account roles, particular accounts,
+//  //: or globally (only if both parameters particular account role and paticular account are not specified)
 //  struct LimitsCreateDetails
 //  {
 //      //: (optional) ID of an account role that will be imposed with limits
@@ -10247,6 +10911,7 @@ open class LimitsCreateDetails(
 
 // === xdr source ============================================================
 
+//  //: `ManageLimitsOp` is used to update limits set in the system
 //  struct ManageLimitsOp
 //  {
 //      //: `details` defines all details of an operation based on given `ManageLimitsAction`
@@ -10308,6 +10973,7 @@ open class ManageLimitsOp(
 
 // === xdr source ============================================================
 
+//  //: Result codes for ManageLimits operation
 //  enum ManageLimitsResultCode
 //  {
 //      // codes considered as "success" for the operation
@@ -10344,6 +11010,7 @@ public enum class ManageLimitsResultCode(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: `ManageLimitsResult` defines the result of ManageLimitsOp application based on given `ManageLimitsResultCode`
 //  union ManageLimitsResult switch (ManageLimitsResultCode code)
 //  {
 //  case SUCCESS:
@@ -10419,6 +11086,7 @@ abstract class ManageLimitsResult(val discriminant: org.tokend.wallet.xdr.Manage
 
 // === xdr source ============================================================
 
+//  //: ManageOfferOp is used to create or delete offer
 //  struct ManageOfferOp
 //  {
 //      //: Balance for base asset of an offer creator
@@ -10552,7 +11220,9 @@ open class ManageOfferOp(
 //      //: Source account must be verified in order to participate
 //      REQUIRES_VERIFICATION = -27,
 //      //: Precision set in the system and precision of the amount are mismatched
-//      INCORRECT_AMOUNT_PRECISION = -28
+//      INCORRECT_AMOUNT_PRECISION = -28,
+//      //: Sale specific rule forbids to participate in sale for source account
+//      SPECIFIC_RULE_FORBIDS = -29
 //  };
 
 //  ===========================================================================
@@ -10586,6 +11256,7 @@ public enum class ManageOfferResultCode(val value: kotlin.Int): XdrEncodable {
   SOURCE_BALANCE_LOCK_OVERFLOW(-26),
   REQUIRES_VERIFICATION(-27),
   INCORRECT_AMOUNT_PRECISION(-28),
+  SPECIFIC_RULE_FORBIDS(-29),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -10619,6 +11290,7 @@ public enum class ManageOfferEffect(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: Used when offers are taken during the operation
 //  struct ClaimOfferAtom
 //  {
 //      // emitted to identify the offer
@@ -10687,6 +11359,7 @@ open class ClaimOfferAtom(
 
 // === xdr source ============================================================
 
+//  //: Contains details of successful operation application
 //  struct ManageOfferSuccessResult
 //  {
 //  
@@ -10767,6 +11440,7 @@ open class ManageOfferSuccessResult(
 
 // === xdr source ============================================================
 
+//  //: Result of `ManageOfferOp`
 //  union ManageOfferResult switch (ManageOfferResultCode code)
 //  {
 //  case SUCCESS:
@@ -10866,16 +11540,19 @@ abstract class ManageOfferResult(val discriminant: org.tokend.wallet.xdr.ManageO
 
 // === xdr source ============================================================
 
+//  //: Actions that can be applied to a poll
 //  enum ManagePollAction
 //  {
-//      CLOSE = 0
-//  //    UPDATE_END_TIME = 1,
-//  //    REMOVE = 2,
+//      CLOSE = 0,
+//      UPDATE_END_TIME = 1,
+//      CANCEL = 2
 //  };
 
 //  ===========================================================================
 public enum class ManagePollAction(val value: kotlin.Int): XdrEncodable {
   CLOSE(0),
+  UPDATE_END_TIME(1),
+  CANCEL(2),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -10885,6 +11562,7 @@ public enum class ManagePollAction(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: PollResult is used to specify result of voting
 //  enum PollResult
 //  {
 //      PASSED = 0,
@@ -10904,6 +11582,7 @@ public enum class PollResult(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: ClosePollData is used to submit poll results
 //  struct ClosePollData
 //  {
 //      //: result of voting
@@ -10980,6 +11659,7 @@ open class UpdatePollEndTimeData(
 
 // === xdr source ============================================================
 
+//  //: ManagePollOp is used to close,  update end time or cancel the poll
 //  struct ManagePollOp
 //  {
 //      //: ID of poll to manage
@@ -10990,10 +11670,10 @@ open class UpdatePollEndTimeData(
 //      {
 //      case CLOSE:
 //          ClosePollData closePollData;
-//  //    case UPDATE_END_TIME:
-//  //        UpdatePollEndTimeData updateTimeData;
-//  //    case REMOVE:
-//  //        EmptyExt ext;
+//      case UPDATE_END_TIME:
+//          UpdatePollEndTimeData updateTimeData;
+//      case CANCEL:
+//          EmptyExt ext;
 //      }
 //      data;
 //  
@@ -11030,6 +11710,20 @@ open class ManagePollOp(
         closePollData.toXdr(stream)
       }
     }
+
+    open class UpdateEndTime(var updateTimeData: org.tokend.wallet.xdr.UpdatePollEndTimeData): ManagePollOpData(org.tokend.wallet.xdr.ManagePollAction.UPDATE_END_TIME) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        updateTimeData.toXdr(stream)
+      }
+    }
+
+    open class Cancel(var ext: org.tokend.wallet.xdr.EmptyExt): ManagePollOpData(org.tokend.wallet.xdr.ManagePollAction.CANCEL) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        ext.toXdr(stream)
+      }
+    }
   }
   abstract class ManagePollOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
@@ -11042,6 +11736,7 @@ open class ManagePollOp(
 
 // === xdr source ============================================================
 
+//  //: Result codes of ManagePollOp
 //  enum ManagePollResultCode
 //  {
 //      //: Specified action in `data` of ManagePollOp was successfully executed
@@ -11053,7 +11748,11 @@ open class ManagePollOp(
 //      //: Not allowed to close poll which
 //      POLL_NOT_READY = -2,
 //      //: Only result provider is allowed to close poll
-//      NOT_AUTHORIZED_TO_CLOSE_POLL = -3
+//      NOT_AUTHORIZED_TO_CLOSE_POLL = -3,
+//      //: End time is in the past
+//      INVALID_END_TIME = -4,
+//      //: Only poll owner and admin are allowed to cancel poll and update end time
+//      NOT_AUTHORIZED = -5
 //  };
 
 //  ===========================================================================
@@ -11062,6 +11761,8 @@ public enum class ManagePollResultCode(val value: kotlin.Int): XdrEncodable {
   NOT_FOUND(-1),
   POLL_NOT_READY(-2),
   NOT_AUTHORIZED_TO_CLOSE_POLL(-3),
+  INVALID_END_TIME(-4),
+  NOT_AUTHORIZED(-5),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -11071,6 +11772,7 @@ public enum class ManagePollResultCode(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: Result of operation application
 //  union ManagePollResult switch (ManagePollResultCode code)
 //  {
 //  case SUCCESS:
@@ -11114,6 +11816,7 @@ public enum class ManageSaleAction(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: Details regarding the `Update Sale Details` request
 //  struct UpdateSaleDetailsData {
 //      //: ID of a reviewable request. If set 0, request is created, else - request is updated
 //      uint64 requestID; // if requestID is 0 - create request, else - update
@@ -11162,6 +11865,7 @@ open class UpdateSaleDetailsData(
 
 // === xdr source ============================================================
 
+//  //: ManageSaleOp is used to cancel a sale, or create a reviewable request which, after approval, will update sale details.
 //  struct ManageSaleOp
 //  {
 //      //: ID of the sale to manage
@@ -11220,6 +11924,7 @@ open class ManageSaleOp(
 
 // === xdr source ============================================================
 
+//  //: Result codes for ManageSaleOperation
 //  enum ManageSaleResultCode
 //  {
 //      //: Operation is successfully applied
@@ -11258,6 +11963,7 @@ public enum class ManageSaleResultCode(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //:Result of ManageSale operation successful application 
 //  struct ManageSaleResultSuccess
 //  {
 //      //: Indicates  whether or not the ManageSale request was auto approved and fulfilled
@@ -11318,6 +12024,7 @@ open class ManageSaleResultSuccess(
 
 // === xdr source ============================================================
 
+//  //: Result of ManageSale operation application along with result code
 //  union ManageSaleResult switch (ManageSaleResultCode code)
 //  {
 //  case SUCCESS:
@@ -11342,6 +12049,7 @@ abstract class ManageSaleResult(val discriminant: org.tokend.wallet.xdr.ManageSa
 
 // === xdr source ============================================================
 
+//  //: Actions that can be performed on a signer role
 //  enum ManageSignerRoleAction
 //  {
 //      CREATE = 0,
@@ -11363,6 +12071,7 @@ public enum class ManageSignerRoleAction(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: CreateSignerRoleData is used to pass necessary params to create a new signer role
 //  struct CreateSignerRoleData
 //  {
 //      //: Array of ids of existing, unique and not default rules
@@ -11409,6 +12118,7 @@ open class CreateSignerRoleData(
 
 // === xdr source ============================================================
 
+//  //: UpdateSignerRoleData is used to pass necessary params to update an existing signer role
 //  struct UpdateSignerRoleData
 //  {
 //      //: ID of an existing signer role
@@ -11456,6 +12166,7 @@ open class UpdateSignerRoleData(
 
 // === xdr source ============================================================
 
+//  //: RemoveSignerRoleData is used to pass necessary params to remove existing signer role
 //  struct RemoveSignerRoleData
 //  {
 //      //: Identifier of an existing signer role
@@ -11491,6 +12202,7 @@ open class RemoveSignerRoleData(
 
 // === xdr source ============================================================
 
+//  //: ManageSignerRoleOp is used to create, update or remove a signer role
 //  struct ManageSignerRoleOp
 //  {
 //      //: data is used to pass one of `ManageSignerRoleAction` with required params
@@ -11561,6 +12273,7 @@ open class ManageSignerRoleOp(
 
 // === xdr source ============================================================
 
+//  //: Result codes of ManageSignerRoleResultCode
 //  enum ManageSignerRoleResultCode
 //  {
 //      //: Means that the specified action in `data` of ManageSignerRoleOp was successfully executed
@@ -11602,6 +12315,7 @@ public enum class ManageSignerRoleResultCode(val value: kotlin.Int): XdrEncodabl
 
 // === xdr source ============================================================
 
+//  //: Result of operation application
 //  union ManageSignerRoleResult switch (ManageSignerRoleResultCode code)
 //  {
 //      case SUCCESS:
@@ -11693,6 +12407,7 @@ abstract class ManageSignerRoleResult(val discriminant: org.tokend.wallet.xdr.Ma
 
 // === xdr source ============================================================
 
+//  //: Actions that can be performed with a signer rule
 //  enum ManageSignerRuleAction
 //  {
 //      CREATE = 0,
@@ -11714,6 +12429,7 @@ public enum class ManageSignerRuleAction(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: CreateSignerRuleData is used to pass necessary params to create a new signer rule
 //  struct CreateSignerRuleData
 //  {
 //      //: Resource is used to specify an entity (for some, with properties) that can be managed through operations
@@ -11769,6 +12485,7 @@ open class CreateSignerRuleData(
 
 // === xdr source ============================================================
 
+//  //: UpdateSignerRuleData is used to pass necessary params to update an existing signer rule
 //  struct UpdateSignerRuleData
 //  {
 //      //: Identifier of an existing signer rule
@@ -11824,6 +12541,7 @@ open class UpdateSignerRuleData(
 
 // === xdr source ============================================================
 
+//  //: RemoveSignerRuleData is used to pass necessary params to remove existing signer rule
 //  struct RemoveSignerRuleData
 //  {
 //      //: Identifier of an existing signer rule
@@ -11859,6 +12577,7 @@ open class RemoveSignerRuleData(
 
 // === xdr source ============================================================
 
+//  //: ManageSignerRuleOp is used to create, update or remove signer rule
 //  struct ManageSignerRuleOp
 //  {
 //      //: data is used to pass one of `ManageSignerRuleAction` with required params
@@ -11929,6 +12648,7 @@ open class ManageSignerRuleOp(
 
 // === xdr source ============================================================
 
+//  //: Result codes of ManageSignerRuleOp
 //  enum ManageSignerRuleResultCode
 //  {
 //      //: Specified action in `data` of ManageSignerRuleOp was successfully executed
@@ -11958,6 +12678,7 @@ public enum class ManageSignerRuleResultCode(val value: kotlin.Int): XdrEncodabl
 
 // === xdr source ============================================================
 
+//  //: Result of operation application
 //  union ManageSignerRuleResult switch (ManageSignerRuleResultCode code)
 //  {
 //      case SUCCESS:
@@ -12025,6 +12746,7 @@ abstract class ManageSignerRuleResult(val discriminant: org.tokend.wallet.xdr.Ma
 
 // === xdr source ============================================================
 
+//  //: Actions that can be applied to a signer
 //  enum ManageSignerAction
 //  {
 //      CREATE = 0,
@@ -12046,6 +12768,7 @@ public enum class ManageSignerAction(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: UpdateSignerData is used to pass necessary data to create or update the signer
 //  struct UpdateSignerData
 //  {
 //      //: Public key of a signer
@@ -12088,6 +12811,7 @@ open class UpdateSignerData(
 
 // === xdr source ============================================================
 
+//  //: RemoveSignerData is used to pass necessary data to remove a signer
 //  struct RemoveSignerData
 //  {
 //      //: Public key of an existing signer
@@ -12111,6 +12835,7 @@ open class RemoveSignerData(
 
 // === xdr source ============================================================
 
+//  //: ManageSignerOp is used to create, update or remove a signer
 //  struct ManageSignerOp
 //  {
 //      //: data is used to pass one of `ManageSignerAction` with required params
@@ -12170,6 +12895,7 @@ open class ManageSignerOp(
 
 // === xdr source ============================================================
 
+//  //: Result codes of ManageSignerOp
 //  enum ManageSignerResultCode
 //  {
 //      //: Specified action in `data` of ManageSignerOp was successfully executed
@@ -12208,6 +12934,7 @@ public enum class ManageSignerResultCode(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: Result of operation application
 //  union ManageSignerResult switch (ManageSignerResultCode code)
 //  {
 //  case SUCCESS:
@@ -12233,6 +12960,7 @@ abstract class ManageSignerResult(val discriminant: org.tokend.wallet.xdr.Manage
 
 // === xdr source ============================================================
 
+//  //: Actions that can be applied to a vote entry
 //  enum ManageVoteAction
 //  {
 //      CREATE = 0,
@@ -12252,6 +12980,7 @@ public enum class ManageVoteAction(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: CreateVoteData is used to pass needed params to create (send) vote
 //  struct CreateVoteData
 //  {
 //      //: ID of poll to vote in
@@ -12292,6 +13021,7 @@ open class CreateVoteData(
 
 // === xdr source ============================================================
 
+//  //: RemoveVoteData is used to pass needed params to remove (cancel) own vote
 //  struct RemoveVoteData
 //  {
 //      //: ID of poll
@@ -12327,6 +13057,7 @@ open class RemoveVoteData(
 
 // === xdr source ============================================================
 
+//  //: ManageVoteOp is used to create (send) or remove (cancel) vote
 //  struct ManageVoteOp
 //  {
 //      //: `data` is used to pass `ManageVoteAction` with needed params
@@ -12388,6 +13119,7 @@ open class ManageVoteOp(
 
 // === xdr source ============================================================
 
+//  //: Result code of ManageVoteOp
 //  enum ManageVoteResultCode
 //  {
 //      // codes considered as "success" for the operation
@@ -12427,6 +13159,7 @@ public enum class ManageVoteResultCode(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: Result of ManageVoteOp application
 //  union ManageVoteResult switch (ManageVoteResultCode code)
 //  {
 //  case SUCCESS:
@@ -12494,6 +13227,7 @@ open class PaymentFeeData(
 
 // === xdr source ============================================================
 
+//  //: Defines the type of destination of the payment
 //  enum PaymentDestinationType {
 //      ACCOUNT = 0,
 //      BALANCE = 1
@@ -12512,6 +13246,7 @@ public enum class PaymentDestinationType(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: PaymentOp is used to transfer some amount of asset from the source balance to destination account/balance
 //  struct PaymentOp
 //  {
 //      //: ID of the source balance of payment
@@ -12662,6 +13397,7 @@ public enum class PaymentResultCode(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: `PaymentResponse` defines the response on the corresponding PaymentOp
 //  struct PaymentResponse {
 //      //: ID of the destination account
 //      AccountID destination;
@@ -12958,6 +13694,7 @@ abstract class PayoutResult(val discriminant: org.tokend.wallet.xdr.PayoutResult
 
 // === xdr source ============================================================
 
+//  //: Actions that can be performed on request that is being reviewed
 //  enum ReviewRequestOpAction {
 //      //: Approve request
 //      APPROVE = 1,
@@ -12981,6 +13718,7 @@ public enum class ReviewRequestOpAction(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: Review details of a Limits Update request
 //  struct LimitsUpdateDetails { 
 //      //: Limits entry containing new limits to set 
 //      LimitsV2Entry newLimitsV2;
@@ -13016,6 +13754,7 @@ open class LimitsUpdateDetails(
 
 // === xdr source ============================================================
 
+//  //: Review details of a Withdraw Request
 //  struct WithdrawalDetails {
 //      //: External details updated on a Withdraw review
 //      string externalDetails<>;
@@ -13050,6 +13789,7 @@ open class WithdrawalDetails(
 
 // === xdr source ============================================================
 
+//  //: Details of AML Alert 
 //  struct AMLAlertDetails {
 //      //: Comment on reason of AML Alert
 //      string comment<>;
@@ -13118,6 +13858,7 @@ open class ContractDetails(
 
 // === xdr source ============================================================
 
+//  //: Details of a payment reviewable request
 //  struct BillPayDetails {
 //      //: Details of payment
 //      PaymentOp paymentDetails;
@@ -13153,6 +13894,7 @@ open class BillPayDetails(
 
 // === xdr source ============================================================
 
+//  //: Details of a request review
 //  struct ReviewDetails {
 //      //: Tasks to add to pending
 //      uint32 tasksToAdd;
@@ -13195,6 +13937,7 @@ open class ReviewDetails(
 
 // === xdr source ============================================================
 
+//  //: Extended result of the review request operation containing details specific to a Create Sale Request
 //  struct SaleExtended {
 //      //: ID of the newly created sale as a result of Create Sale Request successful review
 //      uint64 saleID;
@@ -13230,6 +13973,7 @@ open class SaleExtended(
 
 // === xdr source ============================================================
 
+//  //: Extended result of the review request operation containing details specific to a Create Atomic Swap Bid Request
 //  struct ASwapBidExtended
 //  {
 //      //: ID of the newly created bid as a result of Create Atomic Swap Bid Request successful review
@@ -13266,6 +14010,7 @@ open class ASwapBidExtended(
 
 // === xdr source ============================================================
 
+//  //: Extended result of the review request operation containing details specific to a `CREATE_POLL` request
 //  struct CreatePollExtended
 //  {
 //      //: ID of the newly created poll
@@ -13302,6 +14047,7 @@ open class CreatePollExtended(
 
 // === xdr source ============================================================
 
+//  //: Extended result of a review request operation containing details specific to a Create Atomic Swap Request
 //  struct ASwapExtended
 //  {
 //      //: ID of a bid to apply atomic swap to
@@ -13374,6 +14120,7 @@ open class ASwapExtended(
 
 // === xdr source ============================================================
 
+//  //: Extended result of a Review Request operation containing details specific to certain request types
 //  struct ExtendedResult {
 //      //: Indicates whether or not the request that is being reviewed was applied
 //      bool fulfilled;
@@ -13459,6 +14206,7 @@ open class ExtendedResult(
 
 // === xdr source ============================================================
 
+//  //: Review Request operation
 //  struct ReviewRequestOp
 //  {
 //      //: ID of a request that is being reviewed
@@ -13568,6 +14316,7 @@ open class ReviewRequestOp(
 
 // === xdr source ============================================================
 
+//  //: Result code of the ReviewRequest operation
 //  enum ReviewRequestResultCode
 //  {
 //      //: Codes considered as "success" for an operation
@@ -13629,6 +14378,9 @@ open class ReviewRequestOp(
 //      //: Change role 
 //      //: Trying to remove zero tasks
 //      NON_ZERO_TASKS_TO_REMOVE_NOT_ALLOWED = -600,
+//      //: There is no account role with provided id
+//      ACCOUNT_ROLE_TO_SET_DOES_NOT_EXIST = -610,
+//  
 //  
 //      //: Update sale details
 //      //: Trying to update details of a non-existing sale
@@ -13712,6 +14464,7 @@ public enum class ReviewRequestResultCode(val value: kotlin.Int): XdrEncodable {
   BASE_ASSET_NOT_FOUND(-530),
   QUOTE_ASSET_NOT_FOUND(-550),
   NON_ZERO_TASKS_TO_REMOVE_NOT_ALLOWED(-600),
+  ACCOUNT_ROLE_TO_SET_DOES_NOT_EXIST(-610),
   SALE_NOT_FOUND(-700),
   AMOUNT_MISMATCHED(-1010),
   DESTINATION_BALANCE_MISMATCHED(-1020),
@@ -13757,6 +14510,7 @@ public enum class ReviewRequestResultCode(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: Result of applying the review request with result code
 //  union ReviewRequestResult switch (ReviewRequestResultCode code)
 //  {
 //  case SUCCESS:
@@ -13781,7 +14535,8 @@ abstract class ReviewRequestResult(val discriminant: org.tokend.wallet.xdr.Revie
 
 // === xdr source ============================================================
 
-//  struct SetFeesOp
+//  //: Allows to establish or remove a relationship between a particular fee entry with the different entities
+//      struct SetFeesOp
 //      {
 //          //: Fee entry to set
 //          FeeEntry* fee;
@@ -13825,7 +14580,8 @@ open class SetFeesOp(
 
 // === xdr source ============================================================
 
-//  enum SetFeesResultCode
+//  //: Result codes for SetFees operation
+//      enum SetFeesResultCode
 //      {
 //          // codes considered as "success" for the operation
 //          //: `SetFeesOp` was successfully applied and a fee was successfully set or deleted
@@ -13906,7 +14662,8 @@ public enum class SetFeesResultCode(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
-//  union SetFeesResult switch (SetFeesResultCode code)
+//  //: Is used to pass result of operation applying
+//      union SetFeesResult switch (SetFeesResultCode code)
 //      {
 //          case SUCCESS:
 //              struct {
@@ -13955,6 +14712,7 @@ abstract class SetFeesResult(val discriminant: org.tokend.wallet.xdr.SetFeesResu
 
 // === xdr source ============================================================
 
+//  //: StampOp is used to save current ledger hash and current license hash
 //  struct StampOp
 //  {
 //      //: Reserved for future use
@@ -14005,6 +14763,7 @@ public enum class StampResultCode(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: StampSuccess is used to pass saved ledger hash and license hash
 //  struct StampSuccess {
 //      //: ledger hash saved into a database
 //      Hash ledgerHash;
@@ -14045,6 +14804,7 @@ open class StampSuccess(
 
 // === xdr source ============================================================
 
+//  //: StampResult is a result of Stamp operation application
 //  union StampResult switch (StampResultCode code)
 //  {
 //  case SUCCESS:
@@ -14506,6 +15266,8 @@ abstract class AuthenticatedMessage(val discriminant: org.tokend.wallet.xdr.Ledg
 
 // === xdr source ============================================================
 
+//  //: Describes properties of some reviewable request types that
+//  //: can be used to restrict the usage of reviewable requests
 //  union ReviewableRequestResource switch (ReviewableRequestType requestType)
 //  {
 //  case CREATE_SALE:
@@ -14639,6 +15401,7 @@ abstract class ReviewableRequestResource(val discriminant: org.tokend.wallet.xdr
 
 // === xdr source ============================================================
 
+//  //: Describes properties of some entries that can be used to restrict the usage of entries
 //  union AccountRuleResource switch (LedgerEntryType type)
 //  {
 //  case ASSET:
@@ -14904,6 +15667,7 @@ abstract class AccountRuleResource(val discriminant: org.tokend.wallet.xdr.Ledge
 
 // === xdr source ============================================================
 
+//  //: Actions that can be applied to account rule resource
 //  enum AccountRuleAction
 //  {
 //      ANY = 1,
@@ -14922,7 +15686,8 @@ abstract class AccountRuleResource(val discriminant: org.tokend.wallet.xdr.Ledge
 //      CHECK = 14,
 //      CANCEL = 15,
 //      CLOSE = 16,
-//      REMOVE = 17
+//      REMOVE = 17,
+//      UPDATE_END_TIME = 18
 //  };
 
 //  ===========================================================================
@@ -14944,6 +15709,7 @@ public enum class AccountRuleAction(val value: kotlin.Int): XdrEncodable {
   CANCEL(15),
   CLOSE(16),
   REMOVE(17),
+  UPDATE_END_TIME(18),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -14953,6 +15719,7 @@ public enum class AccountRuleAction(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: Describes properties of some entries that can be used to restrict the usage of entries
 //  union SignerRuleResource switch (LedgerEntryType type)
 //  {
 //  case REVIEWABLE_REQUEST:
@@ -15305,6 +16072,7 @@ abstract class SignerRuleResource(val discriminant: org.tokend.wallet.xdr.Ledger
 
 // === xdr source ============================================================
 
+//  //: Actions that can be applied to a signer rule resource
 //  enum SignerRuleAction
 //  {
 //      ANY = 1,
@@ -15321,7 +16089,8 @@ abstract class SignerRuleResource(val discriminant: org.tokend.wallet.xdr.Ledger
 //      BIND = 12,
 //      UPDATE_MAX_ISSUANCE = 13,
 //      CHECK = 14,
-//      CLOSE = 15
+//      CLOSE = 15,
+//      UPDATE_END_TIME = 16
 //  };
 
 //  ===========================================================================
@@ -15341,6 +16110,7 @@ public enum class SignerRuleAction(val value: kotlin.Int): XdrEncodable {
   UPDATE_MAX_ISSUANCE(13),
   CHECK(14),
   CLOSE(15),
+  UPDATE_END_TIME(16),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -15350,6 +16120,7 @@ public enum class SignerRuleAction(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: Body of a reviewable AMLAlertRequest, contains parameters regarding AML alert
 //  struct AMLAlertRequest {
 //      //: Target balance to void tokens from
 //      BalanceID balanceID;
@@ -15395,6 +16166,7 @@ open class AMLAlertRequest(
 
 // === xdr source ============================================================
 
+//  //: AssetCreationRequest is used to create an asset with provided parameters
 //  struct AssetCreationRequest {
 //      //: Code of an asset to create
 //      AssetCode code;
@@ -15462,6 +16234,7 @@ open class AssetCreationRequest(
 
 // === xdr source ============================================================
 
+//  //: AssetUpdateRequest is used to update an asset with provided parameters
 //  struct AssetUpdateRequest {
 //      //: Code of an asset to update
 //      AssetCode code;
@@ -15509,6 +16282,7 @@ open class AssetUpdateRequest(
 
 // === xdr source ============================================================
 
+//  //: AssetChangePreissuedSigner is used to update a pre issued asset signer
 //  struct AssetChangePreissuedSigner
 //  {
 //      //: code of an asset to update
@@ -15738,6 +16512,7 @@ open class ContractRequest(
 
 // === xdr source ============================================================
 
+//  //: CreatePollRequest is used to create poll entry with passed fields
 //  struct CreatePollRequest
 //  {
 //      //: is used to restrict using of poll through rules
@@ -15868,6 +16643,7 @@ open class InvoiceRequest(
 
 // === xdr source ============================================================
 
+//  //: Is used to pass required values to perform pre issuance
 //  struct PreIssuanceRequest
 //  {
 //      //: Code of an asset whose `available_for_issuance_amount` will increase
@@ -15920,6 +16696,7 @@ open class PreIssuanceRequest(
 
 // === xdr source ============================================================
 
+//  //: Body of reviewable `IssuanceRequest`, contains parameters regarding issuance
 //  struct IssuanceRequest {
 //      //: Code of an asset to issue
 //  	AssetCode asset;
@@ -15970,6 +16747,7 @@ open class IssuanceRequest(
 
 // === xdr source ============================================================
 
+//  //: Body of reviewable `LimitsUpdateRequest` contains details regarding limit updates
 //  struct LimitsUpdateRequest
 //  {
 //      //: Arbitrary stringified JSON object that can be used to attach data to be reviewed by an admin
@@ -16006,6 +16784,7 @@ open class LimitsUpdateRequest(
 
 // === xdr source ============================================================
 
+//  //: SaleCreationRequestQuoteAsset is a structure that contains an asset code with price
 //  struct SaleCreationRequestQuoteAsset {
 //      //: AssetCode of quote asset 
 //      AssetCode quoteAsset; // asset in which participation will be accepted
@@ -16044,6 +16823,52 @@ open class SaleCreationRequestQuoteAsset(
 
 // === xdr source ============================================================
 
+//  //: CreateAccountSaleRuleData is used to pass necessary params to create a new account sale rule
+//  struct CreateAccountSaleRuleData
+//  {
+//      //: Certain account for which rule is applied, null means rule is global
+//      AccountID* accountID;
+//      //: True if such rule is deniable, otherwise allows
+//      bool forbids;
+//  
+//      //: reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      } ext;
+//  };
+
+//  ===========================================================================
+open class CreateAccountSaleRuleData(
+    var accountID: org.tokend.wallet.xdr.AccountID?,
+    var forbids: kotlin.Boolean,
+    var ext: CreateAccountSaleRuleDataExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    if (accountID != null) {
+      true.toXdr(stream)
+      accountID?.toXdr(stream)
+    } else {
+      false.toXdr(stream)
+    }
+    forbids.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class CreateAccountSaleRuleDataExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: CreateAccountSaleRuleDataExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: SaleCreationRequest is used to create a sale with provided parameters
 //  struct SaleCreationRequest
 //  {   
 //      //: Type of sale
@@ -16073,11 +16898,15 @@ open class SaleCreationRequestQuoteAsset(
 //      uint32 sequenceNumber;
 //      //: Array of quote assets that are available for participation
 //      SaleCreationRequestQuoteAsset quoteAssets<100>;
-//      //: Reserved for future use
+//      //: Use `EMPTY_VERSION` to allow anyone participate in sale,
+//      //: use `ADD_SALE_WHITELISTS` to specify sale participation rules
 //      union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
 //          void;
+//      case ADD_SALE_WHITELISTS:
+//          //: array of rules that define participation rules. One global rule must be specified. 
+//          CreateAccountSaleRuleData saleRules<>;
 //      }
 //      ext;
 //  };
@@ -16124,11 +16953,22 @@ open class SaleCreationRequest(
     }
 
     open class EmptyVersion: SaleCreationRequestExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+
+    open class AddSaleWhitelists(var saleRules: kotlin.Array<org.tokend.wallet.xdr.CreateAccountSaleRuleData>): SaleCreationRequestExt(org.tokend.wallet.xdr.LedgerVersion.ADD_SALE_WHITELISTS) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        saleRules.size.toXdr(stream)
+        saleRules.forEach {
+          it.toXdr(stream)
+        }
+      }
+    }
   }
 }
 
 // === xdr source ============================================================
 
+//  //: UpdateSaleDetailsRequest is used to update details of an existing sale
 //  struct UpdateSaleDetailsRequest {
 //      //: ID of the sale whose details should be updated
 //      uint64 saleID; // ID of sale to update details
@@ -16171,6 +17011,7 @@ open class UpdateSaleDetailsRequest(
 
 // === xdr source ============================================================
 
+//  //: WithdrawalRequest contains details regarding a withdraw
 //  struct WithdrawalRequest {
 //      //: Balance to withdraw from
 //      BalanceID balance; // balance id from which withdrawal will be performed
@@ -16222,6 +17063,7 @@ open class WithdrawalRequest(
 
 // === xdr source ============================================================
 
+//  //: An operation is the lowest unit of work that a transaction does
 //  struct Operation
 //  {
 //      //: sourceAccount is the account used to run the operation
@@ -16309,6 +17151,10 @@ open class WithdrawalRequest(
 //          ManagePollOp managePollOp;
 //      case MANAGE_VOTE:
 //          ManageVoteOp manageVoteOp;
+//      case MANAGE_ACCOUNT_SPECIFIC_RULE:
+//          ManageAccountSpecificRuleOp manageAccountSpecificRuleOp;
+//      case CANCEL_CHANGE_ROLE_REQUEST:
+//          CancelChangeRoleRequestOp cancelChangeRoleRequestOp;
 //      }
 //      body;
 //  };
@@ -16606,6 +17452,20 @@ open class Operation(
         manageVoteOp.toXdr(stream)
       }
     }
+
+    open class ManageAccountSpecificRule(var manageAccountSpecificRuleOp: org.tokend.wallet.xdr.ManageAccountSpecificRuleOp): OperationBody(org.tokend.wallet.xdr.OperationType.MANAGE_ACCOUNT_SPECIFIC_RULE) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        manageAccountSpecificRuleOp.toXdr(stream)
+      }
+    }
+
+    open class CancelChangeRoleRequest(var cancelChangeRoleRequestOp: org.tokend.wallet.xdr.CancelChangeRoleRequestOp): OperationBody(org.tokend.wallet.xdr.OperationType.CANCEL_CHANGE_ROLE_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        cancelChangeRoleRequestOp.toXdr(stream)
+      }
+    }
   }
 }
 
@@ -16712,6 +17572,10 @@ open class TimeBounds(
 
 // === xdr source ============================================================
 
+//  //: Transaction is a container for a set of operations
+//  //:    - is executed by an account
+//  //:    - operations are executed in order as one ACID transaction
+//  //: (either all operations are applied or none are if any returns a failing code)
 //  struct Transaction
 //  {
 //      //: account used to run the transaction
@@ -16840,6 +17704,7 @@ public enum class OperationResultCode(val value: kotlin.Int): XdrEncodable {
 
 // === xdr source ============================================================
 
+//  //: Defines requirements for tx or operation which were not fulfilled
 //  struct AccountRuleRequirement
 //  {
 //  	//: defines resources to which access was denied
@@ -16954,6 +17819,10 @@ open class AccountRuleRequirement(
 //          ManageCreatePollRequestResult manageCreatePollRequestResult;
 //      case MANAGE_VOTE:
 //          ManageVoteResult manageVoteResult;
+//      case MANAGE_ACCOUNT_SPECIFIC_RULE:
+//          ManageAccountSpecificRuleResult manageAccountSpecificRuleResult;
+//      case CANCEL_CHANGE_ROLE_REQUEST:
+//          CancelChangeRoleRequestResult cancelChangeRoleRequestResult;
 //      }
 //      tr;
 //  case opNO_ENTRY:
@@ -17268,6 +18137,20 @@ abstract class OperationResult(val discriminant: org.tokend.wallet.xdr.Operation
         manageVoteResult.toXdr(stream)
       }
     }
+
+    open class ManageAccountSpecificRule(var manageAccountSpecificRuleResult: org.tokend.wallet.xdr.ManageAccountSpecificRuleResult): OperationResultTr(org.tokend.wallet.xdr.OperationType.MANAGE_ACCOUNT_SPECIFIC_RULE) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        manageAccountSpecificRuleResult.toXdr(stream)
+      }
+    }
+
+    open class CancelChangeRoleRequest(var cancelChangeRoleRequestResult: org.tokend.wallet.xdr.CancelChangeRoleRequestResult): OperationResultTr(org.tokend.wallet.xdr.OperationType.CANCEL_CHANGE_ROLE_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        cancelChangeRoleRequestResult.toXdr(stream)
+      }
+    }
   }
 }
 
@@ -17442,15 +18325,36 @@ open class TransactionResult(
 
 // === xdr source ============================================================
 
-//  enum LedgerVersion {
-//  	EMPTY_VERSION = 0,
-//  	CHECK_SET_FEE_ACCOUNT_EXISTING = 1
+//  enum LedgerVersion
+//  {
+//      EMPTY_VERSION = 0,
+//      CHECK_SET_FEE_ACCOUNT_EXISTING = 1,
+//      FIX_PAYMENT_STATS = 2,
+//      ADD_INVEST_FEE = 3,
+//      ADD_SALE_WHITELISTS = 4,
+//      ASSET_PAIR_RESTRICTIONS = 5,
+//      FIX_CHANGE_TO_NON_EXISTING_ROLE = 6,
+//      FIX_REVERSE_SALE_PAIR = 7,
+//      FIX_NOT_CHECKING_SET_TASKS_PERMISSIONS = 8,
+//      UNLIMITED_ADMIN_COUNT = 9,
+//      FIX_AML_ALERT_ERROR_CODES = 10,
+//      FIX_EXT_SYS_ACC_EXPIRATION_TIME = 11
 //  };
 
 //  ===========================================================================
 public enum class LedgerVersion(val value: kotlin.Int): XdrEncodable {
   EMPTY_VERSION(0),
   CHECK_SET_FEE_ACCOUNT_EXISTING(1),
+  FIX_PAYMENT_STATS(2),
+  ADD_INVEST_FEE(3),
+  ADD_SALE_WHITELISTS(4),
+  ASSET_PAIR_RESTRICTIONS(5),
+  FIX_CHANGE_TO_NON_EXISTING_ROLE(6),
+  FIX_REVERSE_SALE_PAIR(7),
+  FIX_NOT_CHECKING_SET_TASKS_PERMISSIONS(8),
+  UNLIMITED_ADMIN_COUNT(9),
+  FIX_AML_ALERT_ERROR_CODES(10),
+  FIX_EXT_SYS_ACC_EXPIRATION_TIME(11),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -17609,7 +18513,8 @@ abstract class PublicKey(val discriminant: org.tokend.wallet.xdr.CryptoKeyType):
 //      STAMP = 32,
 //      LICENSE = 33,
 //      POLL = 34,
-//      VOTE = 35
+//      VOTE = 35,
+//      ACCOUNT_SPECIFIC_RULE = 36
 //  };
 
 //  ===========================================================================
@@ -17647,6 +18552,7 @@ public enum class LedgerEntryType(val value: kotlin.Int): XdrEncodable {
   LICENSE(33),
   POLL(34),
   VOTE(35),
+  ACCOUNT_SPECIFIC_RULE(36),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -17815,6 +18721,7 @@ public typealias DataValue = kotlin.ByteArray
 
 // === xdr source ============================================================
 
+//  //: `Fee` is used to unite fixed and percent fee amounts
 //  struct Fee {
 //      //: Fixed amount to pay for the operation
 //  	uint64 fixed;
@@ -17894,7 +18801,9 @@ open class Fee(
 //      LICENSE = 42,
 //      MANAGE_CREATE_POLL_REQUEST = 43,
 //      MANAGE_POLL = 44,
-//      MANAGE_VOTE = 45
+//      MANAGE_VOTE = 45,
+//      MANAGE_ACCOUNT_SPECIFIC_RULE = 46,
+//      CANCEL_CHANGE_ROLE_REQUEST = 47
 //  };
 
 //  ===========================================================================
@@ -17938,6 +18847,8 @@ public enum class OperationType(val value: kotlin.Int): XdrEncodable {
   MANAGE_CREATE_POLL_REQUEST(43),
   MANAGE_POLL(44),
   MANAGE_VOTE(45),
+  MANAGE_ACCOUNT_SPECIFIC_RULE(46),
+  CANCEL_CHANGE_ROLE_REQUEST(47),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {

@@ -13,7 +13,8 @@ for further information about branching and tagging conventions.
 - Ability to add transaction signers with the `TransactionBuilder`
 
 ### Changed
-- XDR version to `3.1.0`
+- Updated way of XDR generation, check out Readme
+- Updated XDR version to `3.3.0` (`c8561fd`)
 
 ## [3.0.1] 2019-02-28
 
