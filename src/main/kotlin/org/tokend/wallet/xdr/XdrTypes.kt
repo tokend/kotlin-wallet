@@ -788,11 +788,14 @@ open class AssetEntry(
 
 // === xdr source ============================================================
 
-//  struct ASwapBidQuoteAsset
+//  //: AtomicSwapAskQuoteAsset represents asset with price which can be used to buy base asset
+//  struct AtomicSwapAskQuoteAsset
 //  {
+//      //: Code of quote asset
 //      AssetCode quoteAsset;
+//      //: amount of quote asset which is needed to buy one base asset
 //      uint64 price;
-//  
+//      //: reserved for the future use
 //      union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
@@ -802,10 +805,10 @@ open class AssetEntry(
 //  };
 
 //  ===========================================================================
-open class ASwapBidQuoteAsset(
+open class AtomicSwapAskQuoteAsset(
     var quoteAsset: org.tokend.wallet.xdr.AssetCode,
     var price: org.tokend.wallet.xdr.Uint64,
-    var ext: ASwapBidQuoteAssetExt
+    var ext: AtomicSwapAskQuoteAssetExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -814,20 +817,20 @@ open class ASwapBidQuoteAsset(
     ext.toXdr(stream)
   }
 
-  abstract class ASwapBidQuoteAssetExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class AtomicSwapAskQuoteAssetExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
 
-    open class EmptyVersion: ASwapBidQuoteAssetExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: AtomicSwapAskQuoteAssetExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
   }
 }
 
 // === xdr source ============================================================
 
-//  struct AtomicSwapBidEntry
+//  struct AtomicSwapAskEntry
 //  {
-//      uint64 bidID;
+//      uint64 id;
 //      AccountID ownerID;
 //      AssetCode baseAsset;
 //      BalanceID baseBalance;
@@ -839,7 +842,7 @@ open class ASwapBidQuoteAsset(
 //  
 //      longstring details;
 //  
-//      ASwapBidQuoteAsset quoteAssets<>;
+//      AtomicSwapAskQuoteAsset quoteAssets<>;
 //  
 //      // reserved for future use
 //      union switch (LedgerVersion v)
@@ -851,8 +854,8 @@ open class ASwapBidQuoteAsset(
 //  };
 
 //  ===========================================================================
-open class AtomicSwapBidEntry(
-    var bidID: org.tokend.wallet.xdr.Uint64,
+open class AtomicSwapAskEntry(
+    var id: org.tokend.wallet.xdr.Uint64,
     var ownerID: org.tokend.wallet.xdr.AccountID,
     var baseAsset: org.tokend.wallet.xdr.AssetCode,
     var baseBalance: org.tokend.wallet.xdr.BalanceID,
@@ -861,12 +864,12 @@ open class AtomicSwapBidEntry(
     var createdAt: org.tokend.wallet.xdr.Uint64,
     var isCancelled: kotlin.Boolean,
     var details: org.tokend.wallet.xdr.Longstring,
-    var quoteAssets: kotlin.Array<org.tokend.wallet.xdr.ASwapBidQuoteAsset>,
-    var ext: AtomicSwapBidEntryExt
+    var quoteAssets: kotlin.Array<org.tokend.wallet.xdr.AtomicSwapAskQuoteAsset>,
+    var ext: AtomicSwapAskEntryExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
-    bidID.toXdr(stream)
+    id.toXdr(stream)
     ownerID.toXdr(stream)
     baseAsset.toXdr(stream)
     baseBalance.toXdr(stream)
@@ -882,12 +885,12 @@ open class AtomicSwapBidEntry(
     ext.toXdr(stream)
   }
 
-  abstract class AtomicSwapBidEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class AtomicSwapAskEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
 
-    open class EmptyVersion: AtomicSwapBidEntryExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: AtomicSwapAskEntryExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -1844,8 +1847,9 @@ open class ReferenceEntry(
 //  	MANAGE_CONTRACT = 12,
 //  	UPDATE_ASSET = 13,
 //  	CREATE_POLL = 14,
-//  	CREATE_ATOMIC_SWAP_BID = 16,
-//  	CREATE_ATOMIC_SWAP = 17
+//  	CREATE_ATOMIC_SWAP_ASK = 16,
+//  	CREATE_ATOMIC_SWAP_BID = 17,
+//  	KYC_RECOVERY = 18
 //  };
 
 //  ===========================================================================
@@ -1865,8 +1869,9 @@ public enum class ReviewableRequestType(val value: kotlin.Int): XdrEncodable {
   MANAGE_CONTRACT(12),
   UPDATE_ASSET(13),
   CREATE_POLL(14),
-  CREATE_ATOMIC_SWAP_BID(16),
-  CREATE_ATOMIC_SWAP(17),
+  CREATE_ATOMIC_SWAP_ASK(16),
+  CREATE_ATOMIC_SWAP_BID(17),
+  KYC_RECOVERY(18),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -1956,12 +1961,14 @@ open class TasksExt(
 //              InvoiceRequest invoiceRequest;
 //          case MANAGE_CONTRACT:
 //              ContractRequest contractRequest;
+//          case CREATE_ATOMIC_SWAP_ASK:
+//              CreateAtomicSwapAskRequest createAtomicSwapAskRequest;
 //          case CREATE_ATOMIC_SWAP_BID:
-//              ASwapBidCreationRequest aSwapBidCreationRequest;
-//          case CREATE_ATOMIC_SWAP:
-//              ASwapRequest aSwapRequest;
+//              CreateAtomicSwapBidRequest createAtomicSwapBidRequest;
 //          case CREATE_POLL:
 //              CreatePollRequest createPollRequest;
+//          case KYC_RECOVERY:
+//              KYCRecoveryRequest kycRecoveryRequest;
 //  	} body;
 //  
 //  	TasksExt tasks;
@@ -2096,17 +2103,17 @@ open class ReviewableRequestEntry(
       }
     }
 
-    open class CreateAtomicSwapBid(var aSwapBidCreationRequest: org.tokend.wallet.xdr.ASwapBidCreationRequest): ReviewableRequestEntryBody(org.tokend.wallet.xdr.ReviewableRequestType.CREATE_ATOMIC_SWAP_BID) {
+    open class CreateAtomicSwapAsk(var createAtomicSwapAskRequest: org.tokend.wallet.xdr.CreateAtomicSwapAskRequest): ReviewableRequestEntryBody(org.tokend.wallet.xdr.ReviewableRequestType.CREATE_ATOMIC_SWAP_ASK) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
-        aSwapBidCreationRequest.toXdr(stream)
+        createAtomicSwapAskRequest.toXdr(stream)
       }
     }
 
-    open class CreateAtomicSwap(var aSwapRequest: org.tokend.wallet.xdr.ASwapRequest): ReviewableRequestEntryBody(org.tokend.wallet.xdr.ReviewableRequestType.CREATE_ATOMIC_SWAP) {
+    open class CreateAtomicSwapBid(var createAtomicSwapBidRequest: org.tokend.wallet.xdr.CreateAtomicSwapBidRequest): ReviewableRequestEntryBody(org.tokend.wallet.xdr.ReviewableRequestType.CREATE_ATOMIC_SWAP_BID) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
-        aSwapRequest.toXdr(stream)
+        createAtomicSwapBidRequest.toXdr(stream)
       }
     }
 
@@ -2114,6 +2121,13 @@ open class ReviewableRequestEntry(
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         createPollRequest.toXdr(stream)
+      }
+    }
+
+    open class KycRecovery(var kycRecoveryRequest: org.tokend.wallet.xdr.KYCRecoveryRequest): ReviewableRequestEntryBody(org.tokend.wallet.xdr.ReviewableRequestType.KYC_RECOVERY) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        kycRecoveryRequest.toXdr(stream)
       }
     }
   }
@@ -2856,8 +2870,8 @@ public enum class ThresholdIndexes(val value: kotlin.Int): XdrEncodable {
 //          PendingStatisticsEntry pendingStatistics;
 //      case CONTRACT:
 //          ContractEntry contract;
-//      case ATOMIC_SWAP_BID:
-//          AtomicSwapBidEntry atomicSwapBid;
+//      case ATOMIC_SWAP_ASK:
+//          AtomicSwapAskEntry atomicSwapAsk;
 //      case ACCOUNT_ROLE:
 //          AccountRoleEntry accountRole;
 //      case ACCOUNT_RULE:
@@ -3046,10 +3060,10 @@ open class LedgerEntry(
       }
     }
 
-    open class AtomicSwapBid(var atomicSwapBid: org.tokend.wallet.xdr.AtomicSwapBidEntry): LedgerEntryData(org.tokend.wallet.xdr.LedgerEntryType.ATOMIC_SWAP_BID) {
+    open class AtomicSwapAsk(var atomicSwapAsk: org.tokend.wallet.xdr.AtomicSwapAskEntry): LedgerEntryData(org.tokend.wallet.xdr.LedgerEntryType.ATOMIC_SWAP_ASK) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
-        atomicSwapBid.toXdr(stream)
+        atomicSwapAsk.toXdr(stream)
       }
     }
 
@@ -3357,16 +3371,16 @@ public enum class EnvelopeType(val value: kotlin.Int): XdrEncodable {
 //          }
 //          ext;
 //      } contract;
-//  case ATOMIC_SWAP_BID:
+//  case ATOMIC_SWAP_ASK:
 //      struct {
-//          uint64 bidID;
+//          uint64 id;
 //          union switch (LedgerVersion v)
 //          {
 //          case EMPTY_VERSION:
 //              void;
 //          }
 //          ext;
-//      } atomicSwapBid;
+//      } atomicSwapAsk;
 //  case ACCOUNT_ROLE:
 //      struct {
 //          uint64 id;
@@ -3594,10 +3608,10 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
     }
   }
 
-  open class AtomicSwapBid(var atomicSwapBid: LedgerKeyAtomicSwapBid): LedgerKey(org.tokend.wallet.xdr.LedgerEntryType.ATOMIC_SWAP_BID) {
+  open class AtomicSwapAsk(var atomicSwapAsk: LedgerKeyAtomicSwapAsk): LedgerKey(org.tokend.wallet.xdr.LedgerEntryType.ATOMIC_SWAP_ASK) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
-      atomicSwapBid.toXdr(stream)
+      atomicSwapAsk.toXdr(stream)
     }
   }
 
@@ -4030,22 +4044,22 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
       open class EmptyVersion: LedgerKeyContractExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
     }
   }
-  open class LedgerKeyAtomicSwapBid(
-      var bidID: org.tokend.wallet.xdr.Uint64,
-      var ext: LedgerKeyAtomicSwapBidExt
+  open class LedgerKeyAtomicSwapAsk(
+      var id: org.tokend.wallet.xdr.Uint64,
+      var ext: LedgerKeyAtomicSwapAskExt
     ) : XdrEncodable {
 
     override fun toXdr(stream: XdrDataOutputStream) {
-      bidID.toXdr(stream)
+      id.toXdr(stream)
       ext.toXdr(stream)
     }
 
-    abstract class LedgerKeyAtomicSwapBidExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class LedgerKeyAtomicSwapAskExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
 
-      open class EmptyVersion: LedgerKeyAtomicSwapBidExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+      open class EmptyVersion: LedgerKeyAtomicSwapAskExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
     }
   }
   open class LedgerKeyAccountRole(
@@ -4966,11 +4980,13 @@ abstract class BindExternalSystemAccountIdResult(val discriminant: org.tokend.wa
 
 // === xdr source ============================================================
 
-//  struct CancelASwapBidOp
+//  //: CancelAtomicSwapAskOp is used to cancel existing atomic swap ask
+//  struct CancelAtomicSwapAskOp
 //  {
-//      uint64 bidID;
+//      //: id of existing atomic swap ask
+//      uint64 askID;
 //  
-//      // reserved for future use
+//      //: reserved for future use
 //      union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
@@ -4979,39 +4995,42 @@ abstract class BindExternalSystemAccountIdResult(val discriminant: org.tokend.wa
 //  };
 
 //  ===========================================================================
-open class CancelASwapBidOp(
-    var bidID: org.tokend.wallet.xdr.Uint64,
-    var ext: CancelASwapBidOpExt
+open class CancelAtomicSwapAskOp(
+    var askID: org.tokend.wallet.xdr.Uint64,
+    var ext: CancelAtomicSwapAskOpExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
-    bidID.toXdr(stream)
+    askID.toXdr(stream)
     ext.toXdr(stream)
   }
 
-  abstract class CancelASwapBidOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CancelAtomicSwapAskOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
 
-    open class EmptyVersion: CancelASwapBidOpExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: CancelAtomicSwapAskOpExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
   }
 }
 
 // === xdr source ============================================================
 
-//  enum CancelASwapBidResultCode
+//  //: Result codes of CancelAtomicSwapAskOp
+//  enum CancelAtomicSwapAskResultCode
 //  {
-//      // codes considered as "success" for the operation
+//      //: Atomic swap ask was successfully removed or marked as canceled
 //      SUCCESS = 0,
 //  
 //      // codes considered as "failure" for the operation
+//      //: There is no atomic swap ask with such id
 //      NOT_FOUND = -1, // atomic swap bid does not exist
-//      ALREADY_CANCELLED = -2 // atomic swap bid already cancelled
+//      //: Not allowed to mark canceled atomic swap ask as canceled
+//      ALREADY_CANCELLED = -2 // atomic swap ask already cancelled
 //  };
 
 //  ===========================================================================
-public enum class CancelASwapBidResultCode(val value: kotlin.Int): XdrEncodable {
+public enum class CancelAtomicSwapAskResultCode(val value: kotlin.Int): XdrEncodable {
   SUCCESS(0),
   NOT_FOUND(-1),
   ALREADY_CANCELLED(-2),
@@ -5024,8 +5043,14 @@ public enum class CancelASwapBidResultCode(val value: kotlin.Int): XdrEncodable 
 
 // === xdr source ============================================================
 
-//  struct CancelASwapBidResultSuccess
+//  //: Success result of CancelASwapAskOp application
+//  struct CancelAtomicSwapAskResultSuccess
 //  {
+//      //: Sum of `CREATE_ATOMIC_SWAP_BID` requests' base amounts which are waiting for applying.
+//      //: Zero means that ask successfully removed
+//      uint64 lockedAmount;
+//  
+//      //: reserved for the future use
 //      union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
@@ -5034,40 +5059,44 @@ public enum class CancelASwapBidResultCode(val value: kotlin.Int): XdrEncodable 
 //  };
 
 //  ===========================================================================
-open class CancelASwapBidResultSuccess(
-    var ext: CancelASwapBidResultSuccessExt
+open class CancelAtomicSwapAskResultSuccess(
+    var lockedAmount: org.tokend.wallet.xdr.Uint64,
+    var ext: CancelAtomicSwapAskResultSuccessExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
+    lockedAmount.toXdr(stream)
     ext.toXdr(stream)
   }
 
-  abstract class CancelASwapBidResultSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CancelAtomicSwapAskResultSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
 
-    open class EmptyVersion: CancelASwapBidResultSuccessExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: CancelAtomicSwapAskResultSuccessExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
   }
 }
 
 // === xdr source ============================================================
 
-//  union CancelASwapBidResult switch (CancelASwapBidResultCode code)
+//  //: Result of CancelASwapAskOp application
+//  union CancelAtomicSwapAskResult switch (CancelAtomicSwapAskResultCode code)
 //  {
 //  case SUCCESS:
-//      CancelASwapBidResultSuccess success;
+//      //: is used to pass useful fields after successful operation applying
+//      CancelAtomicSwapAskResultSuccess success;
 //  default:
 //      void;
 //  };
 
 //  ===========================================================================
-abstract class CancelASwapBidResult(val discriminant: org.tokend.wallet.xdr.CancelASwapBidResultCode): XdrEncodable {
+abstract class CancelAtomicSwapAskResult(val discriminant: org.tokend.wallet.xdr.CancelAtomicSwapAskResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
 
-  open class Success(var success: org.tokend.wallet.xdr.CancelASwapBidResultSuccess): CancelASwapBidResult(org.tokend.wallet.xdr.CancelASwapBidResultCode.SUCCESS) {
+  open class Success(var success: org.tokend.wallet.xdr.CancelAtomicSwapAskResultSuccess): CancelAtomicSwapAskResult(org.tokend.wallet.xdr.CancelAtomicSwapAskResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
@@ -6011,10 +6040,16 @@ abstract class CreateAccountResult(val discriminant: org.tokend.wallet.xdr.Creat
 
 // === xdr source ============================================================
 
-//  struct CreateASwapBidCreationRequestOp
+//  //: CreateAtomicSwapAskRequestOp is used to create `CREATE_ATOMIC_SWAP_ASK` request
+//  struct CreateAtomicSwapAskRequestOp
 //  {
-//      ASwapBidCreationRequest request;
+//      //: Body of request which will be created
+//      CreateAtomicSwapAskRequest request;
 //  
+//      //: (optional) Bit mask whose flags must be cleared in order for `CREATE_ATOMIC_SWAP_BID` request to be approved,
+//      //: which will be used instead of key-value by `atomic_swap_bid_tasks` key
+//      uint32* allTasks;
+//      //: reserved for the future use
 //      union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
@@ -6024,55 +6059,78 @@ abstract class CreateAccountResult(val discriminant: org.tokend.wallet.xdr.Creat
 //  };
 
 //  ===========================================================================
-open class CreateASwapBidCreationRequestOp(
-    var request: org.tokend.wallet.xdr.ASwapBidCreationRequest,
-    var ext: CreateASwapBidCreationRequestOpExt
+open class CreateAtomicSwapAskRequestOp(
+    var request: org.tokend.wallet.xdr.CreateAtomicSwapAskRequest,
+    var allTasks: org.tokend.wallet.xdr.Uint32?,
+    var ext: CreateAtomicSwapAskRequestOpExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
     request.toXdr(stream)
+    if (allTasks != null) {
+      true.toXdr(stream)
+      allTasks?.toXdr(stream)
+    } else {
+      false.toXdr(stream)
+    }
     ext.toXdr(stream)
   }
 
-  abstract class CreateASwapBidCreationRequestOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateAtomicSwapAskRequestOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
 
-    open class EmptyVersion: CreateASwapBidCreationRequestOpExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: CreateAtomicSwapAskRequestOpExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
   }
 }
 
 // === xdr source ============================================================
 
-//  enum CreateASwapBidCreationRequestResultCode
+//  //: Result codes of CreateAtomicSwapBidRequestOp
+//  enum CreateAtomicSwapAskRequestResultCode
 //  {
-//      // codes considered as "success" for the operation
+//      //: `CREATE_ATOMIC_SWAP_BID` request has either been successfully created
+//      //: or auto approved
 //      SUCCESS = 0,
 //  
 //      // codes considered as "failure" for the operation
+//      //: Not allowed to create atomic swap bid with zero amount
 //      INVALID_AMOUNT = -1, // amount is equal to 0
+//      //: Not allowed to create atomic swap bid with quote asset price equals zero
 //      INVALID_PRICE = -2, // price is equal to 0
+//      //: Not allowed to create atomic swap bid with json invalid details
 //      INVALID_DETAILS = -3,
-//      ATOMIC_SWAP_BID_OVERFLOW = -4,
+//      //: Not allowed to create atomic swap bid in which product of baseAmount precision does not matched precision of base asset
+//      INCORRECT_PRECISION = -4,
+//      //: There is no asset with such code
 //      BASE_ASSET_NOT_FOUND = -5, // base asset does not exist
+//      //: Not allowed to use asset as base asset for atomic swap bid which has not `CAN_BE_BASE_IN_ATOMIC_SWAP` policy
 //      BASE_ASSET_CANNOT_BE_SWAPPED = -6,
+//      //: There is no asset with such code
 //      QUOTE_ASSET_NOT_FOUND = -7, // quote asset does not exist
+//      //: Not allowed to use asset as base asset for atomic swap bid which has not `CAN_BE_QUOTE_IN_ATOMIC_SWAP` policy
 //      QUOTE_ASSET_CANNOT_BE_SWAPPED = -8,
+//      //: There is no balance with such id and source account as owner
 //      BASE_BALANCE_NOT_FOUND = -9,
+//      //: Not allowed to create atomic swap bid in which base and quote assets are the same
 //      ASSETS_ARE_EQUAL = -10, // base and quote assets are the same
+//      //: There is not enough amount on `baseBalance` or `baseAmount` precision does not fit asset precision
 //      BASE_BALANCE_UNDERFUNDED = -11,
+//      //: Not allowed to pass invalid or duplicated quote asset codes
 //      INVALID_QUOTE_ASSET = -12, // one of the quote assets is invalid
-//      NOT_ALLOWED_BY_ASSET_POLICY = -13
+//      //: There is no key-value entry by `atomic_swap_ask_tasks` key in the system;
+//      //: configuration does not allow create atomic swap asks
+//      ATOMIC_SWAP_ASK_TASKS_NOT_FOUND = -13
 //  };
 
 //  ===========================================================================
-public enum class CreateASwapBidCreationRequestResultCode(val value: kotlin.Int): XdrEncodable {
+public enum class CreateAtomicSwapAskRequestResultCode(val value: kotlin.Int): XdrEncodable {
   SUCCESS(0),
   INVALID_AMOUNT(-1),
   INVALID_PRICE(-2),
   INVALID_DETAILS(-3),
-  ATOMIC_SWAP_BID_OVERFLOW(-4),
+  INCORRECT_PRECISION(-4),
   BASE_ASSET_NOT_FOUND(-5),
   BASE_ASSET_CANNOT_BE_SWAPPED(-6),
   QUOTE_ASSET_NOT_FOUND(-7),
@@ -6081,7 +6139,7 @@ public enum class CreateASwapBidCreationRequestResultCode(val value: kotlin.Int)
   ASSETS_ARE_EQUAL(-10),
   BASE_BALANCE_UNDERFUNDED(-11),
   INVALID_QUOTE_ASSET(-12),
-  NOT_ALLOWED_BY_ASSET_POLICY(-13),
+  ATOMIC_SWAP_ASK_TASKS_NOT_FOUND(-13),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -6091,11 +6149,17 @@ public enum class CreateASwapBidCreationRequestResultCode(val value: kotlin.Int)
 
 // === xdr source ============================================================
 
-//  struct CreateASwapBidCreationRequestSuccess
+//  //: Success result of CreateASwapAskCreationRequestOp application
+//  struct CreateAtomicSwapAskRequestSuccess
 //  {
+//      //: id of created request
 //      uint64 requestID;
+//      //: Indicates whether or not the `CREATE_ATOMIC_SWAP_ASK` request was auto approved and fulfilled
 //      bool fulfilled;
+//      //: ID of a newly created ask (if the ask  creation request has been auto approved)
+//      uint64 askID;
 //  
+//      //: reserved for the future use
 //      union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
@@ -6104,44 +6168,48 @@ public enum class CreateASwapBidCreationRequestResultCode(val value: kotlin.Int)
 //  };
 
 //  ===========================================================================
-open class CreateASwapBidCreationRequestSuccess(
+open class CreateAtomicSwapAskRequestSuccess(
     var requestID: org.tokend.wallet.xdr.Uint64,
     var fulfilled: kotlin.Boolean,
-    var ext: CreateASwapBidCreationRequestSuccessExt
+    var askID: org.tokend.wallet.xdr.Uint64,
+    var ext: CreateAtomicSwapAskRequestSuccessExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
     requestID.toXdr(stream)
     fulfilled.toXdr(stream)
+    askID.toXdr(stream)
     ext.toXdr(stream)
   }
 
-  abstract class CreateASwapBidCreationRequestSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateAtomicSwapAskRequestSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
 
-    open class EmptyVersion: CreateASwapBidCreationRequestSuccessExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: CreateAtomicSwapAskRequestSuccessExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
   }
 }
 
 // === xdr source ============================================================
 
-//  union CreateASwapBidCreationRequestResult switch (CreateASwapBidCreationRequestResultCode code)
+//  //: Result of CreateAtomicSwapAskRequestOp application
+//  union CreateAtomicSwapAskRequestResult switch (CreateAtomicSwapAskRequestResultCode code)
 //  {
 //  case SUCCESS:
-//      CreateASwapBidCreationRequestSuccess success;
+//      //: is used to pass useful fields after successful operation applying
+//      CreateAtomicSwapAskRequestSuccess success;
 //  default:
 //      void;
 //  };
 
 //  ===========================================================================
-abstract class CreateASwapBidCreationRequestResult(val discriminant: org.tokend.wallet.xdr.CreateASwapBidCreationRequestResultCode): XdrEncodable {
+abstract class CreateAtomicSwapAskRequestResult(val discriminant: org.tokend.wallet.xdr.CreateAtomicSwapAskRequestResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
 
-  open class Success(var success: org.tokend.wallet.xdr.CreateASwapBidCreationRequestSuccess): CreateASwapBidCreationRequestResult(org.tokend.wallet.xdr.CreateASwapBidCreationRequestResultCode.SUCCESS) {
+  open class Success(var success: org.tokend.wallet.xdr.CreateAtomicSwapAskRequestSuccess): CreateAtomicSwapAskRequestResult(org.tokend.wallet.xdr.CreateAtomicSwapAskRequestResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
@@ -6151,10 +6219,13 @@ abstract class CreateASwapBidCreationRequestResult(val discriminant: org.tokend.
 
 // === xdr source ============================================================
 
-//  struct CreateASwapRequestOp
+//  //: CreateAtomicSwapBidRequestOp is used to create `CREATE_ATOMIC_SWAP_BID` request
+//  struct CreateAtomicSwapBidRequestOp
 //  {
-//      ASwapRequest request;
+//      //: Body of request which will be created
+//      CreateAtomicSwapBidRequest request;
 //  
+//      //: reserved for the future use
 //      union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
@@ -6163,9 +6234,9 @@ abstract class CreateASwapBidCreationRequestResult(val discriminant: org.tokend.
 //  };
 
 //  ===========================================================================
-open class CreateASwapRequestOp(
-    var request: org.tokend.wallet.xdr.ASwapRequest,
-    var ext: CreateASwapRequestOpExt
+open class CreateAtomicSwapBidRequestOp(
+    var request: org.tokend.wallet.xdr.CreateAtomicSwapBidRequest,
+    var ext: CreateAtomicSwapBidRequestOpExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -6173,46 +6244,63 @@ open class CreateASwapRequestOp(
     ext.toXdr(stream)
   }
 
-  abstract class CreateASwapRequestOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateAtomicSwapBidRequestOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
 
-    open class EmptyVersion: CreateASwapRequestOpExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: CreateAtomicSwapBidRequestOpExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
   }
 }
 
 // === xdr source ============================================================
 
-//  enum CreateASwapRequestResultCode
+//  //: Result codes of CreateAtomicSwapBidRequestOp
+//  enum CreateAtomicSwapBidRequestResultCode
 //  {
-//      // codes considered as "success" for the operation
+//      //: request was successfully created
 //      SUCCESS = 0,
 //  
 //      // codes considered as "failure" for the operation
+//      //: Not allowed to create `CREATE_ATOMIC_SWAP` request with zero base amount
 //      INVALID_BASE_AMOUNT = -1,
+//      //: Not allowed to pass invalid quote asset code
 //      INVALID_QUOTE_ASSET = -2,
-//      BID_NOT_FOUND = -3,
+//      //: There is no atomic swap bid with such id
+//      ASK_NOT_FOUND = -3,
+//      //: There is no quote asset with such code
 //      QUOTE_ASSET_NOT_FOUND = -4,
-//      BID_UNDERFUNDED = -5, // bid has not enough base amount available for lock
-//      ATOMIC_SWAP_TASKS_NOT_FOUND = -6,
-//      NOT_ALLOWED_BY_ASSET_POLICY = -7,
-//      BID_IS_CANCELLED = -8,
-//      CANNOT_CREATE_ASWAP_REQUEST_FOR_OWN_BID = -9
+//      //: Not allowed to create `CREATE_ATOMIC_SWAP_BID` request with amount which exceeds available amount of atomic swap ask
+//      ASK_UNDERFUNDED = -5, // ask has not enough base amount available for lock
+//      //: There is no key-value entry by `atomic_swap_bid_tasks` key in the system;
+//      //: configuration does not allow create `CREATE_ATOMIC_SWAP_BID` request
+//      ATOMIC_SWAP_BID_TASKS_NOT_FOUND = -6,
+//      //: Base amount precision and asset precision are mismatched
+//      INCORRECT_PRECISION = -7,
+//      //: Not allowed to create `CREATE_ATOMIC_SWAP_BID` request for atomic swap ask which is marked as `canceled`
+//      ASK_IS_CANCELLED = -8,
+//      //: Not allowed to create `CREATE_ATOMIC_SWAP_BID` request for own atomic swap ask
+//      SOURCE_ACCOUNT_EQUALS_ASK_OWNER = -9,
+//      //: 0 value is received from key value entry by `atomic_swap_bid_tasks` key
+//      ATOMIC_SWAP_BID_ZERO_TASKS_NOT_ALLOWED = -10,
+//      //: Not allowed to create atomic swap ask in which product of `baseAmount` and price of the `quoteAsset` exceeds MAX_INT64 value
+//      QUOTE_AMOUNT_OVERFLOWS = -11
 //  };
 
 //  ===========================================================================
-public enum class CreateASwapRequestResultCode(val value: kotlin.Int): XdrEncodable {
+public enum class CreateAtomicSwapBidRequestResultCode(val value: kotlin.Int): XdrEncodable {
   SUCCESS(0),
   INVALID_BASE_AMOUNT(-1),
   INVALID_QUOTE_ASSET(-2),
-  BID_NOT_FOUND(-3),
+  ASK_NOT_FOUND(-3),
   QUOTE_ASSET_NOT_FOUND(-4),
-  BID_UNDERFUNDED(-5),
-  ATOMIC_SWAP_TASKS_NOT_FOUND(-6),
-  NOT_ALLOWED_BY_ASSET_POLICY(-7),
-  BID_IS_CANCELLED(-8),
-  CANNOT_CREATE_ASWAP_REQUEST_FOR_OWN_BID(-9),
+  ASK_UNDERFUNDED(-5),
+  ATOMIC_SWAP_BID_TASKS_NOT_FOUND(-6),
+  INCORRECT_PRECISION(-7),
+  ASK_IS_CANCELLED(-8),
+  SOURCE_ACCOUNT_EQUALS_ASK_OWNER(-9),
+  ATOMIC_SWAP_BID_ZERO_TASKS_NOT_ALLOWED(-10),
+  QUOTE_AMOUNT_OVERFLOWS(-11),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -6222,11 +6310,17 @@ public enum class CreateASwapRequestResultCode(val value: kotlin.Int): XdrEncoda
 
 // === xdr source ============================================================
 
-//  struct CreateASwapRequestSuccess
+//  //: Success request of CreateAtomicSwapBidRequestOp application
+//  struct CreateAtomicSwapBidRequestSuccess
 //  {
+//      //: id of created request
 //      uint64 requestID;
-//      AccountID bidOwnerID;
+//      //: id of ask owner
+//      AccountID askOwnerID;
+//      //: amount in quote asset which required for request applying
+//      uint64 quoteAmount;
 //  
+//      //: reserved for the future use
 //      union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
@@ -6235,44 +6329,48 @@ public enum class CreateASwapRequestResultCode(val value: kotlin.Int): XdrEncoda
 //  };
 
 //  ===========================================================================
-open class CreateASwapRequestSuccess(
+open class CreateAtomicSwapBidRequestSuccess(
     var requestID: org.tokend.wallet.xdr.Uint64,
-    var bidOwnerID: org.tokend.wallet.xdr.AccountID,
-    var ext: CreateASwapRequestSuccessExt
+    var askOwnerID: org.tokend.wallet.xdr.AccountID,
+    var quoteAmount: org.tokend.wallet.xdr.Uint64,
+    var ext: CreateAtomicSwapBidRequestSuccessExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
     requestID.toXdr(stream)
-    bidOwnerID.toXdr(stream)
+    askOwnerID.toXdr(stream)
+    quoteAmount.toXdr(stream)
     ext.toXdr(stream)
   }
 
-  abstract class CreateASwapRequestSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateAtomicSwapBidRequestSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
 
-    open class EmptyVersion: CreateASwapRequestSuccessExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: CreateAtomicSwapBidRequestSuccessExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
   }
 }
 
 // === xdr source ============================================================
 
-//  union CreateASwapRequestResult switch (CreateASwapRequestResultCode code)
+//  //: Result of CreateAtomicSwapBidRequestOp application
+//  union CreateAtomicSwapBidRequestResult switch (CreateAtomicSwapBidRequestResultCode code)
 //  {
 //  case SUCCESS:
-//      CreateASwapRequestSuccess success;
+//      //: is used to pass useful fields after successful operation applying
+//      CreateAtomicSwapBidRequestSuccess success;
 //  default:
 //      void;
 //  };
 
 //  ===========================================================================
-abstract class CreateASwapRequestResult(val discriminant: org.tokend.wallet.xdr.CreateASwapRequestResultCode): XdrEncodable {
+abstract class CreateAtomicSwapBidRequestResult(val discriminant: org.tokend.wallet.xdr.CreateAtomicSwapBidRequestResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
 
-  open class Success(var success: org.tokend.wallet.xdr.CreateASwapRequestSuccess): CreateASwapRequestResult(org.tokend.wallet.xdr.CreateASwapRequestResultCode.SUCCESS) {
+  open class Success(var success: org.tokend.wallet.xdr.CreateAtomicSwapBidRequestSuccess): CreateAtomicSwapBidRequestResult(org.tokend.wallet.xdr.CreateAtomicSwapBidRequestResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
@@ -6633,6 +6731,189 @@ abstract class CreateIssuanceRequestResult(val discriminant: org.tokend.wallet.x
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
+    }
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: CreateKYCRecoveryRequestOp to create KYC recovery request and set new signers for account
+//  struct CreateKYCRecoveryRequestOp
+//  {
+//      //: ID of a reviewable request. If set 0, request is created, else - request is updated
+//      uint64 requestID;
+//      //: Account for which signers will be set
+//      AccountID targetAccount;
+//      //: New signers to set
+//      UpdateSignerData signersData<>;
+//  
+//       //: Arbitrary stringified json object that can be used to attach data to be reviewed by an admin
+//      longstring creatorDetails; // details set by requester
+//  
+//      //: (optional) Bit mask whose flags must be cleared in order for KYC recovery request to be approved, which will be used by key `create_kyc_recovery_tasks`
+//      //: instead of key-value
+//      uint32* allTasks;
+//  
+//      //: reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      } ext;
+//  };
+
+//  ===========================================================================
+open class CreateKYCRecoveryRequestOp(
+    var requestID: org.tokend.wallet.xdr.Uint64,
+    var targetAccount: org.tokend.wallet.xdr.AccountID,
+    var signersData: kotlin.Array<org.tokend.wallet.xdr.UpdateSignerData>,
+    var creatorDetails: org.tokend.wallet.xdr.Longstring,
+    var allTasks: org.tokend.wallet.xdr.Uint32?,
+    var ext: CreateKYCRecoveryRequestOpExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    requestID.toXdr(stream)
+    targetAccount.toXdr(stream)
+    signersData.size.toXdr(stream)
+    signersData.forEach {
+      it.toXdr(stream)
+    }
+    creatorDetails.toXdr(stream)
+    if (allTasks != null) {
+      true.toXdr(stream)
+      allTasks?.toXdr(stream)
+    } else {
+      false.toXdr(stream)
+    }
+    ext.toXdr(stream)
+  }
+
+  abstract class CreateKYCRecoveryRequestOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: CreateKYCRecoveryRequestOpExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Result codes of CreateKYCRecoveryRequestOp
+//  enum CreateKYCRecoveryRequestResultCode
+//  {
+//      //: KYC Recovery request was successfully created
+//      SUCCESS = 0,
+//  
+//      //: Creator details are not in a valid JSON format
+//      INVALID_CREATOR_DETAILS = -1,
+//      //: KYC recovery tasks are not set in the system
+//      KYC_RECOVERY_TASKS_NOT_FOUND = -2,
+//      //: Not allowed to provide empty slice of signers
+//      NO_SIGNER_DATA = -3,
+//      //: SignerData contains duplicates
+//      SIGNER_DUPLICATION = -4,
+//      //: Signer has weight > threshold
+//      INVALID_WEIGHT = -5,
+//      //: Signer has invalid details
+//      INVALID_DETAILS = -6,
+//      //: Request with provided parameters already exists
+//      REQUEST_ALREADY_EXISTS = -7,
+//      //: Account with provided account address does not exist
+//      TARGET_ACCOUNT_NOT_FOUND = -8,
+//      //: System configuration forbids KYC recovery
+//      RECOVERY_NOT_ALLOWED = -10,
+//      //: Only target account can update request
+//      NOT_ALLOWED_TO_UPDATE_REQUEST = -11,
+//      //: There is no request with such ID
+//      REQUEST_NOT_FOUND = -12,
+//      //: It is forbidden to change target account on update
+//      INVALID_UPDATE_DATA = -13,
+//      //: It is forbidden to set `allTasks` on update
+//      NOT_ALLOWED_TO_SET_TASKS_ON_UPDATE = -14
+//  };
+
+//  ===========================================================================
+public enum class CreateKYCRecoveryRequestResultCode(val value: kotlin.Int): XdrEncodable {
+  SUCCESS(0),
+  INVALID_CREATOR_DETAILS(-1),
+  KYC_RECOVERY_TASKS_NOT_FOUND(-2),
+  NO_SIGNER_DATA(-3),
+  SIGNER_DUPLICATION(-4),
+  INVALID_WEIGHT(-5),
+  INVALID_DETAILS(-6),
+  REQUEST_ALREADY_EXISTS(-7),
+  TARGET_ACCOUNT_NOT_FOUND(-8),
+  RECOVERY_NOT_ALLOWED(-10),
+  NOT_ALLOWED_TO_UPDATE_REQUEST(-11),
+  REQUEST_NOT_FOUND(-12),
+  INVALID_UPDATE_DATA(-13),
+  NOT_ALLOWED_TO_SET_TASKS_ON_UPDATE(-14),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Result of operation applying
+//  union CreateKYCRecoveryRequestResult switch (CreateKYCRecoveryRequestResultCode code)
+//  {
+//  case SUCCESS:
+//      //: Is used to pass useful params if operation is success
+//      struct {
+//          //: id of the created request
+//          uint64 requestID;
+//  
+//          //: Indicates whether or not the KYC Recovery request was auto approved and fulfilled
+//          bool fulfilled;
+//  
+//          //: reserved for future use
+//          union switch (LedgerVersion v)
+//          {
+//          case EMPTY_VERSION:
+//              void;
+//          }
+//          ext;
+//      } success;
+//  default:
+//      void;
+//  };
+
+//  ===========================================================================
+abstract class CreateKYCRecoveryRequestResult(val discriminant: org.tokend.wallet.xdr.CreateKYCRecoveryRequestResultCode): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  open class Success(var success: CreateKYCRecoveryRequestResultSuccess): CreateKYCRecoveryRequestResult(org.tokend.wallet.xdr.CreateKYCRecoveryRequestResultCode.SUCCESS) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      success.toXdr(stream)
+    }
+  }
+
+  open class CreateKYCRecoveryRequestResultSuccess(
+      var requestID: org.tokend.wallet.xdr.Uint64,
+      var fulfilled: kotlin.Boolean,
+      var ext: CreateKYCRecoveryRequestResultSuccessExt
+    ) : XdrEncodable {
+
+    override fun toXdr(stream: XdrDataOutputStream) {
+      requestID.toXdr(stream)
+      fulfilled.toXdr(stream)
+      ext.toXdr(stream)
+    }
+
+    abstract class CreateKYCRecoveryRequestResultSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+      override fun toXdr(stream: XdrDataOutputStream) {
+          discriminant.toXdr(stream)
+      }
+
+      open class EmptyVersion: CreateKYCRecoveryRequestResultSuccessExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
     }
   }
 }
@@ -7379,6 +7660,122 @@ abstract class CreateWithdrawalRequestResult(val discriminant: org.tokend.wallet
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
+    }
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: InitiateKYCRecoveryOp is used to start KYC recovery process
+//  struct InitiateKYCRecoveryOp
+//  {
+//      //: Address of account to be recovered
+//      AccountID account;
+//      //: New signer to set
+//      PublicKey signer;
+//  
+//      //: reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      } ext;
+//  };
+
+//  ===========================================================================
+open class InitiateKYCRecoveryOp(
+    var account: org.tokend.wallet.xdr.AccountID,
+    var signer: org.tokend.wallet.xdr.PublicKey,
+    var ext: InitiateKYCRecoveryOpExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    account.toXdr(stream)
+    signer.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class InitiateKYCRecoveryOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: InitiateKYCRecoveryOpExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Result codes of InitiateKYCRecoveryOp
+//  enum InitiateKYCRecoveryResultCode
+//  {
+//      //: Means that KYC recovery was successfully initiated
+//      SUCCESS = 0,
+//  
+//      //: System configuration forbids KYC recovery
+//      RECOVERY_NOT_ALLOWED = -1,
+//      //: Either, there is no entry by key `kyc_recovery_signer_role`, or such role does not exists
+//      RECOVERY_SIGNER_ROLE_NOT_FOUND = -2
+//  };
+
+//  ===========================================================================
+public enum class InitiateKYCRecoveryResultCode(val value: kotlin.Int): XdrEncodable {
+  SUCCESS(0),
+  RECOVERY_NOT_ALLOWED(-1),
+  RECOVERY_SIGNER_ROLE_NOT_FOUND(-2),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Result of operation applying
+//  union InitiateKYCRecoveryResult switch (InitiateKYCRecoveryResultCode code)
+//  {
+//  case SUCCESS:
+//      struct
+//      {
+//           //: reserved for future use
+//           union switch (LedgerVersion v)
+//           {
+//           case EMPTY_VERSION:
+//               void;
+//           } ext;
+//      } success;
+//  default:
+//      void;
+//  };
+
+//  ===========================================================================
+abstract class InitiateKYCRecoveryResult(val discriminant: org.tokend.wallet.xdr.InitiateKYCRecoveryResultCode): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  open class Success(var success: InitiateKYCRecoveryResultSuccess): InitiateKYCRecoveryResult(org.tokend.wallet.xdr.InitiateKYCRecoveryResultCode.SUCCESS) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      success.toXdr(stream)
+    }
+  }
+
+  open class InitiateKYCRecoveryResultSuccess(
+      var ext: InitiateKYCRecoveryResultSuccessExt
+    ) : XdrEncodable {
+
+    override fun toXdr(stream: XdrDataOutputStream) {
+      ext.toXdr(stream)
+    }
+
+    abstract class InitiateKYCRecoveryResultSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+      override fun toXdr(stream: XdrDataOutputStream) {
+          discriminant.toXdr(stream)
+      }
+
+      open class EmptyVersion: InitiateKYCRecoveryResultSuccessExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
     }
   }
 }
@@ -8566,7 +8963,9 @@ open class ManageAssetPairOp(
 //      //: `policies` field is invalid (`policies < 0`)
 //      INVALID_POLICIES = -6,
 //      //: Asset with such code is not found
-//      ASSET_NOT_FOUND = -7
+//      ASSET_NOT_FOUND = -7,
+//      //: Not allowed for base and quote asset to be the same
+//      SAME_ASSET = -8
 //  };
 
 //  ===========================================================================
@@ -8579,6 +8978,7 @@ public enum class ManageAssetPairResultCode(val value: kotlin.Int): XdrEncodable
   INVALID_ACTION(-5),
   INVALID_POLICIES(-6),
   ASSET_NOT_FOUND(-7),
+  SAME_ASSET(-8),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -13694,6 +14094,134 @@ abstract class PayoutResult(val discriminant: org.tokend.wallet.xdr.PayoutResult
 
 // === xdr source ============================================================
 
+//  //: `RemoveAssetPairOp` removes specified asset pair
+//  struct RemoveAssetPairOp
+//  {
+//      //: Defines a base asset of an asset pair
+//      AssetCode base;
+//      //: Defines a base asset of an asset pair
+//      AssetCode quote;
+//  
+//      //: reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class RemoveAssetPairOp(
+    var base: org.tokend.wallet.xdr.AssetCode,
+    var quote: org.tokend.wallet.xdr.AssetCode,
+    var ext: RemoveAssetPairOpExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    base.toXdr(stream)
+    quote.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class RemoveAssetPairOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: RemoveAssetPairOpExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Result codes for `RemoveAssetPairOp`
+//  enum RemoveAssetPairResultCode
+//  {
+//      //: Operation is successfully applied
+//      SUCCESS = 0,
+//      //: Asset pair not found
+//      NOT_FOUND = -1,
+//      //: Asset pair can't be deleted as it has active orders
+//      HAS_ACTIVE_OFFERS = -2,
+//      //: Asset pair can't be deleted as it has active sales
+//      HAS_ACTIVE_SALES = -3,
+//      //: Base or Quote asset is invalid
+//      INVALID_ASSET_CODE = -4
+//  };
+
+//  ===========================================================================
+public enum class RemoveAssetPairResultCode(val value: kotlin.Int): XdrEncodable {
+  SUCCESS(0),
+  NOT_FOUND(-1),
+  HAS_ACTIVE_OFFERS(-2),
+  HAS_ACTIVE_SALES(-3),
+  INVALID_ASSET_CODE(-4),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Result of successful `RemoveAssetPairOp` application
+//  struct RemoveAssetPairSuccess
+//  {
+//      //: Reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class RemoveAssetPairSuccess(
+    var ext: RemoveAssetPairSuccessExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    ext.toXdr(stream)
+  }
+
+  abstract class RemoveAssetPairSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: RemoveAssetPairSuccessExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Result of RemoveAssetPair operation application along with the result code
+//  union RemoveAssetPairResult switch (RemoveAssetPairResultCode code) {
+//      case SUCCESS:
+//          RemoveAssetPairSuccess success;
+//      default:
+//          void;
+//  };
+
+//  ===========================================================================
+abstract class RemoveAssetPairResult(val discriminant: org.tokend.wallet.xdr.RemoveAssetPairResultCode): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  open class Success(var success: org.tokend.wallet.xdr.RemoveAssetPairSuccess): RemoveAssetPairResult(org.tokend.wallet.xdr.RemoveAssetPairResultCode.SUCCESS) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      success.toXdr(stream)
+    }
+  }
+}
+
+// === xdr source ============================================================
+
 //  //: Actions that can be performed on request that is being reviewed
 //  enum ReviewRequestOpAction {
 //      //: Approve request
@@ -13974,10 +14502,10 @@ open class SaleExtended(
 // === xdr source ============================================================
 
 //  //: Extended result of the review request operation containing details specific to a Create Atomic Swap Bid Request
-//  struct ASwapBidExtended
+//  struct AtomicSwapAskExtended
 //  {
-//      //: ID of the newly created bid as a result of Create Atomic Swap Bid Request successful review
-//      uint64 bidID;
+//      //: ID of the newly created ask as a result of Create Atomic Swap Ask Request successful review
+//      uint64 askID;
 //  
 //      //: Reserved for future use
 //      union switch (LedgerVersion v)
@@ -13989,22 +14517,22 @@ open class SaleExtended(
 //  };
 
 //  ===========================================================================
-open class ASwapBidExtended(
-    var bidID: org.tokend.wallet.xdr.Uint64,
-    var ext: ASwapBidExtendedExt
+open class AtomicSwapAskExtended(
+    var askID: org.tokend.wallet.xdr.Uint64,
+    var ext: AtomicSwapAskExtendedExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
-    bidID.toXdr(stream)
+    askID.toXdr(stream)
     ext.toXdr(stream)
   }
 
-  abstract class ASwapBidExtendedExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class AtomicSwapAskExtendedExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
 
-    open class EmptyVersion: ASwapBidExtendedExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: AtomicSwapAskExtendedExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -14048,14 +14576,14 @@ open class CreatePollExtended(
 // === xdr source ============================================================
 
 //  //: Extended result of a review request operation containing details specific to a Create Atomic Swap Request
-//  struct ASwapExtended
+//  struct AtomicSwapBidExtended
 //  {
-//      //: ID of a bid to apply atomic swap to
-//      uint64 bidID;
-//      //: AccountID of a bid owner
+//      //: ID of a ask to apply atomic swap to
+//      uint64 askID;
+//      //: AccountID of a ask owner
+//      AccountID askOwnerID;
+//      //: Account id of an bid owner
 //      AccountID bidOwnerID;
-//      //: Account id of an atomic swap source
-//      AccountID purchaserID;
 //      //: Base asset for the atomic swap
 //      AssetCode baseAsset;
 //      //: Quote asset for the atomic swap
@@ -14066,10 +14594,12 @@ open class CreatePollExtended(
 //      uint64 quoteAmount;
 //      //: Price of base asset in terms of quote
 //      uint64 price;
-//      //: Balance in base asset of a bid owner
+//      //: Balance in base asset of a ask owner
+//      BalanceID askOwnerBaseBalanceID;
+//      //: Balance in base asset of an bid owner
 //      BalanceID bidOwnerBaseBalanceID;
-//      //: Balance in quote asset of atomic swap source
-//      BalanceID purchaserBaseBalanceID;
+//      //: Amount which was unlocked on bid owner base balance after bid removing
+//      uint64 unlockedAmount;
 //  
 //      //: Reserved for future use
 //      union switch (LedgerVersion v)
@@ -14081,40 +14611,42 @@ open class CreatePollExtended(
 //  };
 
 //  ===========================================================================
-open class ASwapExtended(
-    var bidID: org.tokend.wallet.xdr.Uint64,
+open class AtomicSwapBidExtended(
+    var askID: org.tokend.wallet.xdr.Uint64,
+    var askOwnerID: org.tokend.wallet.xdr.AccountID,
     var bidOwnerID: org.tokend.wallet.xdr.AccountID,
-    var purchaserID: org.tokend.wallet.xdr.AccountID,
     var baseAsset: org.tokend.wallet.xdr.AssetCode,
     var quoteAsset: org.tokend.wallet.xdr.AssetCode,
     var baseAmount: org.tokend.wallet.xdr.Uint64,
     var quoteAmount: org.tokend.wallet.xdr.Uint64,
     var price: org.tokend.wallet.xdr.Uint64,
+    var askOwnerBaseBalanceID: org.tokend.wallet.xdr.BalanceID,
     var bidOwnerBaseBalanceID: org.tokend.wallet.xdr.BalanceID,
-    var purchaserBaseBalanceID: org.tokend.wallet.xdr.BalanceID,
-    var ext: ASwapExtendedExt
+    var unlockedAmount: org.tokend.wallet.xdr.Uint64,
+    var ext: AtomicSwapBidExtendedExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
-    bidID.toXdr(stream)
+    askID.toXdr(stream)
+    askOwnerID.toXdr(stream)
     bidOwnerID.toXdr(stream)
-    purchaserID.toXdr(stream)
     baseAsset.toXdr(stream)
     quoteAsset.toXdr(stream)
     baseAmount.toXdr(stream)
     quoteAmount.toXdr(stream)
     price.toXdr(stream)
+    askOwnerBaseBalanceID.toXdr(stream)
     bidOwnerBaseBalanceID.toXdr(stream)
-    purchaserBaseBalanceID.toXdr(stream)
+    unlockedAmount.toXdr(stream)
     ext.toXdr(stream)
   }
 
-  abstract class ASwapExtendedExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class AtomicSwapBidExtendedExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
 
-    open class EmptyVersion: ASwapExtendedExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: AtomicSwapBidExtendedExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -14131,9 +14663,9 @@ open class ASwapExtended(
 //      case NONE:
 //          void;
 //      case CREATE_ATOMIC_SWAP_BID:
-//          ASwapBidExtended aSwapBidExtended;
-//      case CREATE_ATOMIC_SWAP:
-//          ASwapExtended aSwapExtended;
+//          AtomicSwapBidExtended atomicSwapBidExtended;
+//      case CREATE_ATOMIC_SWAP_ASK:
+//          AtomicSwapAskExtended atomicSwapAskExtended;
 //      case CREATE_POLL:
 //          CreatePollExtended createPoll;
 //      } typeExt;
@@ -14174,17 +14706,17 @@ open class ExtendedResult(
 
     open class None: ExtendedResultTypeExt(org.tokend.wallet.xdr.ReviewableRequestType.NONE)
 
-    open class CreateAtomicSwapBid(var aSwapBidExtended: org.tokend.wallet.xdr.ASwapBidExtended): ExtendedResultTypeExt(org.tokend.wallet.xdr.ReviewableRequestType.CREATE_ATOMIC_SWAP_BID) {
+    open class CreateAtomicSwapBid(var atomicSwapBidExtended: org.tokend.wallet.xdr.AtomicSwapBidExtended): ExtendedResultTypeExt(org.tokend.wallet.xdr.ReviewableRequestType.CREATE_ATOMIC_SWAP_BID) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
-        aSwapBidExtended.toXdr(stream)
+        atomicSwapBidExtended.toXdr(stream)
       }
     }
 
-    open class CreateAtomicSwap(var aSwapExtended: org.tokend.wallet.xdr.ASwapExtended): ExtendedResultTypeExt(org.tokend.wallet.xdr.ReviewableRequestType.CREATE_ATOMIC_SWAP) {
+    open class CreateAtomicSwapAsk(var atomicSwapAskExtended: org.tokend.wallet.xdr.AtomicSwapAskExtended): ExtendedResultTypeExt(org.tokend.wallet.xdr.ReviewableRequestType.CREATE_ATOMIC_SWAP_ASK) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
-        aSwapExtended.toXdr(stream)
+        atomicSwapAskExtended.toXdr(stream)
       }
     }
 
@@ -14372,6 +14904,8 @@ open class ReviewRequestOp(
 //      INSUFFICIENT_PREISSUED_FOR_HARD_CAP = -520,
 //      //: Trying to create a sale for a base asset that cannot be found
 //      BASE_ASSET_NOT_FOUND = -530,
+//      //: There is no asset pair between default quote asset and quote asset
+//      ASSET_PAIR_NOT_FOUND = -540,
 //      //: Trying to create a sale with one of the quote assets that doesn't exist
 //      QUOTE_ASSET_NOT_FOUND = -550,
 //  
@@ -14432,9 +14966,11 @@ open class ReviewRequestOp(
 //      // Atomic swap
 //      BASE_ASSET_CANNOT_BE_SWAPPED = -1500,
 //      QUOTE_ASSET_CANNOT_BE_SWAPPED = -1501,
-//      ASSETS_ARE_EQUAL = -1502,
-//      ASWAP_BID_UNDERFUNDED = -1503,
-//      ASWAP_PURCHASER_FULL_LINE = -1504
+//      ATOMIC_SWAP_BID_OWNER_FULL_LINE = -1504,
+//  
+//      //KYC
+//      //:Signer data is invalid - either weight is wrong or details are invalid
+//      INVALID_SIGNER_DATA = -1600
 //  
 //  };
 
@@ -14462,6 +14998,7 @@ public enum class ReviewRequestResultCode(val value: kotlin.Int): XdrEncodable {
   HARD_CAP_WILL_EXCEED_MAX_ISSUANCE(-510),
   INSUFFICIENT_PREISSUED_FOR_HARD_CAP(-520),
   BASE_ASSET_NOT_FOUND(-530),
+  ASSET_PAIR_NOT_FOUND(-540),
   QUOTE_ASSET_NOT_FOUND(-550),
   NON_ZERO_TASKS_TO_REMOVE_NOT_ALLOWED(-600),
   ACCOUNT_ROLE_TO_SET_DOES_NOT_EXIST(-610),
@@ -14498,9 +15035,8 @@ public enum class ReviewRequestResultCode(val value: kotlin.Int): XdrEncodable {
   CONTRACT_DETAILS_TOO_LONG(-1400),
   BASE_ASSET_CANNOT_BE_SWAPPED(-1500),
   QUOTE_ASSET_CANNOT_BE_SWAPPED(-1501),
-  ASSETS_ARE_EQUAL(-1502),
-  ASWAP_BID_UNDERFUNDED(-1503),
-  ASWAP_PURCHASER_FULL_LINE(-1504),
+  ATOMIC_SWAP_BID_OWNER_FULL_LINE(-1504),
+  INVALID_SIGNER_DATA(-1600),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -15304,6 +15840,42 @@ abstract class AuthenticatedMessage(val discriminant: org.tokend.wallet.xdr.Ledg
 //          //: reserved for future extension
 //          EmptyExt ext;
 //      } createWithdraw;
+//  case CREATE_ATOMIC_SWAP_ASK:
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      case ATOMIC_SWAP_RETURNING:
+//          //: is used to restrict the usage of a reviewable request with create_atomic_swap_ask type
+//          struct
+//          {
+//              //: code of asset
+//              AssetCode assetCode;
+//              //: type of asset
+//              uint64 assetType;
+//  
+//              //: reserved for future extension
+//              EmptyExt ext;
+//          } createAtomicSwapAsk;
+//      } createAtomicSwapAskExt;
+//  case CREATE_ATOMIC_SWAP_BID:
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      case ATOMIC_SWAP_RETURNING:
+//          //: is used to restrict the usage of a reviewable request with create_atomic_swap_bid type
+//          struct
+//          {
+//              //: code of asset
+//              AssetCode assetCode;
+//              //: type of asset
+//              uint64 assetType;
+//  
+//              //: reserved for future extension
+//              EmptyExt ext;
+//          } createAtomicSwapBid;
+//      } createAtomicSwapBidExt;
 //  case CREATE_POLL:
 //      //: is used to restrict the creating of a `CREATE_POLL` reviewable request type
 //      struct
@@ -15346,6 +15918,20 @@ abstract class ReviewableRequestResource(val discriminant: org.tokend.wallet.xdr
     }
   }
 
+  open class CreateAtomicSwapAsk(var createAtomicSwapAskExt: ReviewableRequestResourceCreateAtomicSwapAskExt): ReviewableRequestResource(org.tokend.wallet.xdr.ReviewableRequestType.CREATE_ATOMIC_SWAP_ASK) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      createAtomicSwapAskExt.toXdr(stream)
+    }
+  }
+
+  open class CreateAtomicSwapBid(var createAtomicSwapBidExt: ReviewableRequestResourceCreateAtomicSwapBidExt): ReviewableRequestResource(org.tokend.wallet.xdr.ReviewableRequestType.CREATE_ATOMIC_SWAP_BID) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      createAtomicSwapBidExt.toXdr(stream)
+    }
+  }
+
   open class CreatePoll(var createPoll: ReviewableRequestResourceCreatePoll): ReviewableRequestResource(org.tokend.wallet.xdr.ReviewableRequestType.CREATE_POLL) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
@@ -15385,6 +15971,60 @@ abstract class ReviewableRequestResource(val discriminant: org.tokend.wallet.xdr
       assetCode.toXdr(stream)
       assetType.toXdr(stream)
       ext.toXdr(stream)
+    }
+  }
+  abstract class ReviewableRequestResourceCreateAtomicSwapAskExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: ReviewableRequestResourceCreateAtomicSwapAskExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+
+    open class AtomicSwapReturning(var createAtomicSwapAsk: ReviewableRequestResourceCreateAtomicSwapAskExtCreateAtomicSwapAsk): ReviewableRequestResourceCreateAtomicSwapAskExt(org.tokend.wallet.xdr.LedgerVersion.ATOMIC_SWAP_RETURNING) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        createAtomicSwapAsk.toXdr(stream)
+      }
+    }
+
+    open class ReviewableRequestResourceCreateAtomicSwapAskExtCreateAtomicSwapAsk(
+        var assetCode: org.tokend.wallet.xdr.AssetCode,
+        var assetType: org.tokend.wallet.xdr.Uint64,
+        var ext: org.tokend.wallet.xdr.EmptyExt
+      ) : XdrEncodable {
+
+      override fun toXdr(stream: XdrDataOutputStream) {
+        assetCode.toXdr(stream)
+        assetType.toXdr(stream)
+        ext.toXdr(stream)
+      }
+    }
+  }
+  abstract class ReviewableRequestResourceCreateAtomicSwapBidExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: ReviewableRequestResourceCreateAtomicSwapBidExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+
+    open class AtomicSwapReturning(var createAtomicSwapBid: ReviewableRequestResourceCreateAtomicSwapBidExtCreateAtomicSwapBid): ReviewableRequestResourceCreateAtomicSwapBidExt(org.tokend.wallet.xdr.LedgerVersion.ATOMIC_SWAP_RETURNING) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        createAtomicSwapBid.toXdr(stream)
+      }
+    }
+
+    open class ReviewableRequestResourceCreateAtomicSwapBidExtCreateAtomicSwapBid(
+        var assetCode: org.tokend.wallet.xdr.AssetCode,
+        var assetType: org.tokend.wallet.xdr.Uint64,
+        var ext: org.tokend.wallet.xdr.EmptyExt
+      ) : XdrEncodable {
+
+      override fun toXdr(stream: XdrDataOutputStream) {
+        assetCode.toXdr(stream)
+        assetType.toXdr(stream)
+        ext.toXdr(stream)
+      }
     }
   }
   open class ReviewableRequestResourceCreatePoll(
@@ -15455,14 +16095,14 @@ abstract class ReviewableRequestResource(val discriminant: org.tokend.wallet.xdr
 //          //: reserved for future extension
 //          EmptyExt ext;
 //      } sale;
-//  case ATOMIC_SWAP_BID:
+//  case ATOMIC_SWAP_ASK:
 //      struct
 //      {
 //          uint64 assetType;
 //          AssetCode assetCode;
 //  
 //          EmptyExt ext;
-//      } atomicSwapBid;
+//      } atomicSwapAsk;
 //  case KEY_VALUE:
 //      struct
 //      {
@@ -15496,6 +16136,31 @@ abstract class ReviewableRequestResource(val discriminant: org.tokend.wallet.xdr
 //          //: reserved for future extension
 //          EmptyExt ext;
 //      } vote;
+//  case INITIATE_KYC_RECOVERY:
+//      struct
+//      {
+//          //: Role id
+//          uint64 roleID;
+//  
+//          //: reserved for future extension
+//          EmptyExt ext;
+//      } initiateKYCRecovery;
+//  case ACCOUNT_SPECIFIC_RULE:
+//      union switch(LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      case ADD_ACC_SPECIFIC_RULE_RESOURCE:
+//          struct
+//          {
+//              //: Describes properties of some ledger key that
+//              //: can be used to restrict the usage of account specific rules
+//              LedgerKey ledgerKey;
+//  
+//              //: reserved for future extension
+//              EmptyExt ext;
+//          } accountSpecificRule;
+//      } accountSpecificRuleExt;
 //  default:
 //      //: reserved for future extension
 //      EmptyExt ext;
@@ -15537,10 +16202,10 @@ abstract class AccountRuleResource(val discriminant: org.tokend.wallet.xdr.Ledge
     }
   }
 
-  open class AtomicSwapBid(var atomicSwapBid: AccountRuleResourceAtomicSwapBid): AccountRuleResource(org.tokend.wallet.xdr.LedgerEntryType.ATOMIC_SWAP_BID) {
+  open class AtomicSwapAsk(var atomicSwapAsk: AccountRuleResourceAtomicSwapAsk): AccountRuleResource(org.tokend.wallet.xdr.LedgerEntryType.ATOMIC_SWAP_ASK) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
-      atomicSwapBid.toXdr(stream)
+      atomicSwapAsk.toXdr(stream)
     }
   }
 
@@ -15562,6 +16227,20 @@ abstract class AccountRuleResource(val discriminant: org.tokend.wallet.xdr.Ledge
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       vote.toXdr(stream)
+    }
+  }
+
+  open class InitiateKycRecovery(var initiateKYCRecovery: AccountRuleResourceInitiateKYCRecovery): AccountRuleResource(org.tokend.wallet.xdr.LedgerEntryType.INITIATE_KYC_RECOVERY) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      initiateKYCRecovery.toXdr(stream)
+    }
+  }
+
+  open class AccountSpecificRule(var accountSpecificRuleExt: AccountRuleResourceAccountSpecificRuleExt): AccountRuleResource(org.tokend.wallet.xdr.LedgerEntryType.ACCOUNT_SPECIFIC_RULE) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      accountSpecificRuleExt.toXdr(stream)
     }
   }
 
@@ -15617,7 +16296,7 @@ abstract class AccountRuleResource(val discriminant: org.tokend.wallet.xdr.Ledge
       ext.toXdr(stream)
     }
   }
-  open class AccountRuleResourceAtomicSwapBid(
+  open class AccountRuleResourceAtomicSwapAsk(
       var assetType: org.tokend.wallet.xdr.Uint64,
       var assetCode: org.tokend.wallet.xdr.AssetCode,
       var ext: org.tokend.wallet.xdr.EmptyExt
@@ -15663,6 +16342,41 @@ abstract class AccountRuleResource(val discriminant: org.tokend.wallet.xdr.Ledge
       ext.toXdr(stream)
     }
   }
+  open class AccountRuleResourceInitiateKYCRecovery(
+      var roleID: org.tokend.wallet.xdr.Uint64,
+      var ext: org.tokend.wallet.xdr.EmptyExt
+    ) : XdrEncodable {
+
+    override fun toXdr(stream: XdrDataOutputStream) {
+      roleID.toXdr(stream)
+      ext.toXdr(stream)
+    }
+  }
+  abstract class AccountRuleResourceAccountSpecificRuleExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: AccountRuleResourceAccountSpecificRuleExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+
+    open class AddAccSpecificRuleResource(var accountSpecificRule: AccountRuleResourceAccountSpecificRuleExtAccountSpecificRule): AccountRuleResourceAccountSpecificRuleExt(org.tokend.wallet.xdr.LedgerVersion.ADD_ACC_SPECIFIC_RULE_RESOURCE) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        accountSpecificRule.toXdr(stream)
+      }
+    }
+
+    open class AccountRuleResourceAccountSpecificRuleExtAccountSpecificRule(
+        var ledgerKey: org.tokend.wallet.xdr.LedgerKey,
+        var ext: org.tokend.wallet.xdr.EmptyExt
+      ) : XdrEncodable {
+
+      override fun toXdr(stream: XdrDataOutputStream) {
+        ledgerKey.toXdr(stream)
+        ext.toXdr(stream)
+      }
+    }
+  }
 }
 
 // === xdr source ============================================================
@@ -15687,7 +16401,8 @@ abstract class AccountRuleResource(val discriminant: org.tokend.wallet.xdr.Ledge
 //      CANCEL = 15,
 //      CLOSE = 16,
 //      REMOVE = 17,
-//      UPDATE_END_TIME = 18
+//      UPDATE_END_TIME = 18,
+//      CREATE_FOR_OTHER_WITH_TASKS = 19
 //  };
 
 //  ===========================================================================
@@ -15710,6 +16425,7 @@ public enum class AccountRuleAction(val value: kotlin.Int): XdrEncodable {
   CLOSE(16),
   REMOVE(17),
   UPDATE_END_TIME(18),
+  CREATE_FOR_OTHER_WITH_TASKS(19),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -15777,14 +16493,14 @@ public enum class AccountRuleAction(val value: kotlin.Int): XdrEncodable {
 //  
 //          EmptyExt ext;
 //      } sale;
-//  case ATOMIC_SWAP_BID:
+//  case ATOMIC_SWAP_ASK:
 //      struct
 //      {
 //          uint64 assetType;
 //          AssetCode assetCode;
 //  
 //          EmptyExt ext;
-//      } atomicSwapBid;
+//      } atomicSwapAsk;
 //  case SIGNER_RULE:
 //      //: Describes properties that are equal to managed signer rule entry fields
 //      struct
@@ -15844,6 +16560,32 @@ public enum class AccountRuleAction(val value: kotlin.Int): XdrEncodable {
 //          //: reserved for future extension
 //          EmptyExt ext;
 //      } vote;
+//  case INITIATE_KYC_RECOVERY:
+//      struct
+//      {
+//          //: Role id
+//          uint64 roleID;
+//  
+//          //: reserved for future extension
+//          EmptyExt ext;
+//      } initiateKYCRecovery;
+//  case ACCOUNT_SPECIFIC_RULE:
+//      //: reserved for future extension
+//      union switch(LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      case ADD_ACC_SPECIFIC_RULE_RESOURCE:
+//          struct
+//          {
+//              //: Describes properties of some ledger key that
+//              //: can be used to restrict the usage of account specific rules
+//              LedgerKey ledgerKey;
+//  
+//              //: reserved for future extension
+//              EmptyExt ext;
+//          } accountSpecificRule;
+//      } accountSpecificRuleExt;
 //  default:
 //      //: reserved for future extension
 //      EmptyExt ext;
@@ -15885,10 +16627,10 @@ abstract class SignerRuleResource(val discriminant: org.tokend.wallet.xdr.Ledger
     }
   }
 
-  open class AtomicSwapBid(var atomicSwapBid: SignerRuleResourceAtomicSwapBid): SignerRuleResource(org.tokend.wallet.xdr.LedgerEntryType.ATOMIC_SWAP_BID) {
+  open class AtomicSwapAsk(var atomicSwapAsk: SignerRuleResourceAtomicSwapAsk): SignerRuleResource(org.tokend.wallet.xdr.LedgerEntryType.ATOMIC_SWAP_ASK) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
-      atomicSwapBid.toXdr(stream)
+      atomicSwapAsk.toXdr(stream)
     }
   }
 
@@ -15931,6 +16673,20 @@ abstract class SignerRuleResource(val discriminant: org.tokend.wallet.xdr.Ledger
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       vote.toXdr(stream)
+    }
+  }
+
+  open class InitiateKycRecovery(var initiateKYCRecovery: SignerRuleResourceInitiateKYCRecovery): SignerRuleResource(org.tokend.wallet.xdr.LedgerEntryType.INITIATE_KYC_RECOVERY) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      initiateKYCRecovery.toXdr(stream)
+    }
+  }
+
+  open class AccountSpecificRule(var accountSpecificRuleExt: SignerRuleResourceAccountSpecificRuleExt): SignerRuleResource(org.tokend.wallet.xdr.LedgerEntryType.ACCOUNT_SPECIFIC_RULE) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      accountSpecificRuleExt.toXdr(stream)
     }
   }
 
@@ -15992,7 +16748,7 @@ abstract class SignerRuleResource(val discriminant: org.tokend.wallet.xdr.Ledger
       ext.toXdr(stream)
     }
   }
-  open class SignerRuleResourceAtomicSwapBid(
+  open class SignerRuleResourceAtomicSwapAsk(
       var assetType: org.tokend.wallet.xdr.Uint64,
       var assetCode: org.tokend.wallet.xdr.AssetCode,
       var ext: org.tokend.wallet.xdr.EmptyExt
@@ -16068,6 +16824,41 @@ abstract class SignerRuleResource(val discriminant: org.tokend.wallet.xdr.Ledger
       ext.toXdr(stream)
     }
   }
+  open class SignerRuleResourceInitiateKYCRecovery(
+      var roleID: org.tokend.wallet.xdr.Uint64,
+      var ext: org.tokend.wallet.xdr.EmptyExt
+    ) : XdrEncodable {
+
+    override fun toXdr(stream: XdrDataOutputStream) {
+      roleID.toXdr(stream)
+      ext.toXdr(stream)
+    }
+  }
+  abstract class SignerRuleResourceAccountSpecificRuleExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: SignerRuleResourceAccountSpecificRuleExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+
+    open class AddAccSpecificRuleResource(var accountSpecificRule: SignerRuleResourceAccountSpecificRuleExtAccountSpecificRule): SignerRuleResourceAccountSpecificRuleExt(org.tokend.wallet.xdr.LedgerVersion.ADD_ACC_SPECIFIC_RULE_RESOURCE) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        accountSpecificRule.toXdr(stream)
+      }
+    }
+
+    open class SignerRuleResourceAccountSpecificRuleExtAccountSpecificRule(
+        var ledgerKey: org.tokend.wallet.xdr.LedgerKey,
+        var ext: org.tokend.wallet.xdr.EmptyExt
+      ) : XdrEncodable {
+
+      override fun toXdr(stream: XdrDataOutputStream) {
+        ledgerKey.toXdr(stream)
+        ext.toXdr(stream)
+      }
+    }
+  }
 }
 
 // === xdr source ============================================================
@@ -16090,7 +16881,9 @@ abstract class SignerRuleResource(val discriminant: org.tokend.wallet.xdr.Ledger
 //      UPDATE_MAX_ISSUANCE = 13,
 //      CHECK = 14,
 //      CLOSE = 15,
-//      UPDATE_END_TIME = 16
+//      UPDATE_END_TIME = 16,
+//      CREATE_WITH_TASKS = 17,
+//      CREATE_FOR_OTHER_WITH_TASKS = 18
 //  };
 
 //  ===========================================================================
@@ -16111,6 +16904,8 @@ public enum class SignerRuleAction(val value: kotlin.Int): XdrEncodable {
   CHECK(14),
   CLOSE(15),
   UPDATE_END_TIME(16),
+  CREATE_WITH_TASKS(17),
+  CREATE_FOR_OTHER_WITH_TASKS(18),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -16328,15 +17123,19 @@ open class AssetChangePreissuedSigner(
 
 // === xdr source ============================================================
 
-//  struct ASwapBidCreationRequest
+//  //: CreateAtomicSwapAskRequest is used to create atomic swap ask entry with passed fields
+//  struct CreateAtomicSwapAskRequest
 //  {
+//      //: ID of balance with base asset
 //      BalanceID baseBalance;
+//      //: Amount to be sold through atomic swaps
 //      uint64 amount;
+//      //: Arbitrary stringified json object provided by a requester
 //      longstring creatorDetails; // details set by requester
+//      //: Array of assets with price which can be used to ask base asset
+//      AtomicSwapAskQuoteAsset quoteAssets<>;
 //  
-//      ASwapBidQuoteAsset quoteAssets<>;
-//  
-//      // reserved for future use
+//      //: reserved for future use
 //      union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
@@ -16345,12 +17144,12 @@ open class AssetChangePreissuedSigner(
 //  };
 
 //  ===========================================================================
-open class ASwapBidCreationRequest(
+open class CreateAtomicSwapAskRequest(
     var baseBalance: org.tokend.wallet.xdr.BalanceID,
     var amount: org.tokend.wallet.xdr.Uint64,
     var creatorDetails: org.tokend.wallet.xdr.Longstring,
-    var quoteAssets: kotlin.Array<org.tokend.wallet.xdr.ASwapBidQuoteAsset>,
-    var ext: ASwapBidCreationRequestExt
+    var quoteAssets: kotlin.Array<org.tokend.wallet.xdr.AtomicSwapAskQuoteAsset>,
+    var ext: CreateAtomicSwapAskRequestExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -16364,24 +17163,30 @@ open class ASwapBidCreationRequest(
     ext.toXdr(stream)
   }
 
-  abstract class ASwapBidCreationRequestExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateAtomicSwapAskRequestExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
 
-    open class EmptyVersion: ASwapBidCreationRequestExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: CreateAtomicSwapAskRequestExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
   }
 }
 
 // === xdr source ============================================================
 
-//  struct ASwapRequest
+//  //: CreateAtomicSwapBidRequest is used to create atomic swap bid request with passed fields
+//  struct CreateAtomicSwapBidRequest
 //  {
-//      uint64 bidID;
+//      //: ID of existing bid
+//      uint64 askID;
+//      //: Amount in base asset to ask
 //      uint64 baseAmount;
+//      //: Code of asset which will be used to ask base asset
 //      AssetCode quoteAsset;
+//      //: Arbitrary stringified json object provided by a requester
 //      longstring creatorDetails; // details set by requester
 //  
+//      //: reserved for the future use
 //      union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
@@ -16390,28 +17195,28 @@ open class ASwapBidCreationRequest(
 //  };
 
 //  ===========================================================================
-open class ASwapRequest(
-    var bidID: org.tokend.wallet.xdr.Uint64,
+open class CreateAtomicSwapBidRequest(
+    var askID: org.tokend.wallet.xdr.Uint64,
     var baseAmount: org.tokend.wallet.xdr.Uint64,
     var quoteAsset: org.tokend.wallet.xdr.AssetCode,
     var creatorDetails: org.tokend.wallet.xdr.Longstring,
-    var ext: ASwapRequestExt
+    var ext: CreateAtomicSwapBidRequestExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
-    bidID.toXdr(stream)
+    askID.toXdr(stream)
     baseAmount.toXdr(stream)
     quoteAsset.toXdr(stream)
     creatorDetails.toXdr(stream)
     ext.toXdr(stream)
   }
 
-  abstract class ASwapRequestExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateAtomicSwapBidRequestExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
 
-    open class EmptyVersion: ASwapRequestExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+    open class EmptyVersion: CreateAtomicSwapBidRequestExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -16742,6 +17547,58 @@ open class IssuanceRequest(
     }
 
     open class EmptyVersion: IssuanceRequestExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: KYCRecoveryRequest is used to change signers of target account
+//  struct KYCRecoveryRequest {
+//      //: Account to be recovered
+//      AccountID targetAccount;
+//      //: New signers for the target account
+//      UpdateSignerData signersData<>;
+//  
+//      //: Arbitrary stringified json object that can be used to attach data to be reviewed by an admin
+//      longstring creatorDetails; // details set by requester
+//      //: Sequence number increases when request is rejected
+//      uint32 sequenceNumber;
+//  
+//      //: Reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class KYCRecoveryRequest(
+    var targetAccount: org.tokend.wallet.xdr.AccountID,
+    var signersData: kotlin.Array<org.tokend.wallet.xdr.UpdateSignerData>,
+    var creatorDetails: org.tokend.wallet.xdr.Longstring,
+    var sequenceNumber: org.tokend.wallet.xdr.Uint32,
+    var ext: KYCRecoveryRequestExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    targetAccount.toXdr(stream)
+    signersData.size.toXdr(stream)
+    signersData.forEach {
+      it.toXdr(stream)
+    }
+    creatorDetails.toXdr(stream)
+    sequenceNumber.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  abstract class KYCRecoveryRequestExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    open class EmptyVersion: KYCRecoveryRequestExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -17125,12 +17982,12 @@ open class WithdrawalRequest(
 //          ManageContractOp manageContractOp;
 //      case CANCEL_SALE_REQUEST:
 //          CancelSaleCreationRequestOp cancelSaleCreationRequestOp;
-//      case CREATE_ASWAP_BID_REQUEST:
-//          CreateASwapBidCreationRequestOp createASwapBidCreationRequestOp;
-//      case CANCEL_ASWAP_BID:
-//          CancelASwapBidOp cancelASwapBidOp;
-//      case CREATE_ASWAP_REQUEST:
-//          CreateASwapRequestOp createASwapRequestOp;
+//      case CREATE_ATOMIC_SWAP_ASK_REQUEST:
+//          CreateAtomicSwapAskRequestOp createAtomicSwapAskRequestOp;
+//      case CANCEL_ATOMIC_SWAP_ASK:
+//          CancelAtomicSwapAskOp cancelAtomicSwapAskOp;
+//      case CREATE_ATOMIC_SWAP_BID_REQUEST:
+//          CreateAtomicSwapBidRequestOp createAtomicSwapBidRequestOp;
 //      case MANAGE_ACCOUNT_ROLE:
 //          ManageAccountRoleOp manageAccountRoleOp;
 //      case MANAGE_ACCOUNT_RULE:
@@ -17155,6 +18012,12 @@ open class WithdrawalRequest(
 //          ManageAccountSpecificRuleOp manageAccountSpecificRuleOp;
 //      case CANCEL_CHANGE_ROLE_REQUEST:
 //          CancelChangeRoleRequestOp cancelChangeRoleRequestOp;
+//      case REMOVE_ASSET_PAIR:
+//          RemoveAssetPairOp removeAssetPairOp;
+//      case INITIATE_KYC_RECOVERY:
+//          InitiateKYCRecoveryOp initiateKYCRecoveryOp;
+//      case CREATE_KYC_RECOVERY_REQUEST:
+//          CreateKYCRecoveryRequestOp createKYCRecoveryRequestOp;
 //      }
 //      body;
 //  };
@@ -17362,24 +18225,24 @@ open class Operation(
       }
     }
 
-    open class CreateAswapBidRequest(var createASwapBidCreationRequestOp: org.tokend.wallet.xdr.CreateASwapBidCreationRequestOp): OperationBody(org.tokend.wallet.xdr.OperationType.CREATE_ASWAP_BID_REQUEST) {
+    open class CreateAtomicSwapAskRequest(var createAtomicSwapAskRequestOp: org.tokend.wallet.xdr.CreateAtomicSwapAskRequestOp): OperationBody(org.tokend.wallet.xdr.OperationType.CREATE_ATOMIC_SWAP_ASK_REQUEST) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
-        createASwapBidCreationRequestOp.toXdr(stream)
+        createAtomicSwapAskRequestOp.toXdr(stream)
       }
     }
 
-    open class CancelAswapBid(var cancelASwapBidOp: org.tokend.wallet.xdr.CancelASwapBidOp): OperationBody(org.tokend.wallet.xdr.OperationType.CANCEL_ASWAP_BID) {
+    open class CancelAtomicSwapAsk(var cancelAtomicSwapAskOp: org.tokend.wallet.xdr.CancelAtomicSwapAskOp): OperationBody(org.tokend.wallet.xdr.OperationType.CANCEL_ATOMIC_SWAP_ASK) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
-        cancelASwapBidOp.toXdr(stream)
+        cancelAtomicSwapAskOp.toXdr(stream)
       }
     }
 
-    open class CreateAswapRequest(var createASwapRequestOp: org.tokend.wallet.xdr.CreateASwapRequestOp): OperationBody(org.tokend.wallet.xdr.OperationType.CREATE_ASWAP_REQUEST) {
+    open class CreateAtomicSwapBidRequest(var createAtomicSwapBidRequestOp: org.tokend.wallet.xdr.CreateAtomicSwapBidRequestOp): OperationBody(org.tokend.wallet.xdr.OperationType.CREATE_ATOMIC_SWAP_BID_REQUEST) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
-        createASwapRequestOp.toXdr(stream)
+        createAtomicSwapBidRequestOp.toXdr(stream)
       }
     }
 
@@ -17464,6 +18327,27 @@ open class Operation(
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         cancelChangeRoleRequestOp.toXdr(stream)
+      }
+    }
+
+    open class RemoveAssetPair(var removeAssetPairOp: org.tokend.wallet.xdr.RemoveAssetPairOp): OperationBody(org.tokend.wallet.xdr.OperationType.REMOVE_ASSET_PAIR) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        removeAssetPairOp.toXdr(stream)
+      }
+    }
+
+    open class InitiateKycRecovery(var initiateKYCRecoveryOp: org.tokend.wallet.xdr.InitiateKYCRecoveryOp): OperationBody(org.tokend.wallet.xdr.OperationType.INITIATE_KYC_RECOVERY) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        initiateKYCRecoveryOp.toXdr(stream)
+      }
+    }
+
+    open class CreateKycRecoveryRequest(var createKYCRecoveryRequestOp: org.tokend.wallet.xdr.CreateKYCRecoveryRequestOp): OperationBody(org.tokend.wallet.xdr.OperationType.CREATE_KYC_RECOVERY_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        createKYCRecoveryRequestOp.toXdr(stream)
       }
     }
   }
@@ -17793,12 +18677,12 @@ open class AccountRuleRequirement(
 //          ManageContractResult manageContractResult;
 //      case CANCEL_SALE_REQUEST:
 //          CancelSaleCreationRequestResult cancelSaleCreationRequestResult;
-//      case CREATE_ASWAP_BID_REQUEST:
-//          CreateASwapBidCreationRequestResult createASwapBidCreationRequestResult;
-//      case CANCEL_ASWAP_BID:
-//          CancelASwapBidResult cancelASwapBidResult;
-//      case CREATE_ASWAP_REQUEST:
-//          CreateASwapRequestResult createASwapRequestResult;
+//      case CREATE_ATOMIC_SWAP_ASK_REQUEST:
+//          CreateAtomicSwapAskRequestResult createAtomicSwapAskRequestResult;
+//      case CANCEL_ATOMIC_SWAP_ASK:
+//          CancelAtomicSwapAskResult cancelAtomicSwapAskResult;
+//      case CREATE_ATOMIC_SWAP_BID_REQUEST:
+//          CreateAtomicSwapBidRequestResult createAtomicSwapBidRequestResult;
 //      case MANAGE_ACCOUNT_ROLE:
 //          ManageAccountRoleResult manageAccountRoleResult;
 //      case MANAGE_ACCOUNT_RULE:
@@ -17823,6 +18707,12 @@ open class AccountRuleRequirement(
 //          ManageAccountSpecificRuleResult manageAccountSpecificRuleResult;
 //      case CANCEL_CHANGE_ROLE_REQUEST:
 //          CancelChangeRoleRequestResult cancelChangeRoleRequestResult;
+//      case REMOVE_ASSET_PAIR:
+//          RemoveAssetPairResult removeAssetPairResult;
+//      case CREATE_KYC_RECOVERY_REQUEST:
+//          CreateKYCRecoveryRequestResult createKYCRecoveryRequestResult;
+//      case INITIATE_KYC_RECOVERY:
+//          InitiateKYCRecoveryResult initiateKYCRecoveryResult;
 //      }
 //      tr;
 //  case opNO_ENTRY:
@@ -18047,24 +18937,24 @@ abstract class OperationResult(val discriminant: org.tokend.wallet.xdr.Operation
       }
     }
 
-    open class CreateAswapBidRequest(var createASwapBidCreationRequestResult: org.tokend.wallet.xdr.CreateASwapBidCreationRequestResult): OperationResultTr(org.tokend.wallet.xdr.OperationType.CREATE_ASWAP_BID_REQUEST) {
+    open class CreateAtomicSwapAskRequest(var createAtomicSwapAskRequestResult: org.tokend.wallet.xdr.CreateAtomicSwapAskRequestResult): OperationResultTr(org.tokend.wallet.xdr.OperationType.CREATE_ATOMIC_SWAP_ASK_REQUEST) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
-        createASwapBidCreationRequestResult.toXdr(stream)
+        createAtomicSwapAskRequestResult.toXdr(stream)
       }
     }
 
-    open class CancelAswapBid(var cancelASwapBidResult: org.tokend.wallet.xdr.CancelASwapBidResult): OperationResultTr(org.tokend.wallet.xdr.OperationType.CANCEL_ASWAP_BID) {
+    open class CancelAtomicSwapAsk(var cancelAtomicSwapAskResult: org.tokend.wallet.xdr.CancelAtomicSwapAskResult): OperationResultTr(org.tokend.wallet.xdr.OperationType.CANCEL_ATOMIC_SWAP_ASK) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
-        cancelASwapBidResult.toXdr(stream)
+        cancelAtomicSwapAskResult.toXdr(stream)
       }
     }
 
-    open class CreateAswapRequest(var createASwapRequestResult: org.tokend.wallet.xdr.CreateASwapRequestResult): OperationResultTr(org.tokend.wallet.xdr.OperationType.CREATE_ASWAP_REQUEST) {
+    open class CreateAtomicSwapBidRequest(var createAtomicSwapBidRequestResult: org.tokend.wallet.xdr.CreateAtomicSwapBidRequestResult): OperationResultTr(org.tokend.wallet.xdr.OperationType.CREATE_ATOMIC_SWAP_BID_REQUEST) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
-        createASwapRequestResult.toXdr(stream)
+        createAtomicSwapBidRequestResult.toXdr(stream)
       }
     }
 
@@ -18149,6 +19039,27 @@ abstract class OperationResult(val discriminant: org.tokend.wallet.xdr.Operation
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         cancelChangeRoleRequestResult.toXdr(stream)
+      }
+    }
+
+    open class RemoveAssetPair(var removeAssetPairResult: org.tokend.wallet.xdr.RemoveAssetPairResult): OperationResultTr(org.tokend.wallet.xdr.OperationType.REMOVE_ASSET_PAIR) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        removeAssetPairResult.toXdr(stream)
+      }
+    }
+
+    open class CreateKycRecoveryRequest(var createKYCRecoveryRequestResult: org.tokend.wallet.xdr.CreateKYCRecoveryRequestResult): OperationResultTr(org.tokend.wallet.xdr.OperationType.CREATE_KYC_RECOVERY_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        createKYCRecoveryRequestResult.toXdr(stream)
+      }
+    }
+
+    open class InitiateKycRecovery(var initiateKYCRecoveryResult: org.tokend.wallet.xdr.InitiateKYCRecoveryResult): OperationResultTr(org.tokend.wallet.xdr.OperationType.INITIATE_KYC_RECOVERY) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        initiateKYCRecoveryResult.toXdr(stream)
       }
     }
   }
@@ -18338,7 +19249,13 @@ open class TransactionResult(
 //      FIX_NOT_CHECKING_SET_TASKS_PERMISSIONS = 8,
 //      UNLIMITED_ADMIN_COUNT = 9,
 //      FIX_AML_ALERT_ERROR_CODES = 10,
-//      FIX_EXT_SYS_ACC_EXPIRATION_TIME = 11
+//      FIX_EXT_SYS_ACC_EXPIRATION_TIME = 11,
+//      FIX_CHANGE_ROLE_REJECT_TASKS = 12,
+//      FIX_SAME_ASSET_PAIR = 13,
+//      ATOMIC_SWAP_RETURNING = 14,
+//      FIX_INVEST_FEE = 15,
+//      ADD_ACC_SPECIFIC_RULE_RESOURCE = 16,
+//      FIX_SIGNER_CHANGES_REMOVE = 17
 //  };
 
 //  ===========================================================================
@@ -18355,6 +19272,12 @@ public enum class LedgerVersion(val value: kotlin.Int): XdrEncodable {
   UNLIMITED_ADMIN_COUNT(9),
   FIX_AML_ALERT_ERROR_CODES(10),
   FIX_EXT_SYS_ACC_EXPIRATION_TIME(11),
+  FIX_CHANGE_ROLE_REJECT_TASKS(12),
+  FIX_SAME_ASSET_PAIR(13),
+  ATOMIC_SWAP_RETURNING(14),
+  FIX_INVEST_FEE(15),
+  ADD_ACC_SPECIFIC_RULE_RESOURCE(16),
+  FIX_SIGNER_CHANGES_REMOVE(17),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -18506,7 +19429,7 @@ abstract class PublicKey(val discriminant: org.tokend.wallet.xdr.CryptoKeyType):
 //      CONTRACT = 25,
 //      ACCOUNT_ROLE = 26,
 //      ACCOUNT_RULE = 27,
-//      ATOMIC_SWAP_BID = 28,
+//      ATOMIC_SWAP_ASK = 28,
 //      TRANSACTION = 29, // is used for account rule resource
 //      SIGNER_RULE = 30,
 //      SIGNER_ROLE = 31,
@@ -18514,7 +19437,8 @@ abstract class PublicKey(val discriminant: org.tokend.wallet.xdr.CryptoKeyType):
 //      LICENSE = 33,
 //      POLL = 34,
 //      VOTE = 35,
-//      ACCOUNT_SPECIFIC_RULE = 36
+//      ACCOUNT_SPECIFIC_RULE = 36,
+//      INITIATE_KYC_RECOVERY = 37
 //  };
 
 //  ===========================================================================
@@ -18544,7 +19468,7 @@ public enum class LedgerEntryType(val value: kotlin.Int): XdrEncodable {
   CONTRACT(25),
   ACCOUNT_ROLE(26),
   ACCOUNT_RULE(27),
-  ATOMIC_SWAP_BID(28),
+  ATOMIC_SWAP_ASK(28),
   TRANSACTION(29),
   SIGNER_RULE(30),
   SIGNER_ROLE(31),
@@ -18553,6 +19477,7 @@ public enum class LedgerEntryType(val value: kotlin.Int): XdrEncodable {
   POLL(34),
   VOTE(35),
   ACCOUNT_SPECIFIC_RULE(36),
+  INITIATE_KYC_RECOVERY(37),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -18791,9 +19716,9 @@ open class Fee(
 //      PAYOUT = 32,
 //      MANAGE_ACCOUNT_ROLE = 33,
 //      MANAGE_ACCOUNT_RULE = 34,
-//      CREATE_ASWAP_BID_REQUEST = 35,
-//      CANCEL_ASWAP_BID = 36,
-//      CREATE_ASWAP_REQUEST = 37,
+//      CREATE_ATOMIC_SWAP_ASK_REQUEST = 35,
+//      CANCEL_ATOMIC_SWAP_ASK = 36,
+//      CREATE_ATOMIC_SWAP_BID_REQUEST = 37,
 //      MANAGE_SIGNER = 38,
 //      MANAGE_SIGNER_ROLE = 39,
 //      MANAGE_SIGNER_RULE = 40,
@@ -18803,7 +19728,10 @@ open class Fee(
 //      MANAGE_POLL = 44,
 //      MANAGE_VOTE = 45,
 //      MANAGE_ACCOUNT_SPECIFIC_RULE = 46,
-//      CANCEL_CHANGE_ROLE_REQUEST = 47
+//      CANCEL_CHANGE_ROLE_REQUEST = 47,
+//      INITIATE_KYC_RECOVERY = 48,
+//      CREATE_KYC_RECOVERY_REQUEST = 49,
+//      REMOVE_ASSET_PAIR = 50
 //  };
 
 //  ===========================================================================
@@ -18836,9 +19764,9 @@ public enum class OperationType(val value: kotlin.Int): XdrEncodable {
   PAYOUT(32),
   MANAGE_ACCOUNT_ROLE(33),
   MANAGE_ACCOUNT_RULE(34),
-  CREATE_ASWAP_BID_REQUEST(35),
-  CANCEL_ASWAP_BID(36),
-  CREATE_ASWAP_REQUEST(37),
+  CREATE_ATOMIC_SWAP_ASK_REQUEST(35),
+  CANCEL_ATOMIC_SWAP_ASK(36),
+  CREATE_ATOMIC_SWAP_BID_REQUEST(37),
   MANAGE_SIGNER(38),
   MANAGE_SIGNER_ROLE(39),
   MANAGE_SIGNER_RULE(40),
@@ -18849,6 +19777,9 @@ public enum class OperationType(val value: kotlin.Int): XdrEncodable {
   MANAGE_VOTE(45),
   MANAGE_ACCOUNT_SPECIFIC_RULE(46),
   CANCEL_CHANGE_ROLE_REQUEST(47),
+  INITIATE_KYC_RECOVERY(48),
+  CREATE_KYC_RECOVERY_REQUEST(49),
+  REMOVE_ASSET_PAIR(50),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
