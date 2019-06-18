@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Please check our [developers guide](https://gitlab.com/tokend/developers-guide)
 for further information about branching and tagging conventions.
 
+## [3.2.0] 2019-06-18
+
+### Changed
+- Updated XDR version to `cd889b0`
+
 ## [3.1.0] 2019-05-27
 
 ### Added
@@ -30,6 +35,7 @@ for further information about branching and tagging conventions.
 ### Fixed
 - Wrong value type for `KeyValueEntryValue`
 
-[Unreleased]: https://github.com/tokend/kotlin-wallet/compare/3.1.0...HEAD
 [3.0.1]: https://github.com/tokend/kotlin-wallet/compare/1.0.13...3.0.1
 [3.1.0]: https://github.com/tokend/kotlin-wallet/compare/3.0.1...3.1.0
+[3.2.0]: https://github.com/tokend/kotlin-wallet/compare/3.1.0...3.2.0
+[Unreleased]: https://github.com/tokend/kotlin-wallet/compare/3.2.0...HEAD
