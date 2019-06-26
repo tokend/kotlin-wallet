@@ -97,7 +97,14 @@ class Transaction {
      * Adds signature from given signer to transaction signatures.
      */
     fun addSignature(signer: Account) {
-        mSignatures.add(signer.signDecorated(getHash()))
+        addSignature(signer.signDecorated(getHash()))
+    }
+
+    /**
+     * Adds given signature to transaction signatures.
+     */
+    fun addSignature(decoratedSignature: DecoratedSignature) {
+        mSignatures.add(decoratedSignature)
     }
 
     /**
