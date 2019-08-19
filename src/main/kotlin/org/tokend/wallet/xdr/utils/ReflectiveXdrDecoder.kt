@@ -1,25 +1,32 @@
 package org.tokend.wallet.xdr.utils
 
+import kotlinx.reflect.lite.ReflectionLite
 import org.tokend.wallet.xdr.XdrByteArrayFixed16
 import org.tokend.wallet.xdr.XdrByteArrayFixed32
 import org.tokend.wallet.xdr.XdrByteArrayFixed4
 import java.lang.reflect.Modifier
 
+/**
+ * Used to decode XDRs with reflection.
+ */
 object ReflectiveXdrDecoder {
-    fun <T : Any> read(type: Class<out T>, stream: XdrDataInputStream): T {
+    /**
+     * @return Value of [clazz] type decoded from [stream] content
+     */
+    @JvmStatic
+    @Suppress("UNCHECKED_CAST")
+    fun <T : Any> read(clazz: Class<out T>, stream: XdrDataInputStream): T {
         return when {
-            isPrimitive(type) -> readPrimitive(type, stream)
-            isEnum(type) -> readEnum(type, stream)
-            isFixedByteArray(type) -> readFixedByteArray(type, stream)
-            isUnionSwitch(type) -> readUnionSwitch(type, stream)
-            else -> readComplex(type, stream)
+            isPrimitive(clazz) -> readPrimitive(clazz, stream)
+            isEnum(clazz) -> readEnum(clazz, stream)
+            isFixedByteArray(clazz) -> readFixedByteArray(clazz, stream)
+            isUnionSwitch(clazz) -> readUnionSwitch(clazz, stream)
+            else -> readComplex(clazz, stream)
         } as T
     }
 
-    // region Primitive
-    private val primitives = setOf(
-            "int", "long", "boolean", "java.lang.String", "byte[]"
-    )
+    // region Primitives
+    private val primitives = setOf("int", "long", "boolean", "java.lang.String", "byte[]")
 
     private fun isPrimitive(type: Class<out Any>): Boolean {
         return type.typeName in primitives
@@ -32,7 +39,7 @@ object ReflectiveXdrDecoder {
             "boolean" -> Boolean.fromXdr(stream)
             "java.lang.String" -> String.fromXdr(stream)
             "byte[]" -> XdrOpaque.fromXdr(stream)
-            else -> error("Unknwon primitive $type")
+            else -> error("Unknown primitive $type")
         }
     }
     // endregion
@@ -85,7 +92,7 @@ object ReflectiveXdrDecoder {
         return type.isEnum
     }
 
-    fun readEnum(type: Class<out Any>, stream: XdrDataInputStream): Any {
+    private fun readEnum(type: Class<out Any>, stream: XdrDataInputStream): Any {
         val value = Int.fromXdr(stream)
         val values = type.enumConstants
         val valueField = values[0]::class.java.getDeclaredField("value")
@@ -103,12 +110,26 @@ object ReflectiveXdrDecoder {
     // endregion
 
     // region Complex
-    fun readComplex(type: Class<out Any>, stream: XdrDataInputStream): Any {
+    private fun readComplex(type: Class<out Any>, stream: XdrDataInputStream): Any {
         val constructor = type.declaredConstructors[0]
-        val fieldValues = type.declaredFields.map {
-            read(it.type, stream)
+        val constructorMetadata = ReflectionLite.loadClassMetadata(type)
+                ?.getConstructor(constructor)
+        val args = constructor.parameterTypes.mapIndexed { i, it ->
+            val isOptional = constructorMetadata?.parameters?.get(i)?.type?.isNullable == true
+
+            if (isOptional) {
+                val isPresent = Boolean.fromXdr(stream)
+                if (isPresent) {
+                    read(it, stream)
+                } else {
+                    null
+                }
+            } else {
+                read(it, stream)
+            }
         }
-        return constructor.newInstance(*fieldValues.toTypedArray())
+
+        return constructor.newInstance(*args.toTypedArray())
     }
     // endregion
 }

@@ -5,6 +5,7 @@ import org.junit.FixMethodOrder
 import org.junit.Test
 import org.junit.runners.MethodSorters
 import org.tokend.wallet.PublicKeyFactory
+import org.tokend.wallet.xdr.AccountEntry
 import org.tokend.wallet.xdr.PublicKey
 import org.tokend.wallet.xdr.SaleQuoteAsset
 import org.tokend.wallet.xdr.utils.ReflectiveXdrDecoder
@@ -44,5 +45,28 @@ class DecodingTest {
                 (source.quoteBalance as PublicKey.KeyTypeEd25519).ed25519.wrapped,
                 (decoded.quoteBalance as PublicKey.KeyTypeEd25519).ed25519.wrapped
         )
+    }
+
+    @Test
+    fun bDecodeWithOptionals() {
+        val source = AccountEntry(
+                accountID = PublicKeyFactory.fromAccountId(
+                        "GDLWLDE33BN7SG6V4P63V2HFA56JYRMODESBLR2JJ5F3ITNQDUVKS2JE"
+                ),
+                roleID = 333,
+                referrer = null,
+                sequentialID = 404,
+                ext = AccountEntry.AccountEntryExt.EmptyVersion()
+        )
+
+        val sourceOutputStream = ByteArrayOutputStream()
+        source.toXdr(XdrDataOutputStream(sourceOutputStream))
+
+        val sourceInputStream = XdrDataInputStream(ByteArrayInputStream(sourceOutputStream.toByteArray()))
+
+        val decoded = ReflectiveXdrDecoder.read(AccountEntry::class.java, sourceInputStream)
+
+        Assert.assertNull(decoded.referrer)
+        Assert.assertEquals(source.sequentialID, decoded.sequentialID)
     }
 }
