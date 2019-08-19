@@ -6,6 +6,7 @@ import org.junit.Test
 import org.junit.runners.MethodSorters
 import org.tokend.wallet.PublicKeyFactory
 import org.tokend.wallet.xdr.AccountEntry
+import org.tokend.wallet.xdr.CryptoKeyType
 import org.tokend.wallet.xdr.PublicKey
 import org.tokend.wallet.xdr.SaleQuoteAsset
 import org.tokend.wallet.xdr.utils.ReflectiveXdrDecoder

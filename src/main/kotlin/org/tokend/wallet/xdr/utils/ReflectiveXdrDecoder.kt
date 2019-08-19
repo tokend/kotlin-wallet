@@ -67,15 +67,12 @@ object ReflectiveXdrDecoder {
     // region Union switch
     private fun isUnionSwitch(type: Class<out Any>): Boolean {
         return Modifier.isAbstract(type.modifiers)
-                && try {
-            type.getDeclaredField("discriminant")
-        } catch (_: Exception) {
-            null
-        } != null
+                && type.declaredFields.firstOrNull()?.type?.isEnum == true
     }
 
     private fun readUnionSwitch(type: Class<out Any>, stream: XdrDataInputStream): Any {
-        val discriminantEnumType = type.getDeclaredField("discriminant").type
+        // Assume that union switch first field is a discriminant.
+        val discriminantEnumType = type.declaredFields.first().type
         val discriminantEnumValue = readEnum(discriminantEnumType, stream)
 
         val ordinal = discriminantEnumType.enumConstants.indexOf(discriminantEnumValue)
@@ -95,7 +92,9 @@ object ReflectiveXdrDecoder {
     private fun readEnum(type: Class<out Any>, stream: XdrDataInputStream): Any {
         val value = Int.fromXdr(stream)
         val values = type.enumConstants
-        val valueField = values[0]::class.java.getDeclaredField("value")
+
+        // Assume that XDR enums have only one custom field and it's an int value.
+        val valueField = values[0]::class.java.declaredFields.last()
 
         valueField.isAccessible = true
 
