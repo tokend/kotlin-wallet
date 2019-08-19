@@ -29,7 +29,7 @@ fun String.Companion.fromXdr(stream: XdrDataInputStream): String {
 
 // Bool
 fun Boolean.toXdr(stream: XdrDataOutputStream) {
-    stream.writeInt( if (this) 1 else 0)
+    stream.writeInt(if (this) 1 else 0)
 }
 
 fun Boolean.Companion.fromXdr(stream: XdrDataInputStream): Boolean {
@@ -43,11 +43,7 @@ fun ByteArray.toXdr(stream: XdrDataOutputStream) {
 }
 
 object XdrOpaque {
-    fun toXdr(a: ByteArray, stream: XdrDataOutputStream) {
-        a.size.toXdr(stream)
-        stream.write(a)
-    }
-
+    @JvmStatic
     fun fromXdr(stream: XdrDataInputStream): ByteArray {
         val size = stream.readInt()
         val array = ByteArray(size)
@@ -59,7 +55,7 @@ object XdrOpaque {
 /**
  * Fixed size opaque data
  */
-abstract class XdrFixedByteArray: XdrEncodable {
+abstract class XdrFixedByteArray : XdrEncodable {
     var wrapped: ByteArray
         set(value) {
             when {

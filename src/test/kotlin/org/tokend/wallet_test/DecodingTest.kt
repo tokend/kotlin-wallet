@@ -6,12 +6,10 @@ import org.junit.Test
 import org.junit.runners.MethodSorters
 import org.tokend.wallet.PublicKeyFactory
 import org.tokend.wallet.xdr.AccountEntry
-import org.tokend.wallet.xdr.CryptoKeyType
-import org.tokend.wallet.xdr.PublicKey
-import org.tokend.wallet.xdr.SaleQuoteAsset
-import org.tokend.wallet.xdr.utils.ReflectiveXdrDecoder
-import org.tokend.wallet.xdr.utils.XdrDataInputStream
-import org.tokend.wallet.xdr.utils.XdrDataOutputStream
+import org.tokend.wallet.xdr.ManageAssetOp
+import org.tokend.wallet.xdr.Operation
+import org.tokend.wallet.xdr.UpdateMaxIssuance
+import org.tokend.wallet.xdr.utils.*
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 
@@ -19,33 +17,42 @@ import java.io.ByteArrayOutputStream
 class DecodingTest {
     @Test
     fun aDecodeAllRequired() {
-        val source = SaleQuoteAsset(
-                quoteAsset = "OLE",
-                price = 4020,
-                quoteBalance = PublicKeyFactory.fromBalanceId(
-                        "BCHZ2AUTIDCAU7VQM4357MMH3ZT5IHCMZL5DK2GGMUGTJVNISPR56AJF"
-                ),
-                currentCap = 5495,
-                ext = SaleQuoteAsset.SaleQuoteAssetExt.EmptyVersion()
+        val sourceRequest = UpdateMaxIssuance(
+                assetCode = "OLE",
+                maxIssuanceAmount = 5495,
+                ext = UpdateMaxIssuance.UpdateMaxIssuanceExt.EmptyVersion()
         )
+
+        val source = Operation.OperationBody.ManageAsset(
+                ManageAssetOp(
+                        requestID = 4020,
+                        request = ManageAssetOp.ManageAssetOpRequest.UpdateMaxIssuance(
+                                sourceRequest
+                        ),
+                        ext = ManageAssetOp.ManageAssetOpExt.EmptyVersion()
+                )
+        )
+
         val sourceOutputStream = ByteArrayOutputStream()
         source.toXdr(XdrDataOutputStream(sourceOutputStream))
 
         val sourceInputStream = XdrDataInputStream(ByteArrayInputStream(sourceOutputStream.toByteArray()))
 
-        val decoded = ReflectiveXdrDecoder.read(SaleQuoteAsset::class.java, sourceInputStream)
+        val decoded = ReflectiveXdrDecoder.read(Operation.OperationBody::class.java, sourceInputStream)
 
-        Assert.assertEquals(source.quoteAsset, decoded.quoteAsset)
-        Assert.assertEquals(source.price, decoded.price)
-        Assert.assertEquals(source.currentCap, decoded.currentCap)
+        Assert.assertEquals(source.discriminant, decoded.discriminant)
 
-        Assert.assertEquals(source.ext.discriminant, decoded.ext.discriminant)
+        val decodedOp = (decoded as Operation.OperationBody.ManageAsset).manageAssetOp
 
-        Assert.assertEquals(source.quoteBalance.discriminant, decoded.quoteBalance.discriminant)
-        Assert.assertArrayEquals(
-                (source.quoteBalance as PublicKey.KeyTypeEd25519).ed25519.wrapped,
-                (decoded.quoteBalance as PublicKey.KeyTypeEd25519).ed25519.wrapped
-        )
+        Assert.assertEquals(source.manageAssetOp.requestID, decodedOp.requestID)
+        Assert.assertEquals(source.manageAssetOp.request.discriminant, decodedOp.request.discriminant)
+
+        val decodedRequest = (decodedOp.request as ManageAssetOp.ManageAssetOpRequest.UpdateMaxIssuance)
+                .updateMaxIssuance
+
+        Assert.assertEquals(sourceRequest.assetCode, decodedRequest.assetCode)
+        Assert.assertEquals(sourceRequest.maxIssuanceAmount, decodedRequest.maxIssuanceAmount)
+        Assert.assertEquals(sourceRequest.ext.discriminant, decodedRequest.ext.discriminant)
     }
 
     @Test
@@ -69,5 +76,73 @@ class DecodingTest {
 
         Assert.assertNull(decoded.referrer)
         Assert.assertEquals(source.sequentialID, decoded.sequentialID)
+    }
+
+    @Test
+    fun cPrimitives() {
+        44.also { source ->
+            Assert.assertEquals(source, ByteArrayOutputStream().let {
+                source.toXdr(XdrDataOutputStream(it))
+                Int.fromXdr(XdrDataInputStream(ByteArrayInputStream(it.toByteArray())))
+            })
+        }
+        (-44).also { source ->
+            Assert.assertEquals(source, ByteArrayOutputStream().let {
+                source.toXdr(XdrDataOutputStream(it))
+                Int.fromXdr(XdrDataInputStream(ByteArrayInputStream(it.toByteArray())))
+            })
+        }
+
+        55L.also { source ->
+            Assert.assertEquals(source, ByteArrayOutputStream().let {
+                source.toXdr(XdrDataOutputStream(it))
+                Long.fromXdr(XdrDataInputStream(ByteArrayInputStream(it.toByteArray())))
+            })
+        }
+        (-55L).also { source ->
+            Assert.assertEquals(source, ByteArrayOutputStream().let {
+                source.toXdr(XdrDataOutputStream(it))
+                Long.fromXdr(XdrDataInputStream(ByteArrayInputStream(it.toByteArray())))
+            })
+        }
+
+        true.also { source ->
+            Assert.assertEquals(source, ByteArrayOutputStream().let {
+                source.toXdr(XdrDataOutputStream(it))
+                Boolean.fromXdr(XdrDataInputStream(ByteArrayInputStream(it.toByteArray())))
+            })
+        }
+        false.also { source ->
+            Assert.assertEquals(source, ByteArrayOutputStream().let {
+                source.toXdr(XdrDataOutputStream(it))
+                Boolean.fromXdr(XdrDataInputStream(ByteArrayInputStream(it.toByteArray())))
+            })
+        }
+
+        "TokenD is awesome!".also { source ->
+            Assert.assertEquals(source, ByteArrayOutputStream().let {
+                source.toXdr(XdrDataOutputStream(it))
+                String.fromXdr(XdrDataInputStream(ByteArrayInputStream(it.toByteArray())))
+            })
+        }
+        "".also { source ->
+            Assert.assertEquals(source, ByteArrayOutputStream().let {
+                source.toXdr(XdrDataOutputStream(it))
+                String.fromXdr(XdrDataInputStream(ByteArrayInputStream(it.toByteArray())))
+            })
+        }
+
+        byteArrayOf(1, 2, 3, 4).also { source ->
+            Assert.assertArrayEquals(source, ByteArrayOutputStream().let {
+                source.toXdr(XdrDataOutputStream(it))
+                XdrOpaque.fromXdr(XdrDataInputStream(ByteArrayInputStream(it.toByteArray())))
+            })
+        }
+        byteArrayOf().also { source ->
+            Assert.assertArrayEquals(source, ByteArrayOutputStream().let {
+                source.toXdr(XdrDataOutputStream(it))
+                XdrOpaque.fromXdr(XdrDataInputStream(ByteArrayInputStream(it.toByteArray())))
+            })
+        }
     }
 }
