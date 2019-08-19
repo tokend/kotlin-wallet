@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Please check our [developers guide](https://gitlab.com/tokend/developers-guide)
 for further information about branching and tagging conventions.
 
-## [Unreleased]
+## [3.3.0] 2019-07-15
 
 ### Added
 - Ability to add `DecoratedSignature` to the transaction directly
@@ -43,4 +43,5 @@ for further information about branching and tagging conventions.
 [3.0.1]: https://github.com/tokend/kotlin-wallet/compare/1.0.13...3.0.1
 [3.1.0]: https://github.com/tokend/kotlin-wallet/compare/3.0.1...3.1.0
 [3.2.0]: https://github.com/tokend/kotlin-wallet/compare/3.1.0...3.2.0
-[Unreleased]: https://github.com/tokend/kotlin-wallet/compare/3.2.0...HEAD
+[3.3.0]: https://github.com/tokend/kotlin-wallet/compare/3.2.0...3.3.0
+[Unreleased]: https://github.com/tokend/kotlin-wallet/compare/3.3.0...HEAD
