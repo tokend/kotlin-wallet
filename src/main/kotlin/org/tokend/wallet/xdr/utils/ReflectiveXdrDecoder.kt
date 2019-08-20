@@ -11,6 +11,17 @@ import java.lang.reflect.Modifier
  */
 object ReflectiveXdrDecoder {
     /**
+     * @return [ReflectiveXdrDecoder]-based [XdrDecodable] instance for given type
+     */
+    inline fun <reified T: Any>wrapType(): XdrDecodable<T> {
+        return object : XdrDecodable<T> {
+            override fun fromXdr(stream: XdrDataInputStream): T {
+                return read(T::class.java, stream)
+            }
+        }
+    }
+
+    /**
      * @return Value of [clazz] type decoded from [stream] content
      */
     @JvmStatic
