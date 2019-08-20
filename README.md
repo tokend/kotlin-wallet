@@ -50,7 +50,21 @@ val transaction = TransactionBuilder(NETWORK, sourceAccount.accountId)
 val envelope = transaction.getEnvelope().toBase64()
 ```
 
+Decoding:
+```kotlin
+val txResultEncoded = "AAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAJAAAAAAAAAADMOKDasWPzpJIqN9sWipdvcjEZRTnGBvUezXbEd6rKMAAAAAAAAAAA"
+val txResult = TransactionResult.fromBase64(txResultEncoded)
+```
 
+## ProGuard
+As long as you don't decode XDRs (`.fromXdr(...)`) no extra ProGuard
+rules are required. Otherwise add following lines to your
+project's `proguard-rules.pro`:
+```proguard
+# Wallet
+-keep class org.tokend.wallet.xdr.* { *; }
+-keep class kotlin.Metadata { *; }
+```
 ## XDR Update
 XDR sources are located in [TokenD XDR repository](https://github.com/tokend/xdr/).
 You can generate new XDRs using our Docker-based XDR generator.

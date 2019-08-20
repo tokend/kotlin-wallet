@@ -92,7 +92,9 @@ object ReflectiveXdrDecoder {
                 .replace("_", "")
 
         val armClass = type.declaredClasses
-                .find { it.simpleName.toLowerCase() == nameKey }
+                .find {
+                    it.simpleName.toLowerCase() == nameKey
+                }
                 ?: error("Unknown union switch $type arm index $discriminantEnumValue")
 
         return readComplex(armClass, stream)
@@ -108,9 +110,7 @@ object ReflectiveXdrDecoder {
         val value = Int.fromXdr(stream)
         val values = type.enumConstants
 
-        // Assume that XDR enums have only one custom field, it's an int value.
-        val fields = type.declaredFields
-        val valueField = fields.find { it.type.name == "int" }
+        val valueField = type.getDeclaredField("value")
 
         valueField?.isAccessible = true
 
