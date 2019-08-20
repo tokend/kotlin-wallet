@@ -1,14 +1,13 @@
 package org.tokend.wallet_test
 
+import org.apache.commons.codec.binary.Base64
 import org.junit.Assert
 import org.junit.FixMethodOrder
 import org.junit.Test
 import org.junit.runners.MethodSorters
+import org.tokend.wallet.Base32Check
 import org.tokend.wallet.PublicKeyFactory
-import org.tokend.wallet.xdr.AccountEntry
-import org.tokend.wallet.xdr.ManageAssetOp
-import org.tokend.wallet.xdr.Operation
-import org.tokend.wallet.xdr.UpdateMaxIssuance
+import org.tokend.wallet.xdr.*
 import org.tokend.wallet.xdr.utils.*
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -144,5 +143,33 @@ class DecodingTest {
                 XdrOpaque.fromXdr(XdrDataInputStream(ByteArrayInputStream(it.toByteArray())))
             })
         }
+    }
+
+    @Test
+    fun dTxResult() {
+        val createdBalanceId = "BDGDRIG2WFR7HJESFI35WFUKS5XXEMIZIU44MBXVD3GXNRDXVLFDBGJW"
+        val result = "AAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAJAAAAAAAAAADMOKDasWPzpJIqN9sWipdvcjEZRTnGBvUezXbEd6rKMAAAAAAAAAAA"
+        val decoded = ReflectiveXdrDecoder.read(
+                TransactionResult::class.java,
+                XdrDataInputStream(ByteArrayInputStream(Base64().decode(result)))
+        )
+        Assert.assertEquals(
+                createdBalanceId,
+                decoded.result
+                        .let { it as TransactionResult.TransactionResultResult.Txsuccess }
+                        .results
+                        .first()
+                        .let { it as OperationResult.Opinner }
+                        .tr
+                        .let { it as OperationResult.OperationResultTr.ManageBalance }
+                        .manageBalanceResult
+                        .let { it as ManageBalanceResult.Success }
+                        .success
+                        .balanceID
+                        .let { it as PublicKey.KeyTypeEd25519 }
+                        .ed25519
+                        .wrapped
+                        .let(Base32Check::encodeBalanceId)
+        )
     }
 }

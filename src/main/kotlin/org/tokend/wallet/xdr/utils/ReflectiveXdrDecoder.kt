@@ -21,6 +21,7 @@ object ReflectiveXdrDecoder {
             isEnum(clazz) -> readEnum(clazz, stream)
             isFixedByteArray(clazz) -> readFixedByteArray(clazz, stream)
             isUnionSwitch(clazz) -> readUnionSwitch(clazz, stream)
+            isArray(clazz) -> readArray(clazz, stream)
             else -> readComplex(clazz, stream)
         } as T
     }
@@ -75,10 +76,13 @@ object ReflectiveXdrDecoder {
         val discriminantEnumType = type.declaredFields.first().type
         val discriminantEnumValue = readEnum(discriminantEnumType, stream)
 
-        val ordinal = discriminantEnumType.enumConstants.indexOf(discriminantEnumValue)
+        val nameKey = discriminantEnumValue.toString()
+                .toLowerCase()
+                .replace("_", "")
 
-        val armClass = type.declaredClasses.getOrNull(ordinal)
-                ?: error("Unknown union switch $type arm index $ordinal")
+        val armClass = type.declaredClasses
+                .find { it.simpleName.toLowerCase() == nameKey }
+                ?: error("Unknown union switch $type arm index $discriminantEnumValue")
 
         return readComplex(armClass, stream)
     }
@@ -104,7 +108,7 @@ object ReflectiveXdrDecoder {
 
         valueField.isAccessible = false
 
-        return found ?: error("Can't find $type enum value for $value")
+        return found ?: error("Can't find ${type.name} enum value for $value")
     }
     // endregion
 
@@ -129,6 +133,22 @@ object ReflectiveXdrDecoder {
         }
 
         return constructor.newInstance(*args.toTypedArray())
+    }
+    // endregion
+
+    // region Arrays
+    private fun isArray(type: Class<out Any>): Boolean {
+        return type.isArray
+    }
+
+    private fun readArray(type: Class<out Any>, stream: XdrDataInputStream): Any {
+        val elementType = type.componentType
+        val size = Int.fromXdr(stream)
+        val array = java.lang.reflect.Array.newInstance(elementType, size)
+        for (i in 0 until size) {
+            java.lang.reflect.Array.set(array, i, read(elementType, stream))
+        }
+        return array
     }
     // endregion
 }
