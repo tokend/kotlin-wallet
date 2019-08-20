@@ -108,8 +108,10 @@ object ReflectiveXdrDecoder {
         val value = Int.fromXdr(stream)
         val values = type.enumConstants
 
-        // Assume that XDR enums have only one custom field and it's an int value.
-        val valueField = values[0]::class.java.declaredFields.last()
+        // Assume that XDR enums have only one custom field, it's an int value
+        // and goes before the decoder.
+        val fields = type.declaredFields
+        val valueField = fields[fields.lastIndex - 1]
 
         valueField.isAccessible = true
 
@@ -131,15 +133,11 @@ object ReflectiveXdrDecoder {
         val args = constructor.parameterTypes.mapIndexed { i, it ->
             val isOptional = constructorMetadata?.parameters?.get(i)?.type?.isNullable == true
 
-            if (isOptional) {
-                val isPresent = Boolean.fromXdr(stream)
-                if (isPresent) {
-                    read(it, stream)
-                } else {
-                    null
-                }
-            } else {
+            // Read value if it's not optional or is optional and present.
+            if (!isOptional || Boolean.fromXdr(stream)) {
                 read(it, stream)
+            } else {
+                null
             }
         }
 

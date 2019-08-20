@@ -1,6 +1,5 @@
 package org.tokend.wallet_test
 
-import org.apache.commons.codec.binary.Base64
 import org.junit.Assert
 import org.junit.FixMethodOrder
 import org.junit.Test
@@ -32,12 +31,7 @@ class DecodingTest {
                 )
         )
 
-        val sourceOutputStream = ByteArrayOutputStream()
-        source.toXdr(XdrDataOutputStream(sourceOutputStream))
-
-        val sourceInputStream = XdrDataInputStream(ByteArrayInputStream(sourceOutputStream.toByteArray()))
-
-        val decoded = ReflectiveXdrDecoder.read(Operation.OperationBody::class.java, sourceInputStream)
+        val decoded = Operation.OperationBody.fromBase64(source.toBase64())
 
         Assert.assertEquals(source.discriminant, decoded.discriminant)
 
@@ -66,12 +60,7 @@ class DecodingTest {
                 ext = AccountEntry.AccountEntryExt.EmptyVersion()
         )
 
-        val sourceOutputStream = ByteArrayOutputStream()
-        source.toXdr(XdrDataOutputStream(sourceOutputStream))
-
-        val sourceInputStream = XdrDataInputStream(ByteArrayInputStream(sourceOutputStream.toByteArray()))
-
-        val decoded = ReflectiveXdrDecoder.read(AccountEntry::class.java, sourceInputStream)
+        val decoded = AccountEntry.fromBase64(source.toBase64())
 
         Assert.assertNull(decoded.referrer)
         Assert.assertEquals(source.sequentialID, decoded.sequentialID)
@@ -149,10 +138,7 @@ class DecodingTest {
     fun dTxResult() {
         val createdBalanceId = "BDGDRIG2WFR7HJESFI35WFUKS5XXEMIZIU44MBXVD3GXNRDXVLFDBGJW"
         val result = "AAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAJAAAAAAAAAADMOKDasWPzpJIqN9sWipdvcjEZRTnGBvUezXbEd6rKMAAAAAAAAAAA"
-        val decoded = ReflectiveXdrDecoder.read(
-                TransactionResult::class.java,
-                XdrDataInputStream(ByteArrayInputStream(Base64().decode(result)))
-        )
+        val decoded = TransactionResult.fromBase64(result)
         Assert.assertEquals(
                 createdBalanceId,
                 decoded.result
