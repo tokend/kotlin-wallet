@@ -38,19 +38,19 @@ object ReflectiveXdrDecoder {
     }
 
     // region Primitives
-    private val primitives = setOf("int", "long", "boolean", "java.lang.String", "byte[]")
+    private val primitives = setOf("int", "long", "boolean", "java.lang.String", "[B")
 
     private fun isPrimitive(type: Class<out Any>): Boolean {
-        return type.typeName in primitives
+        return type.name in primitives
     }
 
     private fun readPrimitive(type: Class<out Any>, stream: XdrDataInputStream): Any {
-        return when (type.typeName) {
+        return when (type.name) {
             "int" -> Int.fromXdr(stream)
             "long" -> Long.fromXdr(stream)
             "boolean" -> Boolean.fromXdr(stream)
             "java.lang.String" -> String.fromXdr(stream)
-            "byte[]" -> XdrOpaque.fromXdr(stream)
+            "[B" -> XdrOpaque.fromXdr(stream)
             else -> error("Unknown primitive $type")
         }
     }
@@ -108,18 +108,17 @@ object ReflectiveXdrDecoder {
         val value = Int.fromXdr(stream)
         val values = type.enumConstants
 
-        // Assume that XDR enums have only one custom field, it's an int value
-        // and goes before the decoder.
+        // Assume that XDR enums have only one custom field, it's an int value.
         val fields = type.declaredFields
-        val valueField = fields[fields.lastIndex - 1]
+        val valueField = fields.find { it.type.name == "int" }
 
-        valueField.isAccessible = true
+        valueField?.isAccessible = true
 
         val found = values.find {
-            valueField.get(it) == value
+            valueField?.get(it) == value
         }
 
-        valueField.isAccessible = false
+        valueField?.isAccessible = false
 
         return found ?: error("Can't find ${type.name} enum value for $value")
     }
