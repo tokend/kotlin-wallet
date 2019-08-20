@@ -1,6 +1,6 @@
 package org.tokend.wallet.xdr.utils
 
-import org.apache.commons.codec.binary.Base64
+import org.tokend.wallet.utils.Base64
 import java.io.ByteArrayInputStream
 
 interface XdrDecodable<T> {
@@ -13,6 +13,6 @@ interface XdrDecodable<T> {
      * Decodes object of type [T] from Base64-encoded XDR content
      */
     fun fromBase64(xdrBase64: String): T {
-        return fromXdr(XdrDataInputStream(ByteArrayInputStream(Base64().decode(xdrBase64))))
+        return fromXdr(XdrDataInputStream(ByteArrayInputStream(Base64.decode(xdrBase64.toByteArray()))))
     }
 }

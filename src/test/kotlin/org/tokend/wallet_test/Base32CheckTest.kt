@@ -4,6 +4,7 @@ import com.google.common.io.BaseEncoding
 import org.junit.Assert
 import org.junit.Test
 import org.tokend.wallet.Base32Check
+import java.security.SecureRandom
 
 class Base32CheckTest {
     val SEED_ENCODED = "SDJHRQF4GCMIIKAAAQ6IHY42X73FQFLHUULAPSKKD4DFDM7UXWWCRHBE"
@@ -60,5 +61,13 @@ class Base32CheckTest {
     fun testValidation() {
         Assert.assertTrue(Base32Check.isValid(Base32Check.VersionByte.ACCOUNT_ID, ACCOUNT_ID_ENCODED.toCharArray()))
         Assert.assertFalse(Base32Check.isValid(Base32Check.VersionByte.BALANCE_ID, ACCOUNT_ID_ENCODED.toCharArray()))
+    }
+
+    @Test
+    fun randomData() {
+        val source = SecureRandom.getSeed(50)
+        val encoded = Base32Check.encodeAccountId(source)
+        val decoded = Base32Check.decodeAccountId(encoded)
+        Assert.assertArrayEquals(source, decoded)
     }
 }

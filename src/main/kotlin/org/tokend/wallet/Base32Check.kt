@@ -1,9 +1,7 @@
 package org.tokend.wallet
 
-import org.apache.commons.codec.binary.Base32
 import org.tokend.crypto.ecdsa.erase
-import org.tokend.wallet.utils.toByteArray
-import org.tokend.wallet.utils.toCharArray
+import org.tokend.wallet.utils.SecureBase32
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.util.*
@@ -18,8 +16,6 @@ object Base32Check {
      * Indicates that there was a problem decoding base32-checked encoded string.
      */
     class FormatException(message: String) : RuntimeException(message)
-
-    private val base32Encoding = Base32()
 
     enum class VersionByte constructor(private val value: Byte) {
         ACCOUNT_ID(48.toByte()),  // G
@@ -115,18 +111,16 @@ object Base32Check {
             outputStream.write(versionByte.getValue())
             outputStream.write(data)
             val payload = outputStream.toByteArray()
-            val checksum = Base32Check.calculateChecksum(payload)
+            val checksum = calculateChecksum(payload)
             outputStream.write(checksum)
             val unencoded = outputStream.toByteArray()
 
-            val encoded = base32Encoding.encode(unencoded)
-            val charsEncoded = encoded.toCharArray()
+            val charsEncoded = SecureBase32.encode(unencoded)
 
             if (VersionByte.SEED == versionByte) {
                 unencoded.erase()
                 payload.erase()
                 checksum.erase()
-                encoded.erase()
             }
 
             return charsEncoded
@@ -164,13 +158,13 @@ object Base32Check {
             bytes[i] = encoded[i].toByte()
         }
 
-        val decoded = Base32Check.base32Encoding.decode(encoded.toByteArray())
+        val decoded = SecureBase32.decode(encoded)
         val decodedVersionByte = decoded[0]
         val payload = Arrays.copyOfRange(decoded, 0, decoded.size - 2)
         val data = Arrays.copyOfRange(payload, 1, payload.size)
         val checksum = Arrays.copyOfRange(decoded, decoded.size - 2, decoded.size)
 
-        val expectedChecksum = Base32Check.calculateChecksum(payload)
+        val expectedChecksum = calculateChecksum(payload)
 
         if (!Arrays.equals(expectedChecksum, checksum)) {
             throw FormatException("Checksum invalid")
