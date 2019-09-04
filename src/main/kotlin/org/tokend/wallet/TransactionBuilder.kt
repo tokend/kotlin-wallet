@@ -39,6 +39,20 @@ class TransactionBuilder(private val networkParams: NetworkParams,
     }
 
     /**
+     * Adds operations with given bodies to the result transaction.
+     *
+     * @see Transaction.operations
+     */
+    @JvmOverloads
+    fun addOperations(operationBodies: Collection<Operation.OperationBody>,
+                      operationsSourceAccount: AccountID? = null): TransactionBuilder {
+        operations.addAll(operationBodies.map {
+            Operation(operationsSourceAccount, it)
+        })
+        return this
+    }
+
+    /**
      * Sets memo of the result transaction.
      *
      * @see Transaction.memo

@@ -18,6 +18,12 @@ class TransactionBuilderTest {
             "OLG",
             ManageBalanceOp.ManageBalanceOpExt.EmptyVersion()
     )
+    val SIMPLE_OP_2 = ManageBalanceOp(
+            ManageBalanceAction.CREATE,
+            SOURCE_ACCOUNT_PUBKEY,
+            "OLE",
+            ManageBalanceOp.ManageBalanceOpExt.EmptyVersion()
+    )
 
     @Test
     fun singleOperation() {
@@ -30,6 +36,25 @@ class TransactionBuilderTest {
         Assert.assertEquals(NETWORK.passphrase, transaction.networkParams.passphrase)
         Assert.assertEquals(operationBody.toBase64(),
                 transaction.operations[0].body.toBase64())
+    }
+
+    @Test
+    fun multipleOperations() {
+        val operationBodies = listOf(
+                Operation.OperationBody.ManageBalance(SIMPLE_OP),
+                Operation.OperationBody.ManageBalance(SIMPLE_OP_2)
+        )
+
+        val transaction = TransactionBuilder(NETWORK, SOURCE_ACCOUNT_PUBKEY)
+                .addOperations(operationBodies)
+                .build()
+
+        Assert.assertEquals(SOURCE_ACCOUNT_PUBKEY, transaction.sourceAccountId)
+        Assert.assertEquals(NETWORK.passphrase, transaction.networkParams.passphrase)
+        Assert.assertEquals(operationBodies[0].toBase64(),
+                transaction.operations[0].body.toBase64())
+        Assert.assertEquals(operationBodies[1].toBase64(),
+                transaction.operations[1].body.toBase64())
     }
 
     @Test
