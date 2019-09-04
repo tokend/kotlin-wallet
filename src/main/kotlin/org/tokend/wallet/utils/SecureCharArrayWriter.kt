@@ -72,8 +72,8 @@ class SecureCharArrayWriter(initialSize: Int) : CharArrayWriter(initialSize) {
      * Erases the buffer and resets chars count to 0.
      */
     fun erase() {
-        super.close()
+        close()
         buf.erase()
-        count = 0
+        reset()
     }
 }
