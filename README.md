@@ -63,7 +63,7 @@ project's `proguard-rules.pro`:
 ```proguard
 # Wallet
 -keep class org.tokend.wallet.xdr.* { *; }
--keep class kotlin.Metadata { *; }
+-keepattributes *Annotation*
 ```
 ## XDR Update
 XDR sources are located in [TokenD XDR repository](https://github.com/tokend/xdr/).
