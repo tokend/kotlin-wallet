@@ -1,6 +1,5 @@
 package org.tokend.wallet.xdr.utils
 
-import kotlinx.reflect.lite.ReflectionLite
 import org.tokend.wallet.xdr.XdrByteArrayFixed16
 import org.tokend.wallet.xdr.XdrByteArrayFixed32
 import org.tokend.wallet.xdr.XdrByteArrayFixed4
@@ -127,14 +126,12 @@ object ReflectiveXdrDecoder {
     // region Complex
     private fun readComplex(type: Class<out Any>, stream: XdrDataInputStream): Any {
         val constructor = type.declaredConstructors[0]
-        val constructorMetadata = ReflectionLite.loadClassMetadata(type)
-                ?.getConstructor(constructor)
-        val args = constructor.parameterTypes.mapIndexed { i, it ->
-            val isOptional = constructorMetadata?.parameters?.get(i)?.type?.isNullable == true
+        val args = constructor.parameters.map {
+            val isOptional = it.isAnnotationPresent(XdrOptionalField::class.java)
 
             // Read value if it's not optional or is optional and present.
             if (!isOptional || Boolean.fromXdr(stream)) {
-                read(it, stream)
+                read(it.type, stream)
             } else {
                 null
             }

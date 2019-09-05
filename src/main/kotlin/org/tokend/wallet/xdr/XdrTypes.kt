@@ -192,8 +192,8 @@ open class SCPStatement(
     open class SCPStatementPrepare(
         var quorumSetHash: org.tokend.wallet.xdr.Hash,
         var ballot: org.tokend.wallet.xdr.SCPBallot,
-        var prepared: org.tokend.wallet.xdr.SCPBallot?,
-        var preparedPrime: org.tokend.wallet.xdr.SCPBallot?,
+        @XdrOptionalField var prepared: org.tokend.wallet.xdr.SCPBallot?,
+        @XdrOptionalField var preparedPrime: org.tokend.wallet.xdr.SCPBallot?,
         var nC: org.tokend.wallet.xdr.Uint32,
         var nH: org.tokend.wallet.xdr.Uint32
       ) : XdrEncodable {
@@ -517,7 +517,7 @@ open class AccountRuleEntry(
 open class AccountSpecificRuleEntry(
     var id: org.tokend.wallet.xdr.Uint64,
     var ledgerKey: org.tokend.wallet.xdr.LedgerKey,
-    var accountID: org.tokend.wallet.xdr.AccountID?,
+    @XdrOptionalField var accountID: org.tokend.wallet.xdr.AccountID?,
     var forbids: kotlin.Boolean,
     var ext: AccountSpecificRuleEntryExt
   ) : XdrEncodable {
@@ -623,7 +623,7 @@ open class Limits(
 //  ===========================================================================
 open class AccountEntry(
     var accountID: org.tokend.wallet.xdr.AccountID,
-    var referrer: org.tokend.wallet.xdr.AccountID?,
+    @XdrOptionalField var referrer: org.tokend.wallet.xdr.AccountID?,
     var sequentialID: org.tokend.wallet.xdr.Uint64,
     var roleID: org.tokend.wallet.xdr.Uint64,
     var ext: AccountEntryExt
@@ -1154,7 +1154,7 @@ open class ExternalSystemAccountIDPoolEntry(
     var poolEntryID: org.tokend.wallet.xdr.Uint64,
     var externalSystemType: org.tokend.wallet.xdr.Int32,
     var data: org.tokend.wallet.xdr.Longstring,
-    var accountID: org.tokend.wallet.xdr.AccountID?,
+    @XdrOptionalField var accountID: org.tokend.wallet.xdr.AccountID?,
     var expiresAt: org.tokend.wallet.xdr.Uint64,
     var bindedAt: org.tokend.wallet.xdr.Uint64,
     var parent: org.tokend.wallet.xdr.Uint64,
@@ -1366,8 +1366,8 @@ open class FeeEntry(
     var asset: org.tokend.wallet.xdr.AssetCode,
     var fixedFee: org.tokend.wallet.xdr.Int64,
     var percentFee: org.tokend.wallet.xdr.Int64,
-    var accountID: org.tokend.wallet.xdr.AccountID?,
-    var accountRole: org.tokend.wallet.xdr.Uint64?,
+    @XdrOptionalField var accountID: org.tokend.wallet.xdr.AccountID?,
+    @XdrOptionalField var accountRole: org.tokend.wallet.xdr.Uint64?,
     var subtype: org.tokend.wallet.xdr.Int64,
     var lowerBound: org.tokend.wallet.xdr.Int64,
     var upperBound: org.tokend.wallet.xdr.Int64,
@@ -1657,8 +1657,8 @@ public enum class StatsOpType(val value: kotlin.Int): XdrEncodable {
 //  ===========================================================================
 open class LimitsV2Entry(
     var id: org.tokend.wallet.xdr.Uint64,
-    var accountRole: org.tokend.wallet.xdr.Uint64?,
-    var accountID: org.tokend.wallet.xdr.AccountID?,
+    @XdrOptionalField var accountRole: org.tokend.wallet.xdr.Uint64?,
+    @XdrOptionalField var accountID: org.tokend.wallet.xdr.AccountID?,
     var statsOpType: org.tokend.wallet.xdr.StatsOpType,
     var assetCode: org.tokend.wallet.xdr.AssetCode,
     var isConvertNeeded: kotlin.Boolean,
@@ -2143,7 +2143,7 @@ open class ReviewableRequestEntry(
     var requestor: org.tokend.wallet.xdr.AccountID,
     var rejectReason: org.tokend.wallet.xdr.Longstring,
     var reviewer: org.tokend.wallet.xdr.AccountID,
-    var reference: org.tokend.wallet.xdr.String64?,
+    @XdrOptionalField var reference: org.tokend.wallet.xdr.String64?,
     var createdAt: org.tokend.wallet.xdr.Int64,
     var body: ReviewableRequestEntryBody,
     var tasks: org.tokend.wallet.xdr.TasksExt,
@@ -6382,7 +6382,7 @@ abstract class CheckSaleStateResult(val discriminant: org.tokend.wallet.xdr.Chec
 open class CreateAMLAlertRequestOp(
     var reference: org.tokend.wallet.xdr.String64,
     var amlAlertRequest: org.tokend.wallet.xdr.AMLAlertRequest,
-    var allTasks: org.tokend.wallet.xdr.Uint32?,
+    @XdrOptionalField var allTasks: org.tokend.wallet.xdr.Uint32?,
     var ext: CreateAMLAlertRequestOpExt
   ) : XdrEncodable {
 
@@ -6575,7 +6575,7 @@ abstract class CreateAMLAlertRequestResult(val discriminant: org.tokend.wallet.x
 //  ===========================================================================
 open class CreateAccountOp(
     var destination: org.tokend.wallet.xdr.AccountID,
-    var referrer: org.tokend.wallet.xdr.AccountID?,
+    @XdrOptionalField var referrer: org.tokend.wallet.xdr.AccountID?,
     var roleID: org.tokend.wallet.xdr.Uint64,
     var signersData: kotlin.Array<org.tokend.wallet.xdr.UpdateSignerData>,
     var ext: CreateAccountOpExt
@@ -6757,7 +6757,7 @@ abstract class CreateAccountResult(val discriminant: org.tokend.wallet.xdr.Creat
 //  ===========================================================================
 open class CreateAtomicSwapAskRequestOp(
     var request: org.tokend.wallet.xdr.CreateAtomicSwapAskRequest,
-    var allTasks: org.tokend.wallet.xdr.Uint32?,
+    @XdrOptionalField var allTasks: org.tokend.wallet.xdr.Uint32?,
     var ext: CreateAtomicSwapAskRequestOpExt
   ) : XdrEncodable {
 
@@ -7137,7 +7137,7 @@ open class CreateChangeRoleRequestOp(
     var destinationAccount: org.tokend.wallet.xdr.AccountID,
     var accountRoleToSet: org.tokend.wallet.xdr.Uint64,
     var creatorDetails: org.tokend.wallet.xdr.Longstring,
-    var allTasks: org.tokend.wallet.xdr.Uint32?,
+    @XdrOptionalField var allTasks: org.tokend.wallet.xdr.Uint32?,
     var ext: CreateChangeRoleRequestOpExt
   ) : XdrEncodable {
 
@@ -7312,7 +7312,7 @@ abstract class CreateChangeRoleRequestResult(val discriminant: org.tokend.wallet
 open class CreateIssuanceRequestOp(
     var request: org.tokend.wallet.xdr.IssuanceRequest,
     var reference: org.tokend.wallet.xdr.String64,
-    var allTasks: org.tokend.wallet.xdr.Uint32?,
+    @XdrOptionalField var allTasks: org.tokend.wallet.xdr.Uint32?,
     var ext: CreateIssuanceRequestOpExt
   ) : XdrEncodable {
 
@@ -7520,7 +7520,7 @@ open class CreateKYCRecoveryRequestOp(
     var targetAccount: org.tokend.wallet.xdr.AccountID,
     var signersData: kotlin.Array<org.tokend.wallet.xdr.UpdateSignerData>,
     var creatorDetails: org.tokend.wallet.xdr.Longstring,
-    var allTasks: org.tokend.wallet.xdr.Uint32?,
+    @XdrOptionalField var allTasks: org.tokend.wallet.xdr.Uint32?,
     var ext: CreateKYCRecoveryRequestOpExt
   ) : XdrEncodable {
 
@@ -7710,7 +7710,7 @@ abstract class CreateKYCRecoveryRequestResult(val discriminant: org.tokend.walle
 //  ===========================================================================
 open class CreateManageLimitsRequestOp(
     var manageLimitsRequest: org.tokend.wallet.xdr.LimitsUpdateRequest,
-    var allTasks: org.tokend.wallet.xdr.Uint32?,
+    @XdrOptionalField var allTasks: org.tokend.wallet.xdr.Uint32?,
     var requestID: org.tokend.wallet.xdr.Uint64,
     var ext: CreateManageLimitsRequestOpExt
   ) : XdrEncodable {
@@ -7872,7 +7872,7 @@ abstract class CreateManageLimitsRequestResult(val discriminant: org.tokend.wall
 //  ===========================================================================
 open class CreatePreIssuanceRequestOp(
     var request: org.tokend.wallet.xdr.PreIssuanceRequest,
-    var allTasks: org.tokend.wallet.xdr.Uint32?,
+    @XdrOptionalField var allTasks: org.tokend.wallet.xdr.Uint32?,
     var ext: CreatePreIssuanceRequestOpExt
   ) : XdrEncodable {
 
@@ -8049,7 +8049,7 @@ abstract class CreatePreIssuanceRequestResult(val discriminant: org.tokend.walle
 open class CreateSaleCreationRequestOp(
     var requestID: org.tokend.wallet.xdr.Uint64,
     var request: org.tokend.wallet.xdr.SaleCreationRequest,
-    var allTasks: org.tokend.wallet.xdr.Uint32?,
+    @XdrOptionalField var allTasks: org.tokend.wallet.xdr.Uint32?,
     var ext: CreateSaleCreationRequestOpExt
   ) : XdrEncodable {
 
@@ -8314,7 +8314,7 @@ abstract class CreateSaleCreationRequestResult(val discriminant: org.tokend.wall
 //  ===========================================================================
 open class CreateWithdrawalRequestOp(
     var request: org.tokend.wallet.xdr.WithdrawalRequest,
-    var allTasks: org.tokend.wallet.xdr.Uint32?,
+    @XdrOptionalField var allTasks: org.tokend.wallet.xdr.Uint32?,
     var ext: CreateWithdrawalRequestOpExt
   ) : XdrEncodable {
 
@@ -9558,7 +9558,7 @@ public enum class ManageAccountSpecificRuleAction(val value: kotlin.Int): XdrEnc
 //  ===========================================================================
 open class CreateAccountSpecificRuleData(
     var ledgerKey: org.tokend.wallet.xdr.LedgerKey,
-    var accountID: org.tokend.wallet.xdr.AccountID?,
+    @XdrOptionalField var accountID: org.tokend.wallet.xdr.AccountID?,
     var forbids: kotlin.Boolean,
     var ext: CreateAccountSpecificRuleDataExt
   ) : XdrEncodable {
@@ -10278,7 +10278,7 @@ open class ManageAssetOp(
 
     open class ManageAssetOpCreateAssetCreationRequest(
         var createAsset: org.tokend.wallet.xdr.AssetCreationRequest,
-        var allTasks: org.tokend.wallet.xdr.Uint32?,
+        @XdrOptionalField var allTasks: org.tokend.wallet.xdr.Uint32?,
         var ext: ManageAssetOpCreateAssetCreationRequestExt
       ) : XdrEncodable {
 
@@ -10307,7 +10307,7 @@ open class ManageAssetOp(
     }
     open class ManageAssetOpCreateAssetUpdateRequest(
         var updateAsset: org.tokend.wallet.xdr.AssetUpdateRequest,
-        var allTasks: org.tokend.wallet.xdr.Uint32?,
+        @XdrOptionalField var allTasks: org.tokend.wallet.xdr.Uint32?,
         var ext: ManageAssetOpCreateAssetUpdateRequestExt
       ) : XdrEncodable {
 
@@ -10726,7 +10726,7 @@ public enum class ManageContractRequestAction(val value: kotlin.Int): XdrEncodab
 //  ===========================================================================
 open class CreateContractRequest(
     var contractRequest: org.tokend.wallet.xdr.ContractRequest,
-    var allTasks: org.tokend.wallet.xdr.Uint32?,
+    @XdrOptionalField var allTasks: org.tokend.wallet.xdr.Uint32?,
     var ext: CreateContractRequestExt
   ) : XdrEncodable {
 
@@ -11276,7 +11276,7 @@ public enum class ManageCreatePollRequestAction(val value: kotlin.Int): XdrEncod
 //  ===========================================================================
 open class CreatePollRequestData(
     var request: org.tokend.wallet.xdr.CreatePollRequest,
-    var allTasks: org.tokend.wallet.xdr.Uint32?,
+    @XdrOptionalField var allTasks: org.tokend.wallet.xdr.Uint32?,
     var ext: CreatePollRequestDataExt
   ) : XdrEncodable {
 
@@ -11492,7 +11492,7 @@ public enum class ManageCreatePollRequestResultCode(val value: kotlin.Int): XdrE
 open class CreatePollRequestResponse(
     var requestID: org.tokend.wallet.xdr.Uint64,
     var fulfilled: kotlin.Boolean,
-    var pollID: org.tokend.wallet.xdr.Uint64?,
+    @XdrOptionalField var pollID: org.tokend.wallet.xdr.Uint64?,
     var ext: CreatePollRequestResponseExt
   ) : XdrEncodable {
 
@@ -11955,9 +11955,9 @@ open class InvoiceCreationRequest(
     var asset: org.tokend.wallet.xdr.AssetCode,
     var sender: org.tokend.wallet.xdr.AccountID,
     var amount: org.tokend.wallet.xdr.Uint64,
-    var contractID: org.tokend.wallet.xdr.Uint64?,
+    @XdrOptionalField var contractID: org.tokend.wallet.xdr.Uint64?,
     var details: org.tokend.wallet.xdr.Longstring,
-    var allTasks: org.tokend.wallet.xdr.Uint32?,
+    @XdrOptionalField var allTasks: org.tokend.wallet.xdr.Uint32?,
     var ext: InvoiceCreationRequestExt
   ) : XdrEncodable {
 
@@ -12491,8 +12491,8 @@ public enum class ManageLimitsAction(val value: kotlin.Int): XdrEncodable {
 
 //  ===========================================================================
 open class LimitsCreateDetails(
-    var accountRole: org.tokend.wallet.xdr.Uint64?,
-    var accountID: org.tokend.wallet.xdr.AccountID?,
+    @XdrOptionalField var accountRole: org.tokend.wallet.xdr.Uint64?,
+    @XdrOptionalField var accountID: org.tokend.wallet.xdr.AccountID?,
     var statsOpType: org.tokend.wallet.xdr.StatsOpType,
     var assetCode: org.tokend.wallet.xdr.AssetCode,
     var isConvertNeeded: kotlin.Boolean,
@@ -13562,7 +13562,7 @@ public enum class ManageSaleAction(val value: kotlin.Int): XdrEncodable {
 open class UpdateSaleDetailsData(
     var requestID: org.tokend.wallet.xdr.Uint64,
     var creatorDetails: org.tokend.wallet.xdr.Longstring,
-    var allTasks: org.tokend.wallet.xdr.Uint32?,
+    @XdrOptionalField var allTasks: org.tokend.wallet.xdr.Uint32?,
     var ext: UpdateSaleDetailsDataExt
   ) : XdrEncodable {
 
@@ -16702,7 +16702,7 @@ abstract class ReviewRequestResult(val discriminant: org.tokend.wallet.xdr.Revie
 
 //  ===========================================================================
 open class SetFeesOp(
-    var fee: org.tokend.wallet.xdr.FeeEntry?,
+    @XdrOptionalField var fee: org.tokend.wallet.xdr.FeeEntry?,
     var isDelete: kotlin.Boolean,
     var ext: SetFeesOpExt
   ) : XdrEncodable {
@@ -19177,7 +19177,7 @@ open class InvoiceRequest(
     var amount: org.tokend.wallet.xdr.Uint64,
     var senderBalance: org.tokend.wallet.xdr.BalanceID,
     var receiverBalance: org.tokend.wallet.xdr.BalanceID,
-    var contractID: org.tokend.wallet.xdr.Uint64?,
+    @XdrOptionalField var contractID: org.tokend.wallet.xdr.Uint64?,
     var isApproved: kotlin.Boolean,
     var creatorDetails: org.tokend.wallet.xdr.Longstring,
     var ext: InvoiceRequestExt
@@ -19484,7 +19484,7 @@ open class SaleCreationRequestQuoteAsset(
 
 //  ===========================================================================
 open class CreateAccountSaleRuleData(
-    var accountID: org.tokend.wallet.xdr.AccountID?,
+    @XdrOptionalField var accountID: org.tokend.wallet.xdr.AccountID?,
     var forbids: kotlin.Boolean,
     var ext: CreateAccountSaleRuleDataExt
   ) : XdrEncodable {
@@ -19828,7 +19828,7 @@ open class WithdrawalRequest(
 
 //  ===========================================================================
 open class Operation(
-    var sourceAccount: org.tokend.wallet.xdr.AccountID?,
+    @XdrOptionalField var sourceAccount: org.tokend.wallet.xdr.AccountID?,
     var body: OperationBody
   ) : XdrEncodable {
 
