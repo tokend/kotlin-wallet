@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Please check our [developers guide](https://gitlab.com/tokend/developers-guide)
 for further information about branching and tagging conventions.
 
+## [3.4.1] 2019-09-05
+
+### Changed
+- ProGuard rules
+
 ## [3.4.0] 2019-09-04
 
 ### Added
@@ -60,4 +65,5 @@ of the required class in Kotlin or use `*.Decoder` static member in Java
 [3.2.0]: https://github.com/tokend/kotlin-wallet/compare/3.1.0...3.2.0
 [3.3.0]: https://github.com/tokend/kotlin-wallet/compare/3.2.0...3.3.0
 [3.4.0]: https://github.com/tokend/kotlin-wallet/compare/3.3.0...3.4.0
-[Unreleased]: https://github.com/tokend/kotlin-wallet/compare/3.4.0...HEAD
+[3.4.1]: https://github.com/tokend/kotlin-wallet/compare/3.4.0...3.4.1
+[Unreleased]: https://github.com/tokend/kotlin-wallet/compare/3.4.1...HEAD
