@@ -126,12 +126,17 @@ object ReflectiveXdrDecoder {
     // region Complex
     private fun readComplex(type: Class<out Any>, stream: XdrDataInputStream): Any {
         val constructor = type.declaredConstructors[0]
-        val args = constructor.parameters.map {
-            val isOptional = it.isAnnotationPresent(XdrOptionalField::class.java)
+        val paramTypes = constructor.parameterTypes
+        val paramAnnotations = constructor.parameterAnnotations
+
+        val args = paramTypes.mapIndexed { i, paramType ->
+            val isOptional = paramAnnotations[i].any { annotation ->
+                annotation is XdrOptionalField
+            }
 
             // Read value if it's not optional or is optional and present.
             if (!isOptional || Boolean.fromXdr(stream)) {
-                read(it.type, stream)
+                read(paramType, stream)
             } else {
                 null
             }
