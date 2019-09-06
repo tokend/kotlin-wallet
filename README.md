@@ -63,7 +63,7 @@ project's `proguard-rules.pro`:
 ```proguard
 # Wallet
 -keep class org.tokend.wallet.xdr.* { *; }
--keepattributes *Annotation*
+-keepattributes RuntimeVisibleAnnotations, RuntimeVisibleParameterAnnotations
 ```
 ## XDR Update
 XDR sources are located in [TokenD XDR repository](https://github.com/tokend/xdr/).
