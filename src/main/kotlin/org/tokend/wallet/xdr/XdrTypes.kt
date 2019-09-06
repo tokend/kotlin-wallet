@@ -146,7 +146,7 @@ open class SCPStatement(
 
   companion object Decoder: XdrDecodable<SCPStatement> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class SCPStatementPledges(val discriminant: org.tokend.wallet.xdr.SCPStatementType): XdrEncodable {
+  abstract class SCPStatementPledges(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.SCPStatementType): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -338,7 +338,7 @@ open class AccountKYCEntry(
 
   companion object Decoder: XdrDecodable<AccountKYCEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class AccountKYCEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class AccountKYCEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -379,7 +379,7 @@ open class AccountLimitsEntry(
 
   companion object Decoder: XdrDecodable<AccountLimitsEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class AccountLimitsEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class AccountLimitsEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -429,7 +429,7 @@ open class AccountRoleEntry(
 
   companion object Decoder: XdrDecodable<AccountRoleEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class AccountRoleEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class AccountRoleEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -483,7 +483,7 @@ open class AccountRuleEntry(
 
   companion object Decoder: XdrDecodable<AccountRuleEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class AccountRuleEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class AccountRuleEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -537,7 +537,7 @@ open class AccountSpecificRuleEntry(
 
   companion object Decoder: XdrDecodable<AccountSpecificRuleEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class AccountSpecificRuleEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class AccountSpecificRuleEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -585,7 +585,7 @@ open class Limits(
 
   companion object Decoder: XdrDecodable<Limits> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class LimitsExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class LimitsExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -644,7 +644,7 @@ open class AccountEntry(
 
   companion object Decoder: XdrDecodable<AccountEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class AccountEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class AccountEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -743,7 +743,7 @@ open class AssetPairEntry(
 
   companion object Decoder: XdrDecodable<AssetPairEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class AssetPairEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class AssetPairEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -843,7 +843,7 @@ open class AssetEntry(
 
   companion object Decoder: XdrDecodable<AssetEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class AssetEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class AssetEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -887,7 +887,7 @@ open class AtomicSwapAskQuoteAsset(
 
   companion object Decoder: XdrDecodable<AtomicSwapAskQuoteAsset> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class AtomicSwapAskQuoteAssetExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class AtomicSwapAskQuoteAssetExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -959,7 +959,7 @@ open class AtomicSwapAskEntry(
 
   companion object Decoder: XdrDecodable<AtomicSwapAskEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class AtomicSwapAskEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class AtomicSwapAskEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -1015,7 +1015,7 @@ open class BalanceEntry(
 
   companion object Decoder: XdrDecodable<BalanceEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class BalanceEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class BalanceEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -1115,7 +1115,7 @@ open class ContractEntry(
 
   companion object Decoder: XdrDecodable<ContractEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ContractEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ContractEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -1181,7 +1181,7 @@ open class ExternalSystemAccountIDPoolEntry(
 
   companion object Decoder: XdrDecodable<ExternalSystemAccountIDPoolEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ExternalSystemAccountIDPoolEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ExternalSystemAccountIDPoolEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -1226,7 +1226,7 @@ open class ExternalSystemAccountID(
 
   companion object Decoder: XdrDecodable<ExternalSystemAccountID> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ExternalSystemAccountIDExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ExternalSystemAccountIDExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -1401,7 +1401,7 @@ open class FeeEntry(
 
   companion object Decoder: XdrDecodable<FeeEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class FeeEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class FeeEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -1450,7 +1450,7 @@ public enum class KeyValueEntryType(val value: kotlin.Int): XdrEncodable {
 //      };
 
 //  ===========================================================================
-abstract class KeyValueEntryValue(val discriminant: org.tokend.wallet.xdr.KeyValueEntryType): XdrEncodable {
+abstract class KeyValueEntryValue(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.KeyValueEntryType): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -1521,7 +1521,7 @@ open class KeyValueEntry(
 
   companion object Decoder: XdrDecodable<KeyValueEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class KeyValueEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class KeyValueEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -1575,7 +1575,7 @@ open class LicenseEntry(
 
   companion object Decoder: XdrDecodable<LicenseEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class LicenseEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class LicenseEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -1695,7 +1695,7 @@ open class LimitsV2Entry(
 
   companion object Decoder: XdrDecodable<LimitsV2Entry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class LimitsV2EntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class LimitsV2EntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -1776,7 +1776,7 @@ open class OfferEntry(
 
   companion object Decoder: XdrDecodable<OfferEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class OfferEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class OfferEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -1821,7 +1821,7 @@ open class PendingStatisticsEntry(
 
   companion object Decoder: XdrDecodable<PendingStatisticsEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class PendingStatisticsEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class PendingStatisticsEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -1862,7 +1862,7 @@ public enum class PollType(val value: kotlin.Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-abstract class PollData(val discriminant: org.tokend.wallet.xdr.PollType): XdrEncodable {
+abstract class PollData(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.PollType): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -1965,7 +1965,7 @@ open class ReferenceEntry(
 
   companion object Decoder: XdrDecodable<ReferenceEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ReferenceEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ReferenceEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -2068,7 +2068,7 @@ open class TasksExt(
 
   companion object Decoder: XdrDecodable<TasksExt> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class TasksExtExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class TasksExtExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -2170,7 +2170,7 @@ open class ReviewableRequestEntry(
 
   companion object Decoder: XdrDecodable<ReviewableRequestEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ReviewableRequestEntryBody(val discriminant: org.tokend.wallet.xdr.ReviewableRequestType): XdrEncodable {
+  abstract class ReviewableRequestEntryBody(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ReviewableRequestType): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -2321,7 +2321,7 @@ open class ReviewableRequestEntry(
       companion object Decoder: XdrDecodable<KycRecovery> by ReflectiveXdrDecoder.wrapType()
     }
   }
-  abstract class ReviewableRequestEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ReviewableRequestEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -2377,7 +2377,7 @@ open class FixedPriceSale(
 
   companion object Decoder: XdrDecodable<FixedPriceSale> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class FixedPriceSaleExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class FixedPriceSaleExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -2410,7 +2410,7 @@ open class CrowdFundingSale(
 
   companion object Decoder: XdrDecodable<CrowdFundingSale> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CrowdFundingSaleExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CrowdFundingSaleExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -2443,7 +2443,7 @@ open class BasicSale(
 
   companion object Decoder: XdrDecodable<BasicSale> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class BasicSaleExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class BasicSaleExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -2467,7 +2467,7 @@ open class BasicSale(
 //  };
 
 //  ===========================================================================
-abstract class SaleTypeExt(val discriminant: org.tokend.wallet.xdr.SaleType): XdrEncodable {
+abstract class SaleTypeExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.SaleType): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -2536,7 +2536,7 @@ open class SaleQuoteAsset(
 
   companion object Decoder: XdrDecodable<SaleQuoteAsset> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class SaleQuoteAssetExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class SaleQuoteAssetExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -2622,7 +2622,7 @@ open class SaleEntry(
 
   companion object Decoder: XdrDecodable<SaleEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class SaleEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class SaleEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -2677,7 +2677,7 @@ open class SignerRoleEntry(
 
   companion object Decoder: XdrDecodable<SignerRoleEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class SignerRoleEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class SignerRoleEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -2738,7 +2738,7 @@ open class SignerRuleEntry(
 
   companion object Decoder: XdrDecodable<SignerRuleEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class SignerRuleEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class SignerRuleEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -2795,7 +2795,7 @@ open class SignerEntry(
 
   companion object Decoder: XdrDecodable<SignerEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class SignerEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class SignerEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -2837,7 +2837,7 @@ open class StampEntry(
 
   companion object Decoder: XdrDecodable<StampEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class StampEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class StampEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -2905,7 +2905,7 @@ open class StatisticsV2Entry(
 
   companion object Decoder: XdrDecodable<StatisticsV2Entry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class StatisticsV2EntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class StatisticsV2EntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -2961,7 +2961,7 @@ open class StatisticsEntry(
 
   companion object Decoder: XdrDecodable<StatisticsEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class StatisticsEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class StatisticsEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -3005,7 +3005,7 @@ open class SingleChoiceVote(
 //  };
 
 //  ===========================================================================
-abstract class VoteData(val discriminant: org.tokend.wallet.xdr.PollType): XdrEncodable {
+abstract class VoteData(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.PollType): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -3173,7 +3173,7 @@ open class LedgerEntry(
 
   companion object Decoder: XdrDecodable<LedgerEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class LedgerEntryData(val discriminant: org.tokend.wallet.xdr.LedgerEntryType): XdrEncodable {
+  abstract class LedgerEntryData(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerEntryType): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -3450,7 +3450,7 @@ open class LedgerEntry(
       companion object Decoder: XdrDecodable<AccountSpecificRule> by ReflectiveXdrDecoder.wrapType()
     }
   }
-  abstract class LedgerEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class LedgerEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -3787,7 +3787,7 @@ public enum class EnvelopeType(val value: kotlin.Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType): XdrEncodable {
+abstract class LedgerKey(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerEntryType): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -4076,7 +4076,7 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
 
     companion object Decoder: XdrDecodable<LedgerKeyAccount> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class LedgerKeyAccountExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class LedgerKeyAccountExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -4100,7 +4100,7 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
 
     companion object Decoder: XdrDecodable<LedgerKeySigner> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class LedgerKeySignerExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class LedgerKeySignerExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -4126,7 +4126,7 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
 
     companion object Decoder: XdrDecodable<LedgerKeyFeeState> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class LedgerKeyFeeStateExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class LedgerKeyFeeStateExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -4148,7 +4148,7 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
 
     companion object Decoder: XdrDecodable<LedgerKeyBalance> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class LedgerKeyBalanceExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class LedgerKeyBalanceExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -4170,7 +4170,7 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
 
     companion object Decoder: XdrDecodable<LedgerKeyAsset> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class LedgerKeyAssetExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class LedgerKeyAssetExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -4194,7 +4194,7 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
 
     companion object Decoder: XdrDecodable<LedgerKeyReference> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class LedgerKeyReferenceExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class LedgerKeyReferenceExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -4216,7 +4216,7 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
 
     companion object Decoder: XdrDecodable<LedgerKeyStats> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class LedgerKeyStatsExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class LedgerKeyStatsExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -4238,7 +4238,7 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
 
     companion object Decoder: XdrDecodable<LedgerKeyAccountLimits> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class LedgerKeyAccountLimitsExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class LedgerKeyAccountLimitsExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -4262,7 +4262,7 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
 
     companion object Decoder: XdrDecodable<LedgerKeyAssetPair> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class LedgerKeyAssetPairExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class LedgerKeyAssetPairExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -4296,7 +4296,7 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
 
     companion object Decoder: XdrDecodable<LedgerKeyReviewableRequest> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class LedgerKeyReviewableRequestExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class LedgerKeyReviewableRequestExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -4320,7 +4320,7 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
 
     companion object Decoder: XdrDecodable<LedgerKeyExternalSystemAccountID> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class LedgerKeyExternalSystemAccountIDExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class LedgerKeyExternalSystemAccountIDExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -4342,7 +4342,7 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
 
     companion object Decoder: XdrDecodable<LedgerKeySale> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class LedgerKeySaleExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class LedgerKeySaleExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -4364,7 +4364,7 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
 
     companion object Decoder: XdrDecodable<LedgerKeyKeyValue> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class LedgerKeyKeyValueExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class LedgerKeyKeyValueExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -4386,7 +4386,7 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
 
     companion object Decoder: XdrDecodable<LedgerKeyAccountKYC> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class LedgerKeyAccountKYCExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class LedgerKeyAccountKYCExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -4408,7 +4408,7 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
 
     companion object Decoder: XdrDecodable<LedgerKeyExternalSystemAccountIDPoolEntry> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class LedgerKeyExternalSystemAccountIDPoolEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class LedgerKeyExternalSystemAccountIDPoolEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -4430,7 +4430,7 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
 
     companion object Decoder: XdrDecodable<LedgerKeyLimitsV2> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class LedgerKeyLimitsV2Ext(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class LedgerKeyLimitsV2Ext(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -4452,7 +4452,7 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
 
     companion object Decoder: XdrDecodable<LedgerKeyStatisticsV2> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class LedgerKeyStatisticsV2Ext(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class LedgerKeyStatisticsV2Ext(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -4476,7 +4476,7 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
 
     companion object Decoder: XdrDecodable<LedgerKeyPendingStatistics> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class LedgerKeyPendingStatisticsExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class LedgerKeyPendingStatisticsExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -4498,7 +4498,7 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
 
     companion object Decoder: XdrDecodable<LedgerKeyContract> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class LedgerKeyContractExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class LedgerKeyContractExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -4520,7 +4520,7 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
 
     companion object Decoder: XdrDecodable<LedgerKeyAtomicSwapAsk> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class LedgerKeyAtomicSwapAskExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class LedgerKeyAtomicSwapAskExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -4542,7 +4542,7 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
 
     companion object Decoder: XdrDecodable<LedgerKeyAccountRole> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class LedgerKeyAccountRoleExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class LedgerKeyAccountRoleExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -4564,7 +4564,7 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
 
     companion object Decoder: XdrDecodable<LedgerKeyAccountRule> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class LedgerKeyAccountRuleExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class LedgerKeyAccountRuleExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -4586,7 +4586,7 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
 
     companion object Decoder: XdrDecodable<LedgerKeySignerRole> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class LedgerKeySignerRoleExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class LedgerKeySignerRoleExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -4608,7 +4608,7 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
 
     companion object Decoder: XdrDecodable<LedgerKeySignerRule> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class LedgerKeySignerRuleExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class LedgerKeySignerRuleExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -4632,7 +4632,7 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
 
     companion object Decoder: XdrDecodable<LedgerKeyStamp> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class LedgerKeyStampExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class LedgerKeyStampExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -4654,7 +4654,7 @@ abstract class LedgerKey(val discriminant: org.tokend.wallet.xdr.LedgerEntryType
 
     companion object Decoder: XdrDecodable<LedgerKeyLicense> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class LedgerKeyLicenseExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class LedgerKeyLicenseExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -4754,7 +4754,7 @@ open class StellarValue(
 
   companion object Decoder: XdrDecodable<StellarValue> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class StellarValueExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class StellarValueExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -4862,7 +4862,7 @@ open class LedgerHeader(
 
   companion object Decoder: XdrDecodable<LedgerHeader> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class LedgerHeaderExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class LedgerHeaderExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -4909,7 +4909,7 @@ public enum class LedgerUpgradeType(val value: kotlin.Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-abstract class LedgerUpgrade(val discriminant: org.tokend.wallet.xdr.LedgerUpgradeType): XdrEncodable {
+abstract class LedgerUpgrade(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerUpgradeType): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -4977,7 +4977,7 @@ public enum class BucketEntryType(val value: kotlin.Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-abstract class BucketEntry(val discriminant: org.tokend.wallet.xdr.BucketEntryType): XdrEncodable {
+abstract class BucketEntry(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.BucketEntryType): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -5103,7 +5103,7 @@ open class TransactionHistoryEntry(
 
   companion object Decoder: XdrDecodable<TransactionHistoryEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class TransactionHistoryEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class TransactionHistoryEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -5145,7 +5145,7 @@ open class TransactionHistoryResultEntry(
 
   companion object Decoder: XdrDecodable<TransactionHistoryResultEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class TransactionHistoryResultEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class TransactionHistoryResultEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -5187,7 +5187,7 @@ open class LedgerHeaderHistoryEntry(
 
   companion object Decoder: XdrDecodable<LedgerHeaderHistoryEntry> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class LedgerHeaderHistoryEntryExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class LedgerHeaderHistoryEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -5257,7 +5257,7 @@ open class SCPHistoryEntryV0(
 //  };
 
 //  ===========================================================================
-abstract class SCPHistoryEntry(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+abstract class SCPHistoryEntry(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -5314,7 +5314,7 @@ public enum class LedgerEntryChangeType(val value: kotlin.Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-abstract class LedgerEntryChange(val discriminant: org.tokend.wallet.xdr.LedgerEntryChangeType): XdrEncodable {
+abstract class LedgerEntryChange(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerEntryChangeType): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -5400,7 +5400,7 @@ open class OperationMeta(
 //  };
 
 //  ===========================================================================
-abstract class TransactionMeta(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+abstract class TransactionMeta(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -5450,7 +5450,7 @@ open class BindExternalSystemAccountIdOp(
 
   companion object Decoder: XdrDecodable<BindExternalSystemAccountIdOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class BindExternalSystemAccountIdOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class BindExternalSystemAccountIdOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -5521,7 +5521,7 @@ open class BindExternalSystemAccountIdSuccess(
 
   companion object Decoder: XdrDecodable<BindExternalSystemAccountIdSuccess> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class BindExternalSystemAccountIdSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class BindExternalSystemAccountIdSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -5545,7 +5545,7 @@ open class BindExternalSystemAccountIdSuccess(
 //  };
 
 //  ===========================================================================
-abstract class BindExternalSystemAccountIdResult(val discriminant: org.tokend.wallet.xdr.BindExternalSystemAccountIdResultCode): XdrEncodable {
+abstract class BindExternalSystemAccountIdResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.BindExternalSystemAccountIdResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -5591,7 +5591,7 @@ open class CancelAtomicSwapAskOp(
 
   companion object Decoder: XdrDecodable<CancelAtomicSwapAskOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CancelAtomicSwapAskOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CancelAtomicSwapAskOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -5661,7 +5661,7 @@ open class CancelAtomicSwapAskResultSuccess(
 
   companion object Decoder: XdrDecodable<CancelAtomicSwapAskResultSuccess> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CancelAtomicSwapAskResultSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CancelAtomicSwapAskResultSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -5685,7 +5685,7 @@ open class CancelAtomicSwapAskResultSuccess(
 //  };
 
 //  ===========================================================================
-abstract class CancelAtomicSwapAskResult(val discriminant: org.tokend.wallet.xdr.CancelAtomicSwapAskResultCode): XdrEncodable {
+abstract class CancelAtomicSwapAskResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CancelAtomicSwapAskResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -5734,7 +5734,7 @@ open class CancelChangeRoleRequestOp(
 
   companion object Decoder: XdrDecodable<CancelChangeRoleRequestOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CancelChangeRoleRequestOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CancelChangeRoleRequestOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -5800,7 +5800,7 @@ open class CancelChangeRoleSuccess(
 
   companion object Decoder: XdrDecodable<CancelChangeRoleSuccess> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CancelChangeRoleSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CancelChangeRoleSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -5823,7 +5823,7 @@ open class CancelChangeRoleSuccess(
 //  };
 
 //  ===========================================================================
-abstract class CancelChangeRoleRequestResult(val discriminant: org.tokend.wallet.xdr.CancelChangeRoleRequestResultCode): XdrEncodable {
+abstract class CancelChangeRoleRequestResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CancelChangeRoleRequestResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -5873,7 +5873,7 @@ open class CancelSaleCreationRequestOp(
 
   companion object Decoder: XdrDecodable<CancelSaleCreationRequestOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CancelSaleCreationRequestOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CancelSaleCreationRequestOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -5939,7 +5939,7 @@ open class CancelSaleCreationSuccess(
 
   companion object Decoder: XdrDecodable<CancelSaleCreationSuccess> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CancelSaleCreationSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CancelSaleCreationSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -5962,7 +5962,7 @@ open class CancelSaleCreationSuccess(
 //  };
 
 //  ===========================================================================
-abstract class CancelSaleCreationRequestResult(val discriminant: org.tokend.wallet.xdr.CancelSaleCreationRequestResultCode): XdrEncodable {
+abstract class CancelSaleCreationRequestResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CancelSaleCreationRequestResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -6008,7 +6008,7 @@ open class CheckSaleStateOp(
 
   companion object Decoder: XdrDecodable<CheckSaleStateOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CheckSaleStateOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CheckSaleStateOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -6099,7 +6099,7 @@ open class SaleCanceled(
 
   companion object Decoder: XdrDecodable<SaleCanceled> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class SaleCanceledExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class SaleCanceledExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -6134,7 +6134,7 @@ open class SaleUpdated(
 
   companion object Decoder: XdrDecodable<SaleUpdated> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class SaleUpdatedExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class SaleUpdatedExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -6181,7 +6181,7 @@ open class CheckSubSaleClosedResult(
 
   companion object Decoder: XdrDecodable<CheckSubSaleClosedResult> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CheckSubSaleClosedResultExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CheckSubSaleClosedResultExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -6227,7 +6227,7 @@ open class CheckSaleClosedResult(
 
   companion object Decoder: XdrDecodable<CheckSaleClosedResult> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CheckSaleClosedResultExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CheckSaleClosedResultExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -6280,7 +6280,7 @@ open class CheckSaleStateSuccess(
 
   companion object Decoder: XdrDecodable<CheckSaleStateSuccess> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CheckSaleStateSuccessEffect(val discriminant: org.tokend.wallet.xdr.CheckSaleStateEffect): XdrEncodable {
+  abstract class CheckSaleStateSuccessEffect(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CheckSaleStateEffect): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -6314,7 +6314,7 @@ open class CheckSaleStateSuccess(
       companion object Decoder: XdrDecodable<Updated> by ReflectiveXdrDecoder.wrapType()
     }
   }
-  abstract class CheckSaleStateSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CheckSaleStateSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -6337,7 +6337,7 @@ open class CheckSaleStateSuccess(
 //  };
 
 //  ===========================================================================
-abstract class CheckSaleStateResult(val discriminant: org.tokend.wallet.xdr.CheckSaleStateResultCode): XdrEncodable {
+abstract class CheckSaleStateResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CheckSaleStateResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -6400,7 +6400,7 @@ open class CreateAMLAlertRequestOp(
 
   companion object Decoder: XdrDecodable<CreateAMLAlertRequestOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateAMLAlertRequestOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateAMLAlertRequestOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -6507,7 +6507,7 @@ open class CreateAMLAlertRequestSuccess(
 
   companion object Decoder: XdrDecodable<CreateAMLAlertRequestSuccess> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateAMLAlertRequestSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateAMLAlertRequestSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -6530,7 +6530,7 @@ open class CreateAMLAlertRequestSuccess(
 //  };
 
 //  ===========================================================================
-abstract class CreateAMLAlertRequestResult(val discriminant: org.tokend.wallet.xdr.CreateAMLAlertRequestResultCode): XdrEncodable {
+abstract class CreateAMLAlertRequestResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CreateAMLAlertRequestResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -6599,7 +6599,7 @@ open class CreateAccountOp(
 
   companion object Decoder: XdrDecodable<CreateAccountOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateAccountOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateAccountOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -6682,7 +6682,7 @@ open class CreateAccountSuccess(
 
   companion object Decoder: XdrDecodable<CreateAccountSuccess> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateAccountSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateAccountSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -6708,7 +6708,7 @@ open class CreateAccountSuccess(
 //  };
 
 //  ===========================================================================
-abstract class CreateAccountResult(val discriminant: org.tokend.wallet.xdr.CreateAccountResultCode): XdrEncodable {
+abstract class CreateAccountResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CreateAccountResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -6774,7 +6774,7 @@ open class CreateAtomicSwapAskRequestOp(
 
   companion object Decoder: XdrDecodable<CreateAtomicSwapAskRequestOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateAtomicSwapAskRequestOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateAtomicSwapAskRequestOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -6886,7 +6886,7 @@ open class CreateAtomicSwapAskRequestSuccess(
 
   companion object Decoder: XdrDecodable<CreateAtomicSwapAskRequestSuccess> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateAtomicSwapAskRequestSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateAtomicSwapAskRequestSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -6910,7 +6910,7 @@ open class CreateAtomicSwapAskRequestSuccess(
 //  };
 
 //  ===========================================================================
-abstract class CreateAtomicSwapAskRequestResult(val discriminant: org.tokend.wallet.xdr.CreateAtomicSwapAskRequestResultCode): XdrEncodable {
+abstract class CreateAtomicSwapAskRequestResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CreateAtomicSwapAskRequestResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -6956,7 +6956,7 @@ open class CreateAtomicSwapBidRequestOp(
 
   companion object Decoder: XdrDecodable<CreateAtomicSwapBidRequestOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateAtomicSwapBidRequestOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateAtomicSwapBidRequestOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -7061,7 +7061,7 @@ open class CreateAtomicSwapBidRequestSuccess(
 
   companion object Decoder: XdrDecodable<CreateAtomicSwapBidRequestSuccess> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateAtomicSwapBidRequestSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateAtomicSwapBidRequestSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -7085,7 +7085,7 @@ open class CreateAtomicSwapBidRequestSuccess(
 //  };
 
 //  ===========================================================================
-abstract class CreateAtomicSwapBidRequestResult(val discriminant: org.tokend.wallet.xdr.CreateAtomicSwapBidRequestResultCode): XdrEncodable {
+abstract class CreateAtomicSwapBidRequestResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CreateAtomicSwapBidRequestResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -7157,7 +7157,7 @@ open class CreateChangeRoleRequestOp(
 
   companion object Decoder: XdrDecodable<CreateChangeRoleRequestOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateChangeRoleRequestOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateChangeRoleRequestOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -7244,7 +7244,7 @@ public enum class CreateChangeRoleRequestResultCode(val value: kotlin.Int): XdrE
 //  };
 
 //  ===========================================================================
-abstract class CreateChangeRoleRequestResult(val discriminant: org.tokend.wallet.xdr.CreateChangeRoleRequestResultCode): XdrEncodable {
+abstract class CreateChangeRoleRequestResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CreateChangeRoleRequestResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -7274,7 +7274,7 @@ abstract class CreateChangeRoleRequestResult(val discriminant: org.tokend.wallet
 
     companion object Decoder: XdrDecodable<CreateChangeRoleRequestResultSuccess> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class CreateChangeRoleRequestResultSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class CreateChangeRoleRequestResultSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -7330,7 +7330,7 @@ open class CreateIssuanceRequestOp(
 
   companion object Decoder: XdrDecodable<CreateIssuanceRequestOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateIssuanceRequestOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateIssuanceRequestOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -7447,7 +7447,7 @@ open class CreateIssuanceRequestSuccess(
 
   companion object Decoder: XdrDecodable<CreateIssuanceRequestSuccess> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateIssuanceRequestSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateIssuanceRequestSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -7470,7 +7470,7 @@ open class CreateIssuanceRequestSuccess(
 //  };
 
 //  ===========================================================================
-abstract class CreateIssuanceRequestResult(val discriminant: org.tokend.wallet.xdr.CreateIssuanceRequestResultCode): XdrEncodable {
+abstract class CreateIssuanceRequestResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CreateIssuanceRequestResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -7543,7 +7543,7 @@ open class CreateKYCRecoveryRequestOp(
 
   companion object Decoder: XdrDecodable<CreateKYCRecoveryRequestOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateKYCRecoveryRequestOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateKYCRecoveryRequestOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -7642,7 +7642,7 @@ public enum class CreateKYCRecoveryRequestResultCode(val value: kotlin.Int): Xdr
 //  };
 
 //  ===========================================================================
-abstract class CreateKYCRecoveryRequestResult(val discriminant: org.tokend.wallet.xdr.CreateKYCRecoveryRequestResultCode): XdrEncodable {
+abstract class CreateKYCRecoveryRequestResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CreateKYCRecoveryRequestResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -7672,7 +7672,7 @@ abstract class CreateKYCRecoveryRequestResult(val discriminant: org.tokend.walle
 
     companion object Decoder: XdrDecodable<CreateKYCRecoveryRequestResultSuccess> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class CreateKYCRecoveryRequestResultSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class CreateKYCRecoveryRequestResultSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -7729,7 +7729,7 @@ open class CreateManageLimitsRequestOp(
 
   companion object Decoder: XdrDecodable<CreateManageLimitsRequestOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateManageLimitsRequestOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateManageLimitsRequestOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -7806,7 +7806,7 @@ public enum class CreateManageLimitsRequestResultCode(val value: kotlin.Int): Xd
 //  };
 
 //  ===========================================================================
-abstract class CreateManageLimitsRequestResult(val discriminant: org.tokend.wallet.xdr.CreateManageLimitsRequestResultCode): XdrEncodable {
+abstract class CreateManageLimitsRequestResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CreateManageLimitsRequestResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -7836,7 +7836,7 @@ abstract class CreateManageLimitsRequestResult(val discriminant: org.tokend.wall
 
     companion object Decoder: XdrDecodable<CreateManageLimitsRequestResultSuccess> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class CreateManageLimitsRequestResultSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class CreateManageLimitsRequestResultSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -7889,7 +7889,7 @@ open class CreatePreIssuanceRequestOp(
 
   companion object Decoder: XdrDecodable<CreatePreIssuanceRequestOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreatePreIssuanceRequestOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreatePreIssuanceRequestOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -7980,7 +7980,7 @@ public enum class CreatePreIssuanceRequestResultCode(val value: kotlin.Int): Xdr
 //  };
 
 //  ===========================================================================
-abstract class CreatePreIssuanceRequestResult(val discriminant: org.tokend.wallet.xdr.CreatePreIssuanceRequestResultCode): XdrEncodable {
+abstract class CreatePreIssuanceRequestResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CreatePreIssuanceRequestResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -8010,7 +8010,7 @@ abstract class CreatePreIssuanceRequestResult(val discriminant: org.tokend.walle
 
     companion object Decoder: XdrDecodable<CreatePreIssuanceRequestResultSuccess> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class CreatePreIssuanceRequestResultSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class CreatePreIssuanceRequestResultSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -8067,7 +8067,7 @@ open class CreateSaleCreationRequestOp(
 
   companion object Decoder: XdrDecodable<CreateSaleCreationRequestOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateSaleCreationRequestOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateSaleCreationRequestOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -8200,7 +8200,7 @@ open class CreateSaleCreationSuccess(
 
   companion object Decoder: XdrDecodable<CreateSaleCreationSuccess> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateSaleCreationSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateSaleCreationSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -8239,7 +8239,7 @@ open class CreateSaleCreationAutoReviewFailed(
 
   companion object Decoder: XdrDecodable<CreateSaleCreationAutoReviewFailed> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateSaleCreationAutoReviewFailedExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateSaleCreationAutoReviewFailedExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -8264,7 +8264,7 @@ open class CreateSaleCreationAutoReviewFailed(
 //  };
 
 //  ===========================================================================
-abstract class CreateSaleCreationRequestResult(val discriminant: org.tokend.wallet.xdr.CreateSaleCreationRequestResultCode): XdrEncodable {
+abstract class CreateSaleCreationRequestResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CreateSaleCreationRequestResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -8331,7 +8331,7 @@ open class CreateWithdrawalRequestOp(
 
   companion object Decoder: XdrDecodable<CreateWithdrawalRequestOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateWithdrawalRequestOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateWithdrawalRequestOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -8452,7 +8452,7 @@ open class CreateWithdrawalSuccess(
 
   companion object Decoder: XdrDecodable<CreateWithdrawalSuccess> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateWithdrawalSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateWithdrawalSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -8475,7 +8475,7 @@ open class CreateWithdrawalSuccess(
 //  };
 
 //  ===========================================================================
-abstract class CreateWithdrawalRequestResult(val discriminant: org.tokend.wallet.xdr.CreateWithdrawalRequestResultCode): XdrEncodable {
+abstract class CreateWithdrawalRequestResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CreateWithdrawalRequestResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -8525,7 +8525,7 @@ open class InitiateKYCRecoveryOp(
 
   companion object Decoder: XdrDecodable<InitiateKYCRecoveryOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class InitiateKYCRecoveryOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class InitiateKYCRecoveryOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -8584,7 +8584,7 @@ public enum class InitiateKYCRecoveryResultCode(val value: kotlin.Int): XdrEncod
 //  };
 
 //  ===========================================================================
-abstract class InitiateKYCRecoveryResult(val discriminant: org.tokend.wallet.xdr.InitiateKYCRecoveryResultCode): XdrEncodable {
+abstract class InitiateKYCRecoveryResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.InitiateKYCRecoveryResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -8610,7 +8610,7 @@ abstract class InitiateKYCRecoveryResult(val discriminant: org.tokend.wallet.xdr
 
     companion object Decoder: XdrDecodable<InitiateKYCRecoveryResultSuccess> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class InitiateKYCRecoveryResultSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class InitiateKYCRecoveryResultSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -8671,7 +8671,7 @@ open class LicenseOp(
 
   companion object Decoder: XdrDecodable<LicenseOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class LicenseOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class LicenseOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -8738,7 +8738,7 @@ open class LicenseSuccess(
 
   companion object Decoder: XdrDecodable<LicenseSuccess> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class LicenseSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class LicenseSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -8761,7 +8761,7 @@ open class LicenseSuccess(
 //  };
 
 //  ===========================================================================
-abstract class LicenseResult(val discriminant: org.tokend.wallet.xdr.LicenseResultCode): XdrEncodable {
+abstract class LicenseResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LicenseResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -8838,7 +8838,7 @@ open class CreateAccountRoleData(
 
   companion object Decoder: XdrDecodable<CreateAccountRoleData> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateAccountRoleDataExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateAccountRoleDataExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -8889,7 +8889,7 @@ open class UpdateAccountRoleData(
 
   companion object Decoder: XdrDecodable<UpdateAccountRoleData> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class UpdateAccountRoleDataExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class UpdateAccountRoleDataExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -8929,7 +8929,7 @@ open class RemoveAccountRoleData(
 
   companion object Decoder: XdrDecodable<RemoveAccountRoleData> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class RemoveAccountRoleDataExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class RemoveAccountRoleDataExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -8978,7 +8978,7 @@ open class ManageAccountRoleOp(
 
   companion object Decoder: XdrDecodable<ManageAccountRoleOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageAccountRoleOpData(val discriminant: org.tokend.wallet.xdr.ManageAccountRoleAction): XdrEncodable {
+  abstract class ManageAccountRoleOpData(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageAccountRoleAction): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -9012,7 +9012,7 @@ open class ManageAccountRoleOp(
       companion object Decoder: XdrDecodable<Remove> by ReflectiveXdrDecoder.wrapType()
     }
   }
-  abstract class ManageAccountRoleOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManageAccountRoleOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -9089,7 +9089,7 @@ public enum class ManageAccountRoleResultCode(val value: kotlin.Int): XdrEncodab
 //  };
 
 //  ===========================================================================
-abstract class ManageAccountRoleResult(val discriminant: org.tokend.wallet.xdr.ManageAccountRoleResultCode): XdrEncodable {
+abstract class ManageAccountRoleResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageAccountRoleResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -9135,7 +9135,7 @@ abstract class ManageAccountRoleResult(val discriminant: org.tokend.wallet.xdr.M
 
     companion object Decoder: XdrDecodable<ManageAccountRoleResultSuccess> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class ManageAccountRoleResultSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class ManageAccountRoleResultSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -9212,7 +9212,7 @@ open class CreateAccountRuleData(
 
   companion object Decoder: XdrDecodable<CreateAccountRuleData> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateAccountRuleDataExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateAccountRuleDataExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -9268,7 +9268,7 @@ open class UpdateAccountRuleData(
 
   companion object Decoder: XdrDecodable<UpdateAccountRuleData> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class UpdateAccountRuleDataExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class UpdateAccountRuleDataExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -9308,7 +9308,7 @@ open class RemoveAccountRuleData(
 
   companion object Decoder: XdrDecodable<RemoveAccountRuleData> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class RemoveAccountRuleDataExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class RemoveAccountRuleDataExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -9357,7 +9357,7 @@ open class ManageAccountRuleOp(
 
   companion object Decoder: XdrDecodable<ManageAccountRuleOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageAccountRuleOpData(val discriminant: org.tokend.wallet.xdr.ManageAccountRuleAction): XdrEncodable {
+  abstract class ManageAccountRuleOpData(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageAccountRuleAction): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -9391,7 +9391,7 @@ open class ManageAccountRuleOp(
       companion object Decoder: XdrDecodable<Remove> by ReflectiveXdrDecoder.wrapType()
     }
   }
-  abstract class ManageAccountRuleOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManageAccountRuleOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -9461,7 +9461,7 @@ public enum class ManageAccountRuleResultCode(val value: kotlin.Int): XdrEncodab
 //  };
 
 //  ===========================================================================
-abstract class ManageAccountRuleResult(val discriminant: org.tokend.wallet.xdr.ManageAccountRuleResultCode): XdrEncodable {
+abstract class ManageAccountRuleResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageAccountRuleResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -9501,7 +9501,7 @@ abstract class ManageAccountRuleResult(val discriminant: org.tokend.wallet.xdr.M
 
     companion object Decoder: XdrDecodable<ManageAccountRuleResultSuccess> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class ManageAccountRuleResultSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class ManageAccountRuleResultSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -9577,7 +9577,7 @@ open class CreateAccountSpecificRuleData(
 
   companion object Decoder: XdrDecodable<CreateAccountSpecificRuleData> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateAccountSpecificRuleDataExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateAccountSpecificRuleDataExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -9617,7 +9617,7 @@ open class RemoveAccountSpecificRuleData(
 
   companion object Decoder: XdrDecodable<RemoveAccountSpecificRuleData> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class RemoveAccountSpecificRuleDataExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class RemoveAccountSpecificRuleDataExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -9664,7 +9664,7 @@ open class ManageAccountSpecificRuleOp(
 
   companion object Decoder: XdrDecodable<ManageAccountSpecificRuleOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageAccountSpecificRuleOpData(val discriminant: org.tokend.wallet.xdr.ManageAccountSpecificRuleAction): XdrEncodable {
+  abstract class ManageAccountSpecificRuleOpData(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageAccountSpecificRuleAction): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -9689,7 +9689,7 @@ open class ManageAccountSpecificRuleOp(
       companion object Decoder: XdrDecodable<Remove> by ReflectiveXdrDecoder.wrapType()
     }
   }
-  abstract class ManageAccountSpecificRuleOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManageAccountSpecificRuleOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -9774,7 +9774,7 @@ public enum class ManageAccountSpecificRuleResultCode(val value: kotlin.Int): Xd
 //  };
 
 //  ===========================================================================
-abstract class ManageAccountSpecificRuleResult(val discriminant: org.tokend.wallet.xdr.ManageAccountSpecificRuleResultCode): XdrEncodable {
+abstract class ManageAccountSpecificRuleResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageAccountSpecificRuleResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -9802,7 +9802,7 @@ abstract class ManageAccountSpecificRuleResult(val discriminant: org.tokend.wall
 
     companion object Decoder: XdrDecodable<ManageAccountSpecificRuleResultSuccess> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class ManageAccountSpecificRuleResultSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class ManageAccountSpecificRuleResultSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -9898,7 +9898,7 @@ open class ManageAssetPairOp(
 
   companion object Decoder: XdrDecodable<ManageAssetPairOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageAssetPairOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManageAssetPairOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -9987,7 +9987,7 @@ open class ManageAssetPairSuccess(
 
   companion object Decoder: XdrDecodable<ManageAssetPairSuccess> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageAssetPairSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManageAssetPairSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -10010,7 +10010,7 @@ open class ManageAssetPairSuccess(
 //  };
 
 //  ===========================================================================
-abstract class ManageAssetPairResult(val discriminant: org.tokend.wallet.xdr.ManageAssetPairResultCode): XdrEncodable {
+abstract class ManageAssetPairResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageAssetPairResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -10080,7 +10080,7 @@ open class CancelAssetRequest(
 
   companion object Decoder: XdrDecodable<CancelAssetRequest> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CancelAssetRequestExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CancelAssetRequestExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -10125,7 +10125,7 @@ open class UpdateMaxIssuance(
 
   companion object Decoder: XdrDecodable<UpdateMaxIssuance> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class UpdateMaxIssuanceExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class UpdateMaxIssuanceExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -10224,7 +10224,7 @@ open class ManageAssetOp(
 
   companion object Decoder: XdrDecodable<ManageAssetOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageAssetOpRequest(val discriminant: org.tokend.wallet.xdr.ManageAssetAction): XdrEncodable {
+  abstract class ManageAssetOpRequest(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageAssetAction): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -10295,7 +10295,7 @@ open class ManageAssetOp(
 
       companion object Decoder: XdrDecodable<ManageAssetOpCreateAssetCreationRequest> by ReflectiveXdrDecoder.wrapType()
 
-      abstract class ManageAssetOpCreateAssetCreationRequestExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+      abstract class ManageAssetOpCreateAssetCreationRequestExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
         override fun toXdr(stream: XdrDataOutputStream) {
             discriminant.toXdr(stream)
         }
@@ -10324,7 +10324,7 @@ open class ManageAssetOp(
 
       companion object Decoder: XdrDecodable<ManageAssetOpCreateAssetUpdateRequest> by ReflectiveXdrDecoder.wrapType()
 
-      abstract class ManageAssetOpCreateAssetUpdateRequestExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+      abstract class ManageAssetOpCreateAssetUpdateRequestExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
         override fun toXdr(stream: XdrDataOutputStream) {
             discriminant.toXdr(stream)
         }
@@ -10335,7 +10335,7 @@ open class ManageAssetOp(
       }
     }
   }
-  abstract class ManageAssetOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManageAssetOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -10459,7 +10459,7 @@ open class ManageAssetSuccess(
 
   companion object Decoder: XdrDecodable<ManageAssetSuccess> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageAssetSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManageAssetSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -10483,7 +10483,7 @@ open class ManageAssetSuccess(
 //  };
 
 //  ===========================================================================
-abstract class ManageAssetResult(val discriminant: org.tokend.wallet.xdr.ManageAssetResultCode): XdrEncodable {
+abstract class ManageAssetResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageAssetResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -10564,7 +10564,7 @@ open class ManageBalanceOp(
 
   companion object Decoder: XdrDecodable<ManageBalanceOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageBalanceOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManageBalanceOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -10647,7 +10647,7 @@ open class ManageBalanceSuccess(
 
   companion object Decoder: XdrDecodable<ManageBalanceSuccess> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageBalanceSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManageBalanceSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -10669,7 +10669,7 @@ open class ManageBalanceSuccess(
 //  };
 
 //  ===========================================================================
-abstract class ManageBalanceResult(val discriminant: org.tokend.wallet.xdr.ManageBalanceResultCode): XdrEncodable {
+abstract class ManageBalanceResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageBalanceResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -10743,7 +10743,7 @@ open class CreateContractRequest(
 
   companion object Decoder: XdrDecodable<CreateContractRequest> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateContractRequestExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateContractRequestExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -10787,7 +10787,7 @@ open class ManageContractRequestOp(
 
   companion object Decoder: XdrDecodable<ManageContractRequestOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageContractRequestOpDetails(val discriminant: org.tokend.wallet.xdr.ManageContractRequestAction): XdrEncodable {
+  abstract class ManageContractRequestOpDetails(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageContractRequestAction): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -10812,7 +10812,7 @@ open class ManageContractRequestOp(
       companion object Decoder: XdrDecodable<Remove> by ReflectiveXdrDecoder.wrapType()
     }
   }
-  abstract class ManageContractRequestOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManageContractRequestOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -10887,7 +10887,7 @@ open class CreateContractRequestResponse(
 
   companion object Decoder: XdrDecodable<CreateContractRequestResponse> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateContractRequestResponseExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateContractRequestResponseExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -10925,7 +10925,7 @@ open class CreateContractRequestResponse(
 //  };
 
 //  ===========================================================================
-abstract class ManageContractRequestResult(val discriminant: org.tokend.wallet.xdr.ManageContractRequestResultCode): XdrEncodable {
+abstract class ManageContractRequestResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageContractRequestResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -10953,7 +10953,7 @@ abstract class ManageContractRequestResult(val discriminant: org.tokend.wallet.x
 
     companion object Decoder: XdrDecodable<ManageContractRequestResultSuccess> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class ManageContractRequestResultSuccessDetails(val discriminant: org.tokend.wallet.xdr.ManageContractRequestAction): XdrEncodable {
+    abstract class ManageContractRequestResultSuccessDetails(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageContractRequestAction): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -10971,7 +10971,7 @@ abstract class ManageContractRequestResult(val discriminant: org.tokend.wallet.x
 
       open class Remove: ManageContractRequestResultSuccessDetails(org.tokend.wallet.xdr.ManageContractRequestAction.REMOVE)
     }
-    abstract class ManageContractRequestResultSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class ManageContractRequestResultSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -11051,7 +11051,7 @@ open class ManageContractOp(
 
   companion object Decoder: XdrDecodable<ManageContractOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageContractOpData(val discriminant: org.tokend.wallet.xdr.ManageContractAction): XdrEncodable {
+  abstract class ManageContractOpData(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageContractAction): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -11087,7 +11087,7 @@ open class ManageContractOp(
       companion object Decoder: XdrDecodable<ResolveDispute> by ReflectiveXdrDecoder.wrapType()
     }
   }
-  abstract class ManageContractOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManageContractOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -11175,7 +11175,7 @@ open class ManageContractResponse(
 
   companion object Decoder: XdrDecodable<ManageContractResponse> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageContractResponseData(val discriminant: org.tokend.wallet.xdr.ManageContractAction): XdrEncodable {
+  abstract class ManageContractResponseData(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageContractAction): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -11191,7 +11191,7 @@ open class ManageContractResponse(
       companion object Decoder: XdrDecodable<ConfirmCompleted> by ReflectiveXdrDecoder.wrapType()
     }
   }
-  abstract class ManageContractResponseExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManageContractResponseExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -11213,7 +11213,7 @@ open class ManageContractResponse(
 //  };
 
 //  ===========================================================================
-abstract class ManageContractResult(val discriminant: org.tokend.wallet.xdr.ManageContractResultCode): XdrEncodable {
+abstract class ManageContractResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageContractResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -11293,7 +11293,7 @@ open class CreatePollRequestData(
 
   companion object Decoder: XdrDecodable<CreatePollRequestData> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreatePollRequestDataExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreatePollRequestDataExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -11334,7 +11334,7 @@ open class CancelPollRequestData(
 
   companion object Decoder: XdrDecodable<CancelPollRequestData> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CancelPollRequestDataExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CancelPollRequestDataExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -11382,7 +11382,7 @@ open class ManageCreatePollRequestOp(
 
   companion object Decoder: XdrDecodable<ManageCreatePollRequestOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageCreatePollRequestOpData(val discriminant: org.tokend.wallet.xdr.ManageCreatePollRequestAction): XdrEncodable {
+  abstract class ManageCreatePollRequestOpData(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageCreatePollRequestAction): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -11407,7 +11407,7 @@ open class ManageCreatePollRequestOp(
       companion object Decoder: XdrDecodable<Cancel> by ReflectiveXdrDecoder.wrapType()
     }
   }
-  abstract class ManageCreatePollRequestOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManageCreatePollRequestOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -11510,7 +11510,7 @@ open class CreatePollRequestResponse(
 
   companion object Decoder: XdrDecodable<CreatePollRequestResponse> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreatePollRequestResponseExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreatePollRequestResponseExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -11557,7 +11557,7 @@ open class ManageCreatePollRequestSuccessResult(
 
   companion object Decoder: XdrDecodable<ManageCreatePollRequestSuccessResult> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageCreatePollRequestSuccessResultDetails(val discriminant: org.tokend.wallet.xdr.ManageCreatePollRequestAction): XdrEncodable {
+  abstract class ManageCreatePollRequestSuccessResultDetails(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageCreatePollRequestAction): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -11575,7 +11575,7 @@ open class ManageCreatePollRequestSuccessResult(
 
     open class Cancel: ManageCreatePollRequestSuccessResultDetails(org.tokend.wallet.xdr.ManageCreatePollRequestAction.CANCEL)
   }
-  abstract class ManageCreatePollRequestSuccessResultExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManageCreatePollRequestSuccessResultExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -11598,7 +11598,7 @@ open class ManageCreatePollRequestSuccessResult(
 //  };
 
 //  ===========================================================================
-abstract class ManageCreatePollRequestResult(val discriminant: org.tokend.wallet.xdr.ManageCreatePollRequestResultCode): XdrEncodable {
+abstract class ManageCreatePollRequestResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageCreatePollRequestResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -11676,7 +11676,7 @@ open class CreateExternalSystemAccountIdPoolEntryActionInput(
 
   companion object Decoder: XdrDecodable<CreateExternalSystemAccountIdPoolEntryActionInput> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateExternalSystemAccountIdPoolEntryActionInputExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateExternalSystemAccountIdPoolEntryActionInputExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -11718,7 +11718,7 @@ open class DeleteExternalSystemAccountIdPoolEntryActionInput(
 
   companion object Decoder: XdrDecodable<DeleteExternalSystemAccountIdPoolEntryActionInput> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class DeleteExternalSystemAccountIdPoolEntryActionInputExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class DeleteExternalSystemAccountIdPoolEntryActionInputExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -11767,7 +11767,7 @@ open class ManageExternalSystemAccountIdPoolEntryOp(
 
   companion object Decoder: XdrDecodable<ManageExternalSystemAccountIdPoolEntryOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageExternalSystemAccountIdPoolEntryOpActionInput(val discriminant: org.tokend.wallet.xdr.ManageExternalSystemAccountIdPoolEntryAction): XdrEncodable {
+  abstract class ManageExternalSystemAccountIdPoolEntryOpActionInput(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageExternalSystemAccountIdPoolEntryAction): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -11792,7 +11792,7 @@ open class ManageExternalSystemAccountIdPoolEntryOp(
       companion object Decoder: XdrDecodable<Remove> by ReflectiveXdrDecoder.wrapType()
     }
   }
-  abstract class ManageExternalSystemAccountIdPoolEntryOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManageExternalSystemAccountIdPoolEntryOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -11867,7 +11867,7 @@ open class ManageExternalSystemAccountIdPoolEntrySuccess(
 
   companion object Decoder: XdrDecodable<ManageExternalSystemAccountIdPoolEntrySuccess> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageExternalSystemAccountIdPoolEntrySuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManageExternalSystemAccountIdPoolEntrySuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -11890,7 +11890,7 @@ open class ManageExternalSystemAccountIdPoolEntrySuccess(
 //  };
 
 //  ===========================================================================
-abstract class ManageExternalSystemAccountIdPoolEntryResult(val discriminant: org.tokend.wallet.xdr.ManageExternalSystemAccountIdPoolEntryResultCode): XdrEncodable {
+abstract class ManageExternalSystemAccountIdPoolEntryResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageExternalSystemAccountIdPoolEntryResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -11983,7 +11983,7 @@ open class InvoiceCreationRequest(
 
   companion object Decoder: XdrDecodable<InvoiceCreationRequest> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class InvoiceCreationRequestExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class InvoiceCreationRequestExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -12027,7 +12027,7 @@ open class ManageInvoiceRequestOp(
 
   companion object Decoder: XdrDecodable<ManageInvoiceRequestOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageInvoiceRequestOpDetails(val discriminant: org.tokend.wallet.xdr.ManageInvoiceRequestAction): XdrEncodable {
+  abstract class ManageInvoiceRequestOpDetails(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageInvoiceRequestAction): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -12052,7 +12052,7 @@ open class ManageInvoiceRequestOp(
       companion object Decoder: XdrDecodable<Remove> by ReflectiveXdrDecoder.wrapType()
     }
   }
-  abstract class ManageInvoiceRequestOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManageInvoiceRequestOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -12141,7 +12141,7 @@ open class CreateInvoiceRequestResponse(
 
   companion object Decoder: XdrDecodable<CreateInvoiceRequestResponse> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateInvoiceRequestResponseExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateInvoiceRequestResponseExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -12180,7 +12180,7 @@ open class CreateInvoiceRequestResponse(
 //  };
 
 //  ===========================================================================
-abstract class ManageInvoiceRequestResult(val discriminant: org.tokend.wallet.xdr.ManageInvoiceRequestResultCode): XdrEncodable {
+abstract class ManageInvoiceRequestResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageInvoiceRequestResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -12210,7 +12210,7 @@ abstract class ManageInvoiceRequestResult(val discriminant: org.tokend.wallet.xd
 
     companion object Decoder: XdrDecodable<ManageInvoiceRequestResultSuccess> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class ManageInvoiceRequestResultSuccessDetails(val discriminant: org.tokend.wallet.xdr.ManageInvoiceRequestAction): XdrEncodable {
+    abstract class ManageInvoiceRequestResultSuccessDetails(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageInvoiceRequestAction): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -12228,7 +12228,7 @@ abstract class ManageInvoiceRequestResult(val discriminant: org.tokend.wallet.xd
 
       open class Remove: ManageInvoiceRequestResultSuccessDetails(org.tokend.wallet.xdr.ManageInvoiceRequestAction.REMOVE)
     }
-    abstract class ManageInvoiceRequestResultSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class ManageInvoiceRequestResultSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -12305,7 +12305,7 @@ open class ManageKeyValueOp(
 
   companion object Decoder: XdrDecodable<ManageKeyValueOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageKeyValueOpAction(val discriminant: org.tokend.wallet.xdr.ManageKVAction): XdrEncodable {
+  abstract class ManageKeyValueOpAction(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageKVAction): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -12323,7 +12323,7 @@ open class ManageKeyValueOp(
 
     open class Remove: ManageKeyValueOpAction(org.tokend.wallet.xdr.ManageKVAction.REMOVE)
   }
-  abstract class ManageKeyValueOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManageKeyValueOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -12359,7 +12359,7 @@ open class ManageKeyValueSuccess(
 
   companion object Decoder: XdrDecodable<ManageKeyValueSuccess> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageKeyValueSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManageKeyValueSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -12412,7 +12412,7 @@ public enum class ManageKeyValueResultCode(val value: kotlin.Int): XdrEncodable 
 //      };
 
 //  ===========================================================================
-abstract class ManageKeyValueResult(val discriminant: org.tokend.wallet.xdr.ManageKeyValueResultCode): XdrEncodable {
+abstract class ManageKeyValueResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageKeyValueResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -12528,7 +12528,7 @@ open class LimitsCreateDetails(
 
   companion object Decoder: XdrDecodable<LimitsCreateDetails> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class LimitsCreateDetailsExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class LimitsCreateDetailsExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -12575,7 +12575,7 @@ open class ManageLimitsOp(
 
   companion object Decoder: XdrDecodable<ManageLimitsOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageLimitsOpDetails(val discriminant: org.tokend.wallet.xdr.ManageLimitsAction): XdrEncodable {
+  abstract class ManageLimitsOpDetails(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageLimitsAction): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -12600,7 +12600,7 @@ open class ManageLimitsOp(
       companion object Decoder: XdrDecodable<Remove> by ReflectiveXdrDecoder.wrapType()
     }
   }
-  abstract class ManageLimitsOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManageLimitsOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -12680,7 +12680,7 @@ public enum class ManageLimitsResultCode(val value: kotlin.Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-abstract class ManageLimitsResult(val discriminant: org.tokend.wallet.xdr.ManageLimitsResultCode): XdrEncodable {
+abstract class ManageLimitsResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageLimitsResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -12708,7 +12708,7 @@ abstract class ManageLimitsResult(val discriminant: org.tokend.wallet.xdr.Manage
 
     companion object Decoder: XdrDecodable<ManageLimitsResultSuccess> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class ManageLimitsResultSuccessDetails(val discriminant: org.tokend.wallet.xdr.ManageLimitsAction): XdrEncodable {
+    abstract class ManageLimitsResultSuccessDetails(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageLimitsAction): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -12726,7 +12726,7 @@ abstract class ManageLimitsResult(val discriminant: org.tokend.wallet.xdr.Manage
 
       open class Remove: ManageLimitsResultSuccessDetails(org.tokend.wallet.xdr.ManageLimitsAction.REMOVE)
     }
-    abstract class ManageLimitsResultSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class ManageLimitsResultSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -12803,7 +12803,7 @@ open class ManageOfferOp(
 
   companion object Decoder: XdrDecodable<ManageOfferOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageOfferOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManageOfferOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -13012,7 +13012,7 @@ open class ClaimOfferAtom(
 
   companion object Decoder: XdrDecodable<ClaimOfferAtom> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ClaimOfferAtomExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ClaimOfferAtomExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -13078,7 +13078,7 @@ open class ManageOfferSuccessResult(
 
   companion object Decoder: XdrDecodable<ManageOfferSuccessResult> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageOfferSuccessResultOffer(val discriminant: org.tokend.wallet.xdr.ManageOfferEffect): XdrEncodable {
+  abstract class ManageOfferSuccessResultOffer(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageOfferEffect): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -13103,7 +13103,7 @@ open class ManageOfferSuccessResult(
       companion object Decoder: XdrDecodable<Updated> by ReflectiveXdrDecoder.wrapType()
     }
   }
-  abstract class ManageOfferSuccessResultExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManageOfferSuccessResultExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -13150,7 +13150,7 @@ open class ManageOfferSuccessResult(
 //  };
 
 //  ===========================================================================
-abstract class ManageOfferResult(val discriminant: org.tokend.wallet.xdr.ManageOfferResultCode): XdrEncodable {
+abstract class ManageOfferResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageOfferResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -13196,7 +13196,7 @@ abstract class ManageOfferResult(val discriminant: org.tokend.wallet.xdr.ManageO
 
     companion object Decoder: XdrDecodable<ManageOfferResultPhysicalPriceRestriction> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class ManageOfferResultPhysicalPriceRestrictionExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class ManageOfferResultPhysicalPriceRestrictionExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -13218,7 +13218,7 @@ abstract class ManageOfferResult(val discriminant: org.tokend.wallet.xdr.ManageO
 
     companion object Decoder: XdrDecodable<ManageOfferResultCurrentPriceRestriction> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class ManageOfferResultCurrentPriceRestrictionExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class ManageOfferResultCurrentPriceRestrictionExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -13311,7 +13311,7 @@ open class ClosePollData(
 
   companion object Decoder: XdrDecodable<ClosePollData> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ClosePollDataExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ClosePollDataExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -13350,7 +13350,7 @@ open class UpdatePollEndTimeData(
 
   companion object Decoder: XdrDecodable<UpdatePollEndTimeData> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class UpdatePollEndTimeDataExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class UpdatePollEndTimeDataExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -13405,7 +13405,7 @@ open class ManagePollOp(
 
   companion object Decoder: XdrDecodable<ManagePollOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManagePollOpData(val discriminant: org.tokend.wallet.xdr.ManagePollAction): XdrEncodable {
+  abstract class ManagePollOpData(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManagePollAction): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -13439,7 +13439,7 @@ open class ManagePollOp(
       companion object Decoder: XdrDecodable<Cancel> by ReflectiveXdrDecoder.wrapType()
     }
   }
-  abstract class ManagePollOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManagePollOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -13500,7 +13500,7 @@ public enum class ManagePollResultCode(val value: kotlin.Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-abstract class ManagePollResult(val discriminant: org.tokend.wallet.xdr.ManagePollResultCode): XdrEncodable {
+abstract class ManagePollResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManagePollResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -13580,7 +13580,7 @@ open class UpdateSaleDetailsData(
 
   companion object Decoder: XdrDecodable<UpdateSaleDetailsData> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class UpdateSaleDetailsDataExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class UpdateSaleDetailsDataExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -13629,7 +13629,7 @@ open class ManageSaleOp(
 
   companion object Decoder: XdrDecodable<ManageSaleOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageSaleOpData(val discriminant: org.tokend.wallet.xdr.ManageSaleAction): XdrEncodable {
+  abstract class ManageSaleOpData(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageSaleAction): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -13647,7 +13647,7 @@ open class ManageSaleOp(
 
     open class Cancel: ManageSaleOpData(org.tokend.wallet.xdr.ManageSaleAction.CANCEL)
   }
-  abstract class ManageSaleOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManageSaleOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -13739,7 +13739,7 @@ open class ManageSaleResultSuccess(
 
   companion object Decoder: XdrDecodable<ManageSaleResultSuccess> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageSaleResultSuccessResponse(val discriminant: org.tokend.wallet.xdr.ManageSaleAction): XdrEncodable {
+  abstract class ManageSaleResultSuccessResponse(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageSaleAction): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -13757,7 +13757,7 @@ open class ManageSaleResultSuccess(
 
     open class Cancel: ManageSaleResultSuccessResponse(org.tokend.wallet.xdr.ManageSaleAction.CANCEL)
   }
-  abstract class ManageSaleResultSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManageSaleResultSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -13780,7 +13780,7 @@ open class ManageSaleResultSuccess(
 //  };
 
 //  ===========================================================================
-abstract class ManageSaleResult(val discriminant: org.tokend.wallet.xdr.ManageSaleResultCode): XdrEncodable {
+abstract class ManageSaleResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageSaleResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -13861,7 +13861,7 @@ open class CreateSignerRoleData(
 
   companion object Decoder: XdrDecodable<CreateSignerRoleData> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateSignerRoleDataExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateSignerRoleDataExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -13913,7 +13913,7 @@ open class UpdateSignerRoleData(
 
   companion object Decoder: XdrDecodable<UpdateSignerRoleData> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class UpdateSignerRoleDataExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class UpdateSignerRoleDataExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -13953,7 +13953,7 @@ open class RemoveSignerRoleData(
 
   companion object Decoder: XdrDecodable<RemoveSignerRoleData> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class RemoveSignerRoleDataExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class RemoveSignerRoleDataExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -14002,7 +14002,7 @@ open class ManageSignerRoleOp(
 
   companion object Decoder: XdrDecodable<ManageSignerRoleOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageSignerRoleOpData(val discriminant: org.tokend.wallet.xdr.ManageSignerRoleAction): XdrEncodable {
+  abstract class ManageSignerRoleOpData(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageSignerRoleAction): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -14036,7 +14036,7 @@ open class ManageSignerRoleOp(
       companion object Decoder: XdrDecodable<Remove> by ReflectiveXdrDecoder.wrapType()
     }
   }
-  abstract class ManageSignerRoleOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManageSignerRoleOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -14123,7 +14123,7 @@ public enum class ManageSignerRoleResultCode(val value: kotlin.Int): XdrEncodabl
 //  };
 
 //  ===========================================================================
-abstract class ManageSignerRoleResult(val discriminant: org.tokend.wallet.xdr.ManageSignerRoleResultCode): XdrEncodable {
+abstract class ManageSignerRoleResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageSignerRoleResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -14187,7 +14187,7 @@ abstract class ManageSignerRoleResult(val discriminant: org.tokend.wallet.xdr.Ma
 
     companion object Decoder: XdrDecodable<ManageSignerRoleResultSuccess> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class ManageSignerRoleResultSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class ManageSignerRoleResultSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -14272,7 +14272,7 @@ open class CreateSignerRuleData(
 
   companion object Decoder: XdrDecodable<CreateSignerRuleData> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateSignerRuleDataExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateSignerRuleDataExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -14332,7 +14332,7 @@ open class UpdateSignerRuleData(
 
   companion object Decoder: XdrDecodable<UpdateSignerRuleData> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class UpdateSignerRuleDataExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class UpdateSignerRuleDataExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -14372,7 +14372,7 @@ open class RemoveSignerRuleData(
 
   companion object Decoder: XdrDecodable<RemoveSignerRuleData> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class RemoveSignerRuleDataExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class RemoveSignerRuleDataExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -14421,7 +14421,7 @@ open class ManageSignerRuleOp(
 
   companion object Decoder: XdrDecodable<ManageSignerRuleOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageSignerRuleOpData(val discriminant: org.tokend.wallet.xdr.ManageSignerRuleAction): XdrEncodable {
+  abstract class ManageSignerRuleOpData(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageSignerRuleAction): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -14455,7 +14455,7 @@ open class ManageSignerRuleOp(
       companion object Decoder: XdrDecodable<Remove> by ReflectiveXdrDecoder.wrapType()
     }
   }
-  abstract class ManageSignerRuleOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManageSignerRuleOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -14524,7 +14524,7 @@ public enum class ManageSignerRuleResultCode(val value: kotlin.Int): XdrEncodabl
 //  };
 
 //  ===========================================================================
-abstract class ManageSignerRuleResult(val discriminant: org.tokend.wallet.xdr.ManageSignerRuleResultCode): XdrEncodable {
+abstract class ManageSignerRuleResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageSignerRuleResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -14564,7 +14564,7 @@ abstract class ManageSignerRuleResult(val discriminant: org.tokend.wallet.xdr.Ma
 
     companion object Decoder: XdrDecodable<ManageSignerRuleResultSuccess> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class ManageSignerRuleResultSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class ManageSignerRuleResultSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -14705,7 +14705,7 @@ open class ManageSignerOp(
 
   companion object Decoder: XdrDecodable<ManageSignerOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageSignerOpData(val discriminant: org.tokend.wallet.xdr.ManageSignerAction): XdrEncodable {
+  abstract class ManageSignerOpData(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageSignerAction): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -14795,7 +14795,7 @@ public enum class ManageSignerResultCode(val value: kotlin.Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-abstract class ManageSignerResult(val discriminant: org.tokend.wallet.xdr.ManageSignerResultCode): XdrEncodable {
+abstract class ManageSignerResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageSignerResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -14868,7 +14868,7 @@ open class CreateVoteData(
 
   companion object Decoder: XdrDecodable<CreateVoteData> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateVoteDataExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateVoteDataExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -14908,7 +14908,7 @@ open class RemoveVoteData(
 
   companion object Decoder: XdrDecodable<RemoveVoteData> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class RemoveVoteDataExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class RemoveVoteDataExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -14955,7 +14955,7 @@ open class ManageVoteOp(
 
   companion object Decoder: XdrDecodable<ManageVoteOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ManageVoteOpData(val discriminant: org.tokend.wallet.xdr.ManageVoteAction): XdrEncodable {
+  abstract class ManageVoteOpData(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageVoteAction): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -14980,7 +14980,7 @@ open class ManageVoteOp(
       companion object Decoder: XdrDecodable<Remove> by ReflectiveXdrDecoder.wrapType()
     }
   }
-  abstract class ManageVoteOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ManageVoteOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -15045,7 +15045,7 @@ public enum class ManageVoteResultCode(val value: kotlin.Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-abstract class ManageVoteResult(val discriminant: org.tokend.wallet.xdr.ManageVoteResultCode): XdrEncodable {
+abstract class ManageVoteResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ManageVoteResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -15098,7 +15098,7 @@ open class PaymentFeeData(
 
   companion object Decoder: XdrDecodable<PaymentFeeData> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class PaymentFeeDataExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class PaymentFeeDataExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -15189,7 +15189,7 @@ open class PaymentOp(
 
   companion object Decoder: XdrDecodable<PaymentOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class PaymentOpDestination(val discriminant: org.tokend.wallet.xdr.PaymentDestinationType): XdrEncodable {
+  abstract class PaymentOpDestination(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.PaymentDestinationType): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -15214,7 +15214,7 @@ open class PaymentOp(
       companion object Decoder: XdrDecodable<Balance> by ReflectiveXdrDecoder.wrapType()
     }
   }
-  abstract class PaymentOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class PaymentOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -15348,7 +15348,7 @@ open class PaymentResponse(
 
   companion object Decoder: XdrDecodable<PaymentResponse> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class PaymentResponseExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class PaymentResponseExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -15370,7 +15370,7 @@ open class PaymentResponse(
 //  };
 
 //  ===========================================================================
-abstract class PaymentResult(val discriminant: org.tokend.wallet.xdr.PaymentResultCode): XdrEncodable {
+abstract class PaymentResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.PaymentResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -15432,7 +15432,7 @@ open class PayoutOp(
 
   companion object Decoder: XdrDecodable<PayoutOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class PayoutOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class PayoutOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -15529,7 +15529,7 @@ open class PayoutResponse(
 
   companion object Decoder: XdrDecodable<PayoutResponse> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class PayoutResponseExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class PayoutResponseExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -15577,7 +15577,7 @@ open class PayoutSuccessResult(
 
   companion object Decoder: XdrDecodable<PayoutSuccessResult> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class PayoutSuccessResultExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class PayoutSuccessResultExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -15599,7 +15599,7 @@ open class PayoutSuccessResult(
 //  };
 
 //  ===========================================================================
-abstract class PayoutResult(val discriminant: org.tokend.wallet.xdr.PayoutResultCode): XdrEncodable {
+abstract class PayoutResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.PayoutResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -15650,7 +15650,7 @@ open class RemoveAssetPairOp(
 
   companion object Decoder: XdrDecodable<RemoveAssetPairOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class RemoveAssetPairOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class RemoveAssetPairOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -15719,7 +15719,7 @@ open class RemoveAssetPairSuccess(
 
   companion object Decoder: XdrDecodable<RemoveAssetPairSuccess> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class RemoveAssetPairSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class RemoveAssetPairSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -15741,7 +15741,7 @@ open class RemoveAssetPairSuccess(
 //  };
 
 //  ===========================================================================
-abstract class RemoveAssetPairResult(val discriminant: org.tokend.wallet.xdr.RemoveAssetPairResultCode): XdrEncodable {
+abstract class RemoveAssetPairResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.RemoveAssetPairResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -15813,7 +15813,7 @@ open class LimitsUpdateDetails(
 
   companion object Decoder: XdrDecodable<LimitsUpdateDetails> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class LimitsUpdateDetailsExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class LimitsUpdateDetailsExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -15852,7 +15852,7 @@ open class WithdrawalDetails(
 
   companion object Decoder: XdrDecodable<WithdrawalDetails> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class WithdrawalDetailsExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class WithdrawalDetailsExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -15891,7 +15891,7 @@ open class AMLAlertDetails(
 
   companion object Decoder: XdrDecodable<AMLAlertDetails> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class AMLAlertDetailsExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class AMLAlertDetailsExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -15929,7 +15929,7 @@ open class ContractDetails(
 
   companion object Decoder: XdrDecodable<ContractDetails> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ContractDetailsExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ContractDetailsExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -15969,7 +15969,7 @@ open class BillPayDetails(
 
   companion object Decoder: XdrDecodable<BillPayDetails> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class BillPayDetailsExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class BillPayDetailsExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -16016,7 +16016,7 @@ open class ReviewDetails(
 
   companion object Decoder: XdrDecodable<ReviewDetails> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ReviewDetailsExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ReviewDetailsExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -16056,7 +16056,7 @@ open class SaleExtended(
 
   companion object Decoder: XdrDecodable<SaleExtended> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class SaleExtendedExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class SaleExtendedExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -16097,7 +16097,7 @@ open class AtomicSwapAskExtended(
 
   companion object Decoder: XdrDecodable<AtomicSwapAskExtended> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class AtomicSwapAskExtendedExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class AtomicSwapAskExtendedExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -16138,7 +16138,7 @@ open class CreatePollExtended(
 
   companion object Decoder: XdrDecodable<CreatePollExtended> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreatePollExtendedExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreatePollExtendedExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -16219,7 +16219,7 @@ open class AtomicSwapBidExtended(
 
   companion object Decoder: XdrDecodable<AtomicSwapBidExtended> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class AtomicSwapBidExtendedExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class AtomicSwapBidExtendedExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -16274,7 +16274,7 @@ open class ExtendedResult(
 
   companion object Decoder: XdrDecodable<ExtendedResult> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ExtendedResultTypeExt(val discriminant: org.tokend.wallet.xdr.ReviewableRequestType): XdrEncodable {
+  abstract class ExtendedResultTypeExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ReviewableRequestType): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -16319,7 +16319,7 @@ open class ExtendedResult(
       companion object Decoder: XdrDecodable<CreatePoll> by ReflectiveXdrDecoder.wrapType()
     }
   }
-  abstract class ExtendedResultExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ExtendedResultExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -16393,7 +16393,7 @@ open class ReviewRequestOp(
 
   companion object Decoder: XdrDecodable<ReviewRequestOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ReviewRequestOpRequestDetails(val discriminant: org.tokend.wallet.xdr.ReviewableRequestType): XdrEncodable {
+  abstract class ReviewRequestOpRequestDetails(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ReviewableRequestType): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -16445,7 +16445,7 @@ open class ReviewRequestOp(
       companion object Decoder: XdrDecodable<ManageContract> by ReflectiveXdrDecoder.wrapType()
     }
   }
-  abstract class ReviewRequestOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ReviewRequestOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -16665,7 +16665,7 @@ public enum class ReviewRequestResultCode(val value: kotlin.Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-abstract class ReviewRequestResult(val discriminant: org.tokend.wallet.xdr.ReviewRequestResultCode): XdrEncodable {
+abstract class ReviewRequestResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ReviewRequestResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -16720,7 +16720,7 @@ open class SetFeesOp(
 
   companion object Decoder: XdrDecodable<SetFeesOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class SetFeesOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class SetFeesOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -16835,7 +16835,7 @@ public enum class SetFeesResultCode(val value: kotlin.Int): XdrEncodable {
 //      };
 
 //  ===========================================================================
-abstract class SetFeesResult(val discriminant: org.tokend.wallet.xdr.SetFeesResultCode): XdrEncodable {
+abstract class SetFeesResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.SetFeesResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -16861,7 +16861,7 @@ abstract class SetFeesResult(val discriminant: org.tokend.wallet.xdr.SetFeesResu
 
     companion object Decoder: XdrDecodable<SetFeesResultSuccess> by ReflectiveXdrDecoder.wrapType()
 
-    abstract class SetFeesResultSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    abstract class SetFeesResultSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
       override fun toXdr(stream: XdrDataOutputStream) {
           discriminant.toXdr(stream)
       }
@@ -16898,7 +16898,7 @@ open class StampOp(
 
   companion object Decoder: XdrDecodable<StampOp> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class StampOpExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class StampOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -16964,7 +16964,7 @@ open class StampSuccess(
 
   companion object Decoder: XdrDecodable<StampSuccess> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class StampSuccessExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class StampSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -16987,7 +16987,7 @@ open class StampSuccess(
 //  };
 
 //  ===========================================================================
-abstract class StampResult(val discriminant: org.tokend.wallet.xdr.StampResultCode): XdrEncodable {
+abstract class StampResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.StampResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -17194,7 +17194,7 @@ open class PeerAddress(
 
   companion object Decoder: XdrDecodable<PeerAddress> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class PeerAddressIp(val discriminant: org.tokend.wallet.xdr.IPAddrType): XdrEncodable {
+  abstract class PeerAddressIp(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.IPAddrType): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -17330,7 +17330,7 @@ open class DontHave(
 //  };
 
 //  ===========================================================================
-abstract class StellarMessage(val discriminant: org.tokend.wallet.xdr.MessageType): XdrEncodable {
+abstract class StellarMessage(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.MessageType): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -17465,7 +17465,7 @@ abstract class StellarMessage(val discriminant: org.tokend.wallet.xdr.MessageTyp
 //  };
 
 //  ===========================================================================
-abstract class AuthenticatedMessage(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+abstract class AuthenticatedMessage(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -17589,7 +17589,7 @@ abstract class AuthenticatedMessage(val discriminant: org.tokend.wallet.xdr.Ledg
 //  };
 
 //  ===========================================================================
-abstract class ReviewableRequestResource(val discriminant: org.tokend.wallet.xdr.ReviewableRequestType): XdrEncodable {
+abstract class ReviewableRequestResource(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.ReviewableRequestType): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -17690,7 +17690,7 @@ abstract class ReviewableRequestResource(val discriminant: org.tokend.wallet.xdr
 
     companion object Decoder: XdrDecodable<ReviewableRequestResourceCreateWithdraw> by ReflectiveXdrDecoder.wrapType()
   }
-  abstract class ReviewableRequestResourceCreateAtomicSwapAskExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ReviewableRequestResourceCreateAtomicSwapAskExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -17723,7 +17723,7 @@ abstract class ReviewableRequestResource(val discriminant: org.tokend.wallet.xdr
       companion object Decoder: XdrDecodable<ReviewableRequestResourceCreateAtomicSwapAskExtCreateAtomicSwapAsk> by ReflectiveXdrDecoder.wrapType()
     }
   }
-  abstract class ReviewableRequestResourceCreateAtomicSwapBidExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ReviewableRequestResourceCreateAtomicSwapBidExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -17882,7 +17882,7 @@ abstract class ReviewableRequestResource(val discriminant: org.tokend.wallet.xdr
 //  };
 
 //  ===========================================================================
-abstract class AccountRuleResource(val discriminant: org.tokend.wallet.xdr.LedgerEntryType): XdrEncodable {
+abstract class AccountRuleResource(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerEntryType): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -18298,7 +18298,7 @@ public enum class AccountRuleAction(val value: kotlin.Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-abstract class SignerRuleResource(val discriminant: org.tokend.wallet.xdr.LedgerEntryType): XdrEncodable {
+abstract class SignerRuleResource(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerEntryType): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -18678,7 +18678,7 @@ open class AMLAlertRequest(
 
   companion object Decoder: XdrDecodable<AMLAlertRequest> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class AMLAlertRequestExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class AMLAlertRequestExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -18750,7 +18750,7 @@ open class AssetCreationRequest(
 
   companion object Decoder: XdrDecodable<AssetCreationRequest> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class AssetCreationRequestExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class AssetCreationRequestExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -18802,7 +18802,7 @@ open class AssetUpdateRequest(
 
   companion object Decoder: XdrDecodable<AssetUpdateRequest> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class AssetUpdateRequestExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class AssetUpdateRequestExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -18852,7 +18852,7 @@ open class AssetChangePreissuedSigner(
 
   companion object Decoder: XdrDecodable<AssetChangePreissuedSigner> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class AssetChangePreissuedSignerExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class AssetChangePreissuedSignerExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -18907,7 +18907,7 @@ open class CreateAtomicSwapAskRequest(
 
   companion object Decoder: XdrDecodable<CreateAtomicSwapAskRequest> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateAtomicSwapAskRequestExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateAtomicSwapAskRequestExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -18959,7 +18959,7 @@ open class CreateAtomicSwapBidRequest(
 
   companion object Decoder: XdrDecodable<CreateAtomicSwapBidRequest> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateAtomicSwapBidRequestExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateAtomicSwapBidRequestExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -19010,7 +19010,7 @@ open class ChangeRoleRequest(
 
   companion object Decoder: XdrDecodable<ChangeRoleRequest> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ChangeRoleRequestExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ChangeRoleRequestExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -19062,7 +19062,7 @@ open class ContractRequest(
 
   companion object Decoder: XdrDecodable<ContractRequest> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class ContractRequestExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class ContractRequestExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -19138,7 +19138,7 @@ open class CreatePollRequest(
 
   companion object Decoder: XdrDecodable<CreatePollRequest> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreatePollRequestExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreatePollRequestExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -19201,7 +19201,7 @@ open class InvoiceRequest(
 
   companion object Decoder: XdrDecodable<InvoiceRequest> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class InvoiceRequestExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class InvoiceRequestExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -19258,7 +19258,7 @@ open class PreIssuanceRequest(
 
   companion object Decoder: XdrDecodable<PreIssuanceRequest> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class PreIssuanceRequestExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class PreIssuanceRequestExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -19313,7 +19313,7 @@ open class IssuanceRequest(
 
   companion object Decoder: XdrDecodable<IssuanceRequest> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class IssuanceRequestExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class IssuanceRequestExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -19369,7 +19369,7 @@ open class KYCRecoveryRequest(
 
   companion object Decoder: XdrDecodable<KYCRecoveryRequest> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class KYCRecoveryRequestExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class KYCRecoveryRequestExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -19410,7 +19410,7 @@ open class LimitsUpdateRequest(
 
   companion object Decoder: XdrDecodable<LimitsUpdateRequest> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class LimitsUpdateRequestExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class LimitsUpdateRequestExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -19453,7 +19453,7 @@ open class SaleCreationRequestQuoteAsset(
 
   companion object Decoder: XdrDecodable<SaleCreationRequestQuoteAsset> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class SaleCreationRequestQuoteAssetExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class SaleCreationRequestQuoteAssetExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -19502,7 +19502,7 @@ open class CreateAccountSaleRuleData(
 
   companion object Decoder: XdrDecodable<CreateAccountSaleRuleData> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class CreateAccountSaleRuleDataExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class CreateAccountSaleRuleDataExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -19596,7 +19596,7 @@ open class SaleCreationRequest(
 
   companion object Decoder: XdrDecodable<SaleCreationRequest> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class SaleCreationRequestExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class SaleCreationRequestExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -19655,7 +19655,7 @@ open class UpdateSaleDetailsRequest(
 
   companion object Decoder: XdrDecodable<UpdateSaleDetailsRequest> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class UpdateSaleDetailsRequestExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class UpdateSaleDetailsRequestExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -19711,7 +19711,7 @@ open class WithdrawalRequest(
 
   companion object Decoder: XdrDecodable<WithdrawalRequest> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class WithdrawalRequestExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class WithdrawalRequestExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -19844,7 +19844,7 @@ open class Operation(
 
   companion object Decoder: XdrDecodable<Operation> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class OperationBody(val discriminant: org.tokend.wallet.xdr.OperationType): XdrEncodable {
+  abstract class OperationBody(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.OperationType): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -20293,7 +20293,7 @@ public enum class MemoType(val value: kotlin.Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-abstract class Memo(val discriminant: org.tokend.wallet.xdr.MemoType): XdrEncodable {
+abstract class Memo(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.MemoType): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -20420,7 +20420,7 @@ open class Transaction(
 
   companion object Decoder: XdrDecodable<Transaction> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class TransactionExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class TransactionExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -20644,7 +20644,7 @@ open class AccountRuleRequirement(
 //  };
 
 //  ===========================================================================
-abstract class OperationResult(val discriminant: org.tokend.wallet.xdr.OperationResultCode): XdrEncodable {
+abstract class OperationResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.OperationResultCode): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -20678,7 +20678,7 @@ abstract class OperationResult(val discriminant: org.tokend.wallet.xdr.Operation
     companion object Decoder: XdrDecodable<OpnoRolePermission> by ReflectiveXdrDecoder.wrapType()
   }
 
-  abstract class OperationResultTr(val discriminant: org.tokend.wallet.xdr.OperationType): XdrEncodable {
+  abstract class OperationResultTr(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.OperationType): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -21166,7 +21166,7 @@ open class OperationFee(
 
   companion object Decoder: XdrDecodable<OperationFee> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class OperationFeeExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class OperationFeeExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -21219,7 +21219,7 @@ open class TransactionResult(
 
   companion object Decoder: XdrDecodable<TransactionResult> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class TransactionResultResult(val discriminant: org.tokend.wallet.xdr.TransactionResultCode): XdrEncodable {
+  abstract class TransactionResultResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.TransactionResultCode): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -21259,7 +21259,7 @@ open class TransactionResult(
       companion object Decoder: XdrDecodable<TxnoRolePermission> by ReflectiveXdrDecoder.wrapType()
     }
   }
-  abstract class TransactionResultExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class TransactionResultExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }
@@ -21328,7 +21328,7 @@ public enum class LedgerVersion(val value: kotlin.Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-abstract class EmptyExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+abstract class EmptyExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -21427,7 +21427,7 @@ public enum class PublicKeyType(val value: kotlin.Int): XdrEncodable {
 //  };
 
 //  ===========================================================================
-abstract class PublicKey(val discriminant: org.tokend.wallet.xdr.CryptoKeyType): XdrEncodable {
+abstract class PublicKey(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CryptoKeyType): XdrEncodable {
   override fun toXdr(stream: XdrDataOutputStream) {
       discriminant.toXdr(stream)
   }
@@ -21731,7 +21731,7 @@ open class Fee(
 
   companion object Decoder: XdrDecodable<Fee> by ReflectiveXdrDecoder.wrapType()
 
-  abstract class FeeExt(val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+  abstract class FeeExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
         discriminant.toXdr(stream)
     }

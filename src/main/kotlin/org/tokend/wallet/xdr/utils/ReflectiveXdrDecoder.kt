@@ -76,14 +76,26 @@ object ReflectiveXdrDecoder {
     // endregion
 
     // region Union switch
+    private fun getUnionSwitchDiscriminantType(type: Class<out Any>): Class<*>? {
+        val constructor = type.declaredConstructors[0]
+        val paramAnnotations = constructor.parameterAnnotations
+        val paramTypes = constructor.parameterTypes
+
+        paramAnnotations.forEachIndexed { i, annotations ->
+            if (annotations.any { it is XdrDiscriminantField })
+                return paramTypes[i]
+        }
+
+        return null
+    }
+
     private fun isUnionSwitch(type: Class<out Any>): Boolean {
-        return Modifier.isAbstract(type.modifiers)
-                && type.declaredFields.firstOrNull()?.type?.isEnum == true
+        return !type.isArray && Modifier.isAbstract(type.modifiers)
+                && getUnionSwitchDiscriminantType(type) != null
     }
 
     private fun readUnionSwitch(type: Class<out Any>, stream: XdrDataInputStream): Any {
-        // Assume that union switch first field is a discriminant.
-        val discriminantEnumType = type.declaredFields.first().type
+        val discriminantEnumType = getUnionSwitchDiscriminantType(type)!!
         val discriminantEnumValue = readEnum(discriminantEnumType, stream)
 
         val nameKey = discriminantEnumValue.toString()
