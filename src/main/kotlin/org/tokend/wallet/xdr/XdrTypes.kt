@@ -6529,8 +6529,9 @@ abstract class CheckSaleStateResult(@XdrDiscriminantField val discriminant: org.
 
 //  struct CloseSwapOp
 //  {
+//      //: ID of the swap to close
 //      uint64 swapID;
-//  
+//      //: (optional) Secret of the swap. Must be provided in order for destination of the swap to receive funds
 //      Hash* secret;
 //  
 //      //: reserved for future extension
@@ -6565,11 +6566,13 @@ open class CloseSwapOp(
 //  {
 //      //: CloseSwap was successful 
 //      SUCCESS = 0,
-//  
+//      //: Too late to close swap
 //      SWAP_EXPIRED = -1,
+//      //: Provided secret is invalid
 //      INVALID_SECRET = -2,
 //      //: After the swap fulfillment, the destination balance will exceed the limit (total amount on the balance will be greater than UINT64_MAX)
 //      LINE_FULL = -3,
+//      //: Source account is not authorized to close swap
 //      NOT_AUTHORIZED = -4
 //  };
 
@@ -6595,7 +6598,7 @@ public enum class CloseSwapResultCode(val value: kotlin.Int): XdrEncodable {
 //  {
 //      //: Swap closed
 //      CLOSED = 0,
-//      //: Swap cancelled updated
+//      //: Swap cancelled
 //      CANCELLED = 1
 //  };
 
@@ -6616,6 +6619,7 @@ public enum class CloseSwapEffect(val value: kotlin.Int): XdrEncodable {
 
 //  //: CloseSwapSuccess is used to pass saved ledger hash and license hash
 //  struct CloseSwapSuccess {
+//      //: Effect of CloseSwap application
 //      CloseSwapEffect effect;
 //  
 //      EmptyExt ext;
@@ -13248,7 +13252,9 @@ open class ManageLimitsOp(
 //      //: Limits cannot be created for account ID and account role simultaneously
 //      CANNOT_CREATE_FOR_ACC_ID_AND_ACC_TYPE = -4, // FIXME ACC_ROLE ?
 //      //: Limits entry is invalid (e.g. weeklyOut is less than dailyOut)
-//      INVALID_LIMITS = -5
+//      INVALID_LIMITS = -5,
+//      //: Asset with provided asset code does not exist
+//      ASSET_NOT_FOUND = -6
 //  };
 
 //  ===========================================================================
@@ -13259,6 +13265,7 @@ public enum class ManageLimitsResultCode(val value: kotlin.Int): XdrEncodable {
   ROLE_NOT_FOUND(-3),
   CANNOT_CREATE_FOR_ACC_ID_AND_ACC_TYPE(-4),
   INVALID_LIMITS(-5),
+  ASSET_NOT_FOUND(-6),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -15685,11 +15692,12 @@ abstract class ManageVoteResult(@XdrDiscriminantField val discriminant: org.toke
 
 //  struct OpenSwapOp
 //  {
+//      //: Source balance of the swap
 //      BalanceID sourceBalance;
-//  
+//      //: Amount to send in swap
 //      uint64 amount;
 //  
-//     //: `destination` defines the type of instance that receives the payment based on given PaymentDestinationType
+//     //: `destination` defines the type of instance that receives amount based on given PaymentDestinationType
 //     union switch (PaymentDestinationType type) {
 //         case ACCOUNT:
 //             AccountID accountID;
@@ -15697,12 +15705,14 @@ abstract class ManageVoteResult(@XdrDiscriminantField val discriminant: org.toke
 //             BalanceID balanceID;
 //     } destination;
 //  
+//      //: Fee data for the swap
 //      PaymentFeeData feeData;
-//  
+//      //: Arbitrary stringified json object provided by swap source
 //      longstring details;
 //  
+//      //: Hash of the secret
 //      Hash secretHash;
-//  
+//      //: Time till which swapped funds can be received by destination if valid secret is provided
 //      int64 lockTime;
 //  
 //      //: reserved for future extension
@@ -15768,6 +15778,7 @@ open class OpenSwapOp(
 //      //: OpenSwap was successful 
 //      SUCCESS = 0,
 //  
+//      //: Source and destination balances are the same
 //      MALFORMED = -1,
 //      //: Not enough funds in the source account
 //      UNDERFUNDED = -2,
@@ -15787,8 +15798,11 @@ open class OpenSwapOp(
 //      //: There is no account found with an ID provided in `destination.accountID`
 //      //: Amount precision and asset precision are mismatched
 //      INCORRECT_AMOUNT_PRECISION = -9,
+//      //: Not allowed to create swap with invalid json details
 //      INVALID_DETAILS = -10,
+//      //: Lock time is in the past
 //      INVALID_LOCK_TIME = -11,
+//      //: Zero amount is not allowed
 //      INVALID_AMOUNT = -12
 //  
 //  };
@@ -16637,14 +16651,21 @@ open class RemoveAssetOp(
 //      //: Operation is successfully applied
 //      SUCCESS = 0,
 //      //: Asset code is invalid
-//      INVALID_ASSET_CODE = -1,    
+//      INVALID_ASSET_CODE = -1,
 //      //: Asset can't be deleted as there exist asset pairs with it
 //      HAS_PAIR = -2,
 //      //: Asset can't be deleted as it has active offers
 //      HAS_ACTIVE_OFFERS = -3,
 //      //: Asset can't be deleted as it has active sales
-//      HAS_ACTIVE_SALES = -4
-//  
+//      HAS_ACTIVE_SALES = -4,
+//      //: Asset can't be deleted as it has active atomic swaps
+//      HAS_ACTIVE_ATOMIC_SWAPS = -5,
+//      //: Asset can't be deleted as it has active swaps
+//      HAS_ACTIVE_SWAPS = -6,
+//      //: Asset can't be deleted as it is stats quote asset
+//      CANNOT_REMOVE_STATS_QUOTE_ASSET = -7,
+//      //: Cannot delete asset, as some balances in target asset have non-empty locked amount
+//      HAS_PENDING_MOVEMENTS = -8
 //  };
 
 //  ===========================================================================
@@ -16654,6 +16675,10 @@ public enum class RemoveAssetResultCode(val value: kotlin.Int): XdrEncodable {
   HAS_PAIR(-2),
   HAS_ACTIVE_OFFERS(-3),
   HAS_ACTIVE_SALES(-4),
+  HAS_ACTIVE_ATOMIC_SWAPS(-5),
+  HAS_ACTIVE_SWAPS(-6),
+  CANNOT_REMOVE_STATS_QUOTE_ASSET(-7),
+  HAS_PENDING_MOVEMENTS(-8),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -22758,7 +22783,8 @@ open class TransactionResult(
 //      FIX_DEPOSIT_STATS = 18,
 //      FIX_CREATE_KYC_RECOVERY_PERMISSIONS = 19,
 //      CLEAR_DATABASE_CACHE = 20,
-//      FIX_ISSUANCE_REVIEWER = 21
+//      FIX_ISSUANCE_REVIEWER = 21,
+//      MARK_ASSET_AS_DELETED = 22
 //  };
 
 //  ===========================================================================
@@ -22785,6 +22811,7 @@ public enum class LedgerVersion(val value: kotlin.Int): XdrEncodable {
   FIX_CREATE_KYC_RECOVERY_PERMISSIONS(19),
   CLEAR_DATABASE_CACHE(20),
   FIX_ISSUANCE_REVIEWER(21),
+  MARK_ASSET_AS_DELETED(22),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
