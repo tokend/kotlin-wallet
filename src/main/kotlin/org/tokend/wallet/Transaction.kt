@@ -97,7 +97,7 @@ class Transaction {
      * Adds signature from given signer to transaction signatures.
      */
     fun addSignature(signer: Account) {
-        addSignature(signer.signDecorated(getHash()))
+        addSignature(getSignature(signer, networkParams.networkId, getXdrTransaction()))
     }
 
     /**
@@ -111,7 +111,7 @@ class Transaction {
      * @return SHA-256 hash of the transaction.
      */
     fun getHash(): ByteArray {
-        return Hashing.sha256(getSignatureBase())
+        return Companion.getHash(getSignatureBase(networkParams.networkId, getXdrTransaction()))
     }
 
     /**
@@ -119,20 +119,6 @@ class Transaction {
      */
     fun getEnvelope(): TransactionEnvelope {
         return TransactionEnvelope(getXdrTransaction(), mSignatures.toTypedArray())
-    }
-
-    private fun getSignatureBase(): ByteArray {
-        val outputStream = ByteArrayOutputStream()
-
-        outputStream.write(networkParams.networkId)
-        outputStream.write(ByteBuffer.allocate(4).putInt(EnvelopeType.TX.value).array())
-
-        val txOutputStream = ByteArrayOutputStream()
-        val txXdrOutputStream = XdrDataOutputStream(txOutputStream)
-        getXdrTransaction().toXdr(txXdrOutputStream)
-        outputStream.write(txOutputStream.toByteArray())
-
-        return outputStream.toByteArray()
     }
 
     private fun getXdrTransaction(): Transaction {
@@ -148,5 +134,46 @@ class Transaction {
 
     companion object {
         const val DEFAULT_LIFETIME_SECONDS = 7 * 24 * 3600 - 3600L
+
+        /**
+         * @return [DecoratedSignature] for given transaction by [signer]
+         */
+        @JvmStatic
+        fun getSignature(signer: Account,
+                         networkId: ByteArray,
+                         xdrTransaction: Transaction): DecoratedSignature {
+            return signer.signDecorated(getHash(getSignatureBase(networkId, xdrTransaction)))
+        }
+
+        /**
+         * @return SHA-256 hash of given transaction signature base
+         *
+         * @see getSignatureBase
+         */
+        @JvmStatic
+        fun getHash(signatureBase: ByteArray): ByteArray {
+            return Hashing.sha256(signatureBase)
+        }
+
+        /**
+         * @return base content for transaction signature
+         *
+         * @see NetworkParams.networkId
+         */
+        @JvmStatic
+        fun getSignatureBase(networkId: ByteArray,
+                             xdrTransaction: Transaction): ByteArray {
+            val outputStream = ByteArrayOutputStream()
+
+            outputStream.write(networkId)
+            outputStream.write(ByteBuffer.allocate(4).putInt(EnvelopeType.TX.value).array())
+
+            val txOutputStream = ByteArrayOutputStream()
+            val txXdrOutputStream = XdrDataOutputStream(txOutputStream)
+            xdrTransaction.toXdr(txXdrOutputStream)
+            outputStream.write(txOutputStream.toByteArray())
+
+            return outputStream.toByteArray()
+        }
     }
 }
