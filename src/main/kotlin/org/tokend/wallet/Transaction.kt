@@ -68,7 +68,7 @@ class Transaction {
      * @param memo optional transaction payload
      * @param timeBounds time range during which the
      * transaction will be valid. Default transaction lifetime is [DEFAULT_LIFETIME_SECONDS]
-     * @param salt optional unique value, random by default
+     * @param salt optional unique value, random by default, sign is ignored
      *
      *  @throws IllegalStateException if no operations were added.
      */
@@ -91,6 +91,23 @@ class Transaction {
         this.timeBounds = timeBounds
                 ?: TimeBounds(0, networkParams.nowTimestamp + DEFAULT_LIFETIME_SECONDS)
         this.salt = (salt ?: Random().nextLong()) and 0xffffffffL
+    }
+
+    /**
+     * Creates a copy of given XDR-wrapped transaction.
+     *
+     * @param networkParams network specification
+     * @param transactionEnvelope XDR-wrapped transaction with signatures
+     */
+    constructor(networkParams: NetworkParams,
+                transactionEnvelope: TransactionEnvelope) {
+        this.networkParams = networkParams
+        this.sourceAccountId = transactionEnvelope.tx.sourceAccount
+        this.operations = transactionEnvelope.tx.operations.toList()
+        this.memo = transactionEnvelope.tx.memo
+        this.timeBounds = transactionEnvelope.tx.timeBounds
+        this.salt = transactionEnvelope.tx.salt
+        this.mSignatures.addAll(transactionEnvelope.signatures)
     }
 
     /**
