@@ -8,7 +8,6 @@ import org.tokend.wallet.PublicKeyFactory
 import org.tokend.wallet.Transaction
 import org.tokend.wallet.utils.Base64
 import org.tokend.wallet.xdr.*
-import org.tokend.wallet.xdr.op_extensions.SimplePaymentOp
 
 class TransactionTest {
     val SOURCE_ACCOUNT_ID = "GDVJSBSBSERR3YP3LKLHTODWEFGCSLDWDIODER3CKLZXUMVPZOPT4MHY"
@@ -18,7 +17,7 @@ class TransactionTest {
     fun encoding() {
         val transaction = getSampleTransaction()
 
-        val expectedEnvelope = "AAAAAOqZBkGRIx3h+1qWebh2IUwpLHYaHDJHYlLzejKvy58+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAqAAAAAQAAAAtTYW1wbGUgdGV4dAAAAAABAAAAAAAAABcAAAAAaxoCTBacwprHg8fJzvPOfgE4trFmHuNq9/vyypIBHkcAAAAAAAAAAMMwGJJljz05EmGTr5w+tAOi1aQiMr1KIR6FduvL8njVAAAAAAAPQkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEVGVzdAAAAAAAAAAAAAAAAAAAAAHjQTipAAAAQF34oMJ+LK2Zu5FQIxbCsETYs5ELbzp4QsjS/5iu5rwxSiNtKBOGPwN43O57bMOEetTYdPWC+J2BKASM7eXVKQ0="
+        val expectedEnvelope = "AAAAAOqZBkGRIx3h+1qWebh2IUwpLHYaHDJHYlLzejKvy58+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAqAAAAAQAAAAtTYW1wbGUgdGV4dAAAAAABAAAAAAAAAAEAAAAAwzAYkmWPPTkSYZOvnD60A6LVpCIyvUohHoV268vyeNUAAAAAAAAAAwAAAAAAAAABAAAAAAAAAAIAAAAAAAAAAwAAAAEAAAAAwzAYkmWPPTkSYZOvnD60A6LVpCIyvUohHoV268vyeNUAAAADAAAAAAAAAAMAAAAAAAAAAgAAAAAAAAABAAAA/wAAAAEAAAACe30AAAAAAAAAAAAAAAAAAAAAAAHjQTipAAAAQFluUSfuxnOljkY7TfeDqArpGTnVEUPUaItGCi96SqYWQ7gKWPslikbVHVnNP/0L8CVS1SNRE9Ws/+TXeFruyAg="
         val envelope = transaction.getEnvelope().toBase64()
         Assert.assertEquals(expectedEnvelope, envelope)
     }
@@ -39,34 +38,35 @@ class TransactionTest {
     fun hash() {
         val transaction = getSampleTransaction()
 
-        val expectedHash = "TcNNk7QSlWHviChZnnuwUp5tE6BxXL2BhFpWD6/4k3M="
+        val expectedHash = "KsYX2kY78KNbtoWjf/p9Tzlg3flR8b1+2C55+YFZ3Ps="
         val hash = Base64.encode(transaction.getHash()).toString(Charsets.UTF_8)
         Assert.assertEquals(expectedHash, hash)
     }
 
     private fun getSampleTransaction(): Transaction {
-        val sourceBalance = "BBVRUASMC2OMFGWHQPD4TTXTZZ7ACOFWWFTB5Y3K6757FSUSAEPEPXAS"
         val sourceAccountSeed = "SBEBZQIXHAZ3BZXOJEN6R57KMEDISGBIIP6LAVRCNDM4WZIQPHNYZICC".toCharArray()
         val destAccount = "GDBTAGESMWHT2OISMGJ27HB6WQB2FVNEEIZL2SRBD2CXN26L6J4NKDP2"
         val account = Account.fromSecretSeed(sourceAccountSeed)
 
-        val paymentOp = SimplePaymentOp(
-                sourceBalanceId = sourceBalance,
-                destAccountId = destAccount,
-                amount = 1 * 1000000L,
-                feeData = PaymentFeeData(
-                        Fee(0L, 0L, Fee.FeeExt.EmptyVersion()),
-                        Fee(0L, 0L, Fee.FeeExt.EmptyVersion()),
-                        false,
-                        PaymentFeeData.PaymentFeeDataExt.EmptyVersion()
-                ),
-                subject = "Test"
+        val createAccountOp = CreateAccountOp(
+                destination = PublicKeyFactory.fromAccountId(destAccount),
+                referrer = null,
+                roleIDs = arrayOf(1,2,3),
+                signersData = arrayOf(SignerData(
+                        publicKey = PublicKeyFactory.fromAccountId(destAccount),
+                        roleIDs = arrayOf(3,2,1),
+                        weight = 255,
+                        identity = 1,
+                        details = "{}",
+                        ext = EmptyExt.EmptyVersion()
+                )),
+                ext = CreateAccountOp.CreateAccountOpExt.EmptyVersion()
         )
 
         val transaction = Transaction(
                 NETWORK,
                 PublicKeyFactory.fromAccountId(SOURCE_ACCOUNT_ID),
-                listOf(Operation(null, Operation.OperationBody.Payment(paymentOp))),
+                listOf(Operation(null, Operation.OperationBody.CreateAccount(createAccountOp))),
                 Memo.MemoText("Sample text"),
                 TimeBounds(0L, 42L),
                 0L

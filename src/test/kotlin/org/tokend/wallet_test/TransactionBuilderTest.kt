@@ -12,22 +12,34 @@ class TransactionBuilderTest {
     val SOURCE_ACCOUNT_ID = "GDVJSBSBSERR3YP3LKLHTODWEFGCSLDWDIODER3CKLZXUMVPZOPT4MHY"
     val SOURCE_ACCOUNT_PUBKEY = PublicKeyFactory.fromAccountId(SOURCE_ACCOUNT_ID)
     val NETWORK = NetworkParams("Example Test Network")
-    val SIMPLE_OP = ManageBalanceOp(
-            ManageBalanceAction.CREATE,
-            SOURCE_ACCOUNT_PUBKEY,
-            "OLG",
-            ManageBalanceOp.ManageBalanceOpExt.EmptyVersion()
+    val CREATE_ACCOUNT_OP = CreateAccountOp(
+            destination = SOURCE_ACCOUNT_PUBKEY,
+            referrer = null,
+            roleIDs = arrayOf(1,2,3),
+            signersData = arrayOf(SignerData(
+                    publicKey = SOURCE_ACCOUNT_PUBKEY,
+                    roleIDs = arrayOf(3,2,1),
+                    weight = 255,
+                    identity = 1,
+                    details = "{}",
+                    ext = EmptyExt.EmptyVersion()
+            )),
+            ext = CreateAccountOp.CreateAccountOpExt.EmptyVersion()
     )
-    val SIMPLE_OP_2 = ManageBalanceOp(
-            ManageBalanceAction.CREATE,
-            SOURCE_ACCOUNT_PUBKEY,
-            "OLE",
-            ManageBalanceOp.ManageBalanceOpExt.EmptyVersion()
+
+    val CREATE_ASSET_OP = CreateAssetOp(
+            code = "OLE",
+            securityType = 0,
+            state = 0,
+            maxIssuanceAmount = 1000000,
+            trailingDigitsCount = 6,
+            details = "{}",
+            ext = CreateAssetOp.CreateAssetOpExt.EmptyVersion()
     )
 
     @Test
     fun singleOperation() {
-        val operationBody = Operation.OperationBody.ManageBalance(SIMPLE_OP)
+        val operationBody = Operation.OperationBody.CreateAccount(CREATE_ACCOUNT_OP)
         val transaction = TransactionBuilder(NETWORK, SOURCE_ACCOUNT_PUBKEY)
                 .addOperation(operationBody)
                 .build()
@@ -41,8 +53,8 @@ class TransactionBuilderTest {
     @Test
     fun multipleOperations() {
         val operationBodies = listOf(
-                Operation.OperationBody.ManageBalance(SIMPLE_OP),
-                Operation.OperationBody.ManageBalance(SIMPLE_OP_2)
+                Operation.OperationBody.CreateAccount(CREATE_ACCOUNT_OP),
+                Operation.OperationBody.CreateAsset(CREATE_ASSET_OP)
         )
 
         val transaction = TransactionBuilder(NETWORK, SOURCE_ACCOUNT_PUBKEY)
@@ -61,7 +73,7 @@ class TransactionBuilderTest {
     fun setMemo() {
         val memoText = "TokenD is awesome"
         val transaction = TransactionBuilder(NETWORK, SOURCE_ACCOUNT_PUBKEY)
-                .addOperation(Operation.OperationBody.ManageBalance(SIMPLE_OP))
+                .addOperation(Operation.OperationBody.CreateAccount(CREATE_ACCOUNT_OP))
                 .setMemo(Memo.MemoText(memoText))
                 .build()
 
@@ -73,7 +85,7 @@ class TransactionBuilderTest {
     fun setTimeBounds() {
         val timeBounds = TimeBounds(1, 5)
         val transaction = TransactionBuilder(NETWORK, SOURCE_ACCOUNT_PUBKEY)
-                .addOperation(Operation.OperationBody.ManageBalance(SIMPLE_OP))
+                .addOperation(Operation.OperationBody.CreateAccount(CREATE_ACCOUNT_OP))
                 .setTimeBounds(timeBounds)
                 .build()
 
@@ -85,7 +97,7 @@ class TransactionBuilderTest {
     fun setSalt() {
         val salt = 42L
         val transaction = TransactionBuilder(NETWORK, SOURCE_ACCOUNT_PUBKEY)
-                .addOperation(Operation.OperationBody.ManageBalance(SIMPLE_OP))
+                .addOperation(Operation.OperationBody.CreateAccount(CREATE_ACCOUNT_OP))
                 .setSalt(salt)
                 .build()
 
@@ -98,7 +110,7 @@ class TransactionBuilderTest {
         val signatureHint = signer.signDecorated(byteArrayOf()).hint
 
         val transaction = TransactionBuilder(NETWORK, SOURCE_ACCOUNT_PUBKEY)
-                .addOperation(Operation.OperationBody.ManageBalance(SIMPLE_OP))
+                .addOperation(Operation.OperationBody.CreateAccount(CREATE_ACCOUNT_OP))
                 .addSigner(signer)
                 .build()
 
