@@ -4,7 +4,6 @@ import org.junit.Assert
 import org.junit.FixMethodOrder
 import org.junit.Test
 import org.junit.runners.MethodSorters
-import org.tokend.wallet.Base32Check
 import org.tokend.wallet.PublicKeyFactory
 import org.tokend.wallet.xdr.*
 import org.tokend.wallet.xdr.utils.*
@@ -58,7 +57,7 @@ class DecodingTest {
                 accountID = PublicKeyFactory.fromAccountId(
                         "GDLWLDE33BN7SG6V4P63V2HFA56JYRMODESBLR2JJ5F3ITNQDUVKS2JE"
                 ),
-                roleIDs = arrayOf(1,2,3),
+                roleIDs = arrayOf(1, 2, 3),
                 referrer = null,
                 sequentialID = 404,
                 ext = AccountEntry.AccountEntryExt.EmptyVersion()
@@ -140,26 +139,23 @@ class DecodingTest {
 
     @Test
     fun dTxResult() {
-//        val createdBalanceId = "BDGDRIG2WFR7HJESFI35WFUKS5XXEMIZIU44MBXVD3GXNRDXVLFDBGJW"
-//        val result = "AAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAJAAAAAAAAAADMOKDasWPzpJIqN9sWipdvcjEZRTnGBvUezXbEd6rKMAAAAAAAAAAA"
-//        val decoded = TransactionResult.fromBase64(result)
-//        Assert.assertEquals(
-//                createdBalanceId,
-//                decoded.result
-//                        .let { it as TransactionResult.TransactionResultResult.Txsuccess }
-//                        .results
-//                        .first()
-//                        .let { it as OperationResult.Opinner }
-//                        .tr
-//                        .let { it as OperationResult.OperationResultTr.ManageBalance }
-//                        .manageBalanceResult
-//                        .let { it as ManageBalanceResult.Success }
-//                        .success
-//                        .balanceID
-//                        .let { it as PublicKey.KeyTypeEd25519 }
-//                        .ed25519
-//                        .wrapped
-//                        .let(Base32Check::encodeBalanceId)
-//        )
+        val createdRuleId = 19L
+        val result = "AAAAAAAAAAEAAAABAAAAAAAAAAAAAAAeAAAAAAAAABMAAAAAAAAABwAAAANPTEUAAAAAAAAAAAAAAAAAAAAAFAAAAAAAAAAAAAAAAAAAAAJ7fQAAAAAAAAAAAAA="
+        val decoded = TransactionMeta.fromBase64(result)
+        Assert.assertEquals(
+                createdRuleId,
+                decoded
+                        .let { it as TransactionMeta.EmptyVersion }
+                        .operations
+                        .first()
+                        .changes
+                        .first()
+                        .let { it as LedgerEntryChange.Created }
+                        .created
+                        .data
+                        .let { it as LedgerEntry.LedgerEntryData.Rule }
+                        .rule
+                        .id
+        )
     }
 }
