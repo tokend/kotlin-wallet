@@ -136,26 +136,4 @@ class DecodingTest {
             })
         }
     }
-
-    @Test
-    fun dTxResult() {
-        val createdRuleId = 19L
-        val result = "AAAAAAAAAAEAAAABAAAAAAAAAAAAAAAeAAAAAAAAABMAAAAAAAAABwAAAANPTEUAAAAAAAAAAAAAAAAAAAAAFAAAAAAAAAAAAAAAAAAAAAJ7fQAAAAAAAAAAAAA="
-        val decoded = TransactionMeta.fromBase64(result)
-        Assert.assertEquals(
-                createdRuleId,
-                decoded
-                        .let { it as TransactionMeta.EmptyVersion }
-                        .operations
-                        .first()
-                        .changes
-                        .first()
-                        .let { it as LedgerEntryChange.Created }
-                        .created
-                        .data
-                        .let { it as LedgerEntry.LedgerEntryData.Rule }
-                        .rule
-                        .id
-        )
-    }
 }

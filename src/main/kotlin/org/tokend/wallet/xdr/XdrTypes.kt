@@ -2613,6 +2613,8 @@ abstract class CreateAssetResult(@XdrDiscriminantField val discriminant: org.tok
 //      //: Defines an asset code of the balance to which `action` will be applied
 //      AssetCode asset;
 //  
+//      bool additional;
+//  
 //      union switch (LedgerVersion v)
 //      {
 //      case EMPTY_VERSION:
@@ -2625,12 +2627,14 @@ abstract class CreateAssetResult(@XdrDiscriminantField val discriminant: org.tok
 open class CreateBalanceOp(
     var destination: org.tokend.wallet.xdr.AccountID,
     var asset: org.tokend.wallet.xdr.AssetCode,
+    var additional: kotlin.Boolean,
     var ext: CreateBalanceOpExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
     destination.toXdr(stream)
     asset.toXdr(stream)
+    additional.toXdr(stream)
     ext.toXdr(stream)
   }
 
@@ -2661,7 +2665,8 @@ open class CreateBalanceOp(
 //      //: Cannot find an asset with a provided asset code
 //      ASSET_NOT_FOUND = -2,
 //      //: Cannot find an account provided by the `destination` AccountID
-//      DESTINATION_NOT_FOUND = -3
+//      DESTINATION_NOT_FOUND = -3,
+//      ALREADY_EXISTS = -4
 //  };
 
 //  ===========================================================================
@@ -2670,6 +2675,7 @@ public enum class CreateBalanceResultCode(val value: kotlin.Int): XdrEncodable {
   INVALID_ASSET(-1),
   ASSET_NOT_FOUND(-2),
   DESTINATION_NOT_FOUND(-3),
+  ALREADY_EXISTS(-4),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -6476,14 +6482,16 @@ open class CustomRuleResource(
 
 //  enum RuleResourceType
 //  {
-//      LEDGER_ENTRY = 0,
-//      CUSTOM = 1
+//      ANY = 1,
+//      LEDGER_ENTRY = 2,
+//      CUSTOM = 3
 //  };
 
 //  ===========================================================================
 public enum class RuleResourceType(val value: kotlin.Int): XdrEncodable {
-  LEDGER_ENTRY(0),
-  CUSTOM(1),
+  ANY(1),
+  LEDGER_ENTRY(2),
+  CUSTOM(3),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -6497,10 +6505,14 @@ public enum class RuleResourceType(val value: kotlin.Int): XdrEncodable {
 
 //  union RuleResource switch(RuleResourceType resourceType)
 //  {
+//      case ANY:
+//          void;
 //      case LEDGER_ENTRY:
 //          InternalRuleResource internalRuleResource;
 //      case CUSTOM:
 //          CustomRuleResource customRuleResource;
+//      default:
+//          EmptyExt ext;
 //  };
 
 //  ===========================================================================
@@ -6510,6 +6522,8 @@ abstract class RuleResource(@XdrDiscriminantField val discriminant: org.tokend.w
   }
 
   companion object Decoder: XdrDecodable<RuleResource> by ReflectiveXdrDecoder.wrapType()
+
+  open class Any: RuleResource(org.tokend.wallet.xdr.RuleResourceType.ANY)
 
   open class LedgerEntry(var internalRuleResource: org.tokend.wallet.xdr.InternalRuleResource): RuleResource(org.tokend.wallet.xdr.RuleResourceType.LEDGER_ENTRY) {
     override fun toXdr(stream: XdrDataOutputStream) {
@@ -6555,8 +6569,6 @@ abstract class RuleResource(@XdrDiscriminantField val discriminant: org.tokend.w
 //  
 //          EmptyExt ext;
 //      } asset;
-//  case ANY:
-//      void;
 //  case ROLE:
 //      //: Describes properties that are equal to managed signer role entry fields
 //      struct
@@ -6620,8 +6632,6 @@ abstract class InternalRuleResource(@XdrDiscriminantField val discriminant: org.
 
     companion object Decoder: XdrDecodable<Asset> by ReflectiveXdrDecoder.wrapType()
   }
-
-  open class Any: InternalRuleResource(org.tokend.wallet.xdr.LedgerEntryType.ANY)
 
   open class Role(var role: InternalRuleResourceRole): InternalRuleResource(org.tokend.wallet.xdr.LedgerEntryType.ROLE) {
     override fun toXdr(stream: XdrDataOutputStream) {
@@ -6801,6 +6811,8 @@ public enum class RuleActionType(val value: kotlin.Int): XdrEncodable {
 
 //  union RuleAction switch (RuleActionType type) 
 //  {
+//  case ANY:
+//      void;
 //  case CREATE:
 //      struct {
 //          bool forOther;
@@ -6878,6 +6890,8 @@ abstract class RuleAction(@XdrDiscriminantField val discriminant: org.tokend.wal
   }
 
   companion object Decoder: XdrDecodable<RuleAction> by ReflectiveXdrDecoder.wrapType()
+
+  open class Any: RuleAction(org.tokend.wallet.xdr.RuleActionType.ANY)
 
   open class Create(var create: RuleActionCreate): RuleAction(org.tokend.wallet.xdr.RuleActionType.CREATE) {
     override fun toXdr(stream: XdrDataOutputStream) {
@@ -8492,36 +8506,32 @@ abstract class PublicKey(@XdrDiscriminantField val discriminant: org.tokend.wall
 
 //  enum LedgerEntryType
 //  {
-//      TRANSACTION = 0, // is used for account rule resource
-//      ANY = 1, // is used for rules
-//      ACCOUNT = 2,
-//      SIGNER = 3,
-//      BALANCE = 5,
-//      DATA = 6,
-//      ASSET = 7,
-//      REFERENCE_ENTRY = 8,
-//      REVIEWABLE_REQUEST = 15,
-//  	ACCOUNT_KYC = 18,
-//      KEY_VALUE = 20,
-//      RULE = 30,
-//      ROLE = 31
+//      ACCOUNT = 1,
+//      SIGNER = 2,
+//      BALANCE = 3,
+//      DATA = 4,
+//      ASSET = 5,
+//      REFERENCE_ENTRY = 6,
+//      REVIEWABLE_REQUEST = 7,
+//  	ACCOUNT_KYC = 8,
+//      KEY_VALUE = 9,
+//      RULE = 10,
+//      ROLE = 11
 //  };
 
 //  ===========================================================================
 public enum class LedgerEntryType(val value: kotlin.Int): XdrEncodable {
-  TRANSACTION(0),
-  ANY(1),
-  ACCOUNT(2),
-  SIGNER(3),
-  BALANCE(5),
-  DATA(6),
-  ASSET(7),
-  REFERENCE_ENTRY(8),
-  REVIEWABLE_REQUEST(15),
-  ACCOUNT_KYC(18),
-  KEY_VALUE(20),
-  RULE(30),
-  ROLE(31),
+  ACCOUNT(1),
+  SIGNER(2),
+  BALANCE(3),
+  DATA(4),
+  ASSET(5),
+  REFERENCE_ENTRY(6),
+  REVIEWABLE_REQUEST(7),
+  ACCOUNT_KYC(8),
+  KEY_VALUE(9),
+  RULE(10),
+  ROLE(11),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -8740,65 +8750,65 @@ open class Fee(
 //  enum OperationType
 //  {
 //      CREATE_ACCOUNT = 1,
-//      ISSUANCE = 3,
-//      DESTRUCTION = 7,
+//      PUT_KEY_VALUE = 2,
+//      REMOVE_KEY_VALUE = 3,
+//      CREATE_ASSET = 4,
+//      UPDATE_ASSET = 5,
+//      PAYMENT = 6,
+//      ISSUANCE = 7,
+//      DESTRUCTION = 8,
 //      CREATE_BALANCE = 9,
-//      CREATE_ASSET = 11,
-//      UPDATE_ASSET = 12,
-//      CREATE_DATA = 14,
-//      UPDATE_DATA = 15,
-//      REMOVE_DATA = 16,
-//      REVIEW_REQUEST = 18,
-//  	CHANGE_ACCOUNT_ROLES = 22,
-//      PAYMENT = 23,
-//      PUT_KEY_VALUE = 27,
-//      REMOVE_KEY_VALUE = 28,
-//      CREATE_SIGNER = 30,
-//      UPDATE_SIGNER = 31,
-//      REMOVE_SIGNER = 32,
-//      CREATE_ROLE = 39,
-//      UPDATE_ROLE = 40,
-//      REMOVE_ROLE = 41,
-//      CREATE_RULE = 42,
-//      UPDATE_RULE = 43,
-//      REMOVE_RULE = 44,
-//      CREATE_REVIEWABLE_REQUEST = 45,
-//      UPDATE_REVIEWABLE_REQUEST = 46,
-//      REMOVE_REVIEWABLE_REQUEST = 47,
-//      INITIATE_KYC_RECOVERY = 48,
-//      KYC_RECOVERY = 49
+//      CREATE_DATA = 10,
+//      UPDATE_DATA = 11,
+//      REMOVE_DATA = 12,
+//      REVIEW_REQUEST = 13,
+//  	CHANGE_ACCOUNT_ROLES = 14,
+//      CREATE_SIGNER = 15,
+//      UPDATE_SIGNER = 16,
+//      REMOVE_SIGNER = 17,
+//      CREATE_ROLE = 18,
+//      UPDATE_ROLE = 19,
+//      REMOVE_ROLE = 20,
+//      CREATE_RULE = 21,
+//      UPDATE_RULE = 22,
+//      REMOVE_RULE = 23,
+//      CREATE_REVIEWABLE_REQUEST = 24,
+//      UPDATE_REVIEWABLE_REQUEST = 25,
+//      REMOVE_REVIEWABLE_REQUEST = 26,
+//      INITIATE_KYC_RECOVERY = 27,
+//      KYC_RECOVERY = 28
 //  };
 
 //  ===========================================================================
 public enum class OperationType(val value: kotlin.Int): XdrEncodable {
   CREATE_ACCOUNT(1),
-  ISSUANCE(3),
-  DESTRUCTION(7),
+  PUT_KEY_VALUE(2),
+  REMOVE_KEY_VALUE(3),
+  CREATE_ASSET(4),
+  UPDATE_ASSET(5),
+  PAYMENT(6),
+  ISSUANCE(7),
+  DESTRUCTION(8),
   CREATE_BALANCE(9),
-  CREATE_ASSET(11),
-  UPDATE_ASSET(12),
-  CREATE_DATA(14),
-  UPDATE_DATA(15),
-  REMOVE_DATA(16),
-  REVIEW_REQUEST(18),
-  CHANGE_ACCOUNT_ROLES(22),
-  PAYMENT(23),
-  PUT_KEY_VALUE(27),
-  REMOVE_KEY_VALUE(28),
-  CREATE_SIGNER(30),
-  UPDATE_SIGNER(31),
-  REMOVE_SIGNER(32),
-  CREATE_ROLE(39),
-  UPDATE_ROLE(40),
-  REMOVE_ROLE(41),
-  CREATE_RULE(42),
-  UPDATE_RULE(43),
-  REMOVE_RULE(44),
-  CREATE_REVIEWABLE_REQUEST(45),
-  UPDATE_REVIEWABLE_REQUEST(46),
-  REMOVE_REVIEWABLE_REQUEST(47),
-  INITIATE_KYC_RECOVERY(48),
-  KYC_RECOVERY(49),
+  CREATE_DATA(10),
+  UPDATE_DATA(11),
+  REMOVE_DATA(12),
+  REVIEW_REQUEST(13),
+  CHANGE_ACCOUNT_ROLES(14),
+  CREATE_SIGNER(15),
+  UPDATE_SIGNER(16),
+  REMOVE_SIGNER(17),
+  CREATE_ROLE(18),
+  UPDATE_ROLE(19),
+  REMOVE_ROLE(20),
+  CREATE_RULE(21),
+  UPDATE_RULE(22),
+  REMOVE_RULE(23),
+  CREATE_REVIEWABLE_REQUEST(24),
+  UPDATE_REVIEWABLE_REQUEST(25),
+  REMOVE_REVIEWABLE_REQUEST(26),
+  INITIATE_KYC_RECOVERY(27),
+  KYC_RECOVERY(28),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
