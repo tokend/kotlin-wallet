@@ -10,7 +10,7 @@ interface XdrEncodable {
     fun toXdr(stream: XdrDataOutputStream)
 
     /**
-     * Returns base64 xdr representation of this object
+     * @return base64 xdr representation of this object
      */
     fun toBase64(): String {
         val outputStream = ByteArrayOutputStream()

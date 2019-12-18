@@ -1,5 +1,7 @@
 package org.tokend.wallet.xdr.utils
 
+import org.tokend.wallet.utils.Base64
+import java.io.ByteArrayInputStream
 import java.io.DataInputStream
 import java.io.IOException
 import java.io.InputStream
@@ -136,5 +138,15 @@ class XdrDataInputStream
             }
             skip(pad.toLong())
         }
+    }
+
+    companion object {
+        /**
+         * @return [XdrDataInputStream] that wraps [ByteArrayInputStream] of given
+         * encoded bytes
+         */
+        @JvmStatic
+        fun fromBase64(xdrBase64: String) =
+                XdrDataInputStream(ByteArrayInputStream(Base64.decode(xdrBase64.toByteArray())))
     }
 }
