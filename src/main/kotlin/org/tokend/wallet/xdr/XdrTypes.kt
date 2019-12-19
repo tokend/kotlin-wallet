@@ -392,40 +392,31 @@ open class KeyValueEntry(
 //  {
 //  	AccountID sender;
 //      string64 reference;
+//      OperationType opType;
+//      uint32 securityType;
 //  
 //  	// reserved for future use
-//      union switch (LedgerVersion v)
-//      {
-//      case EMPTY_VERSION:
-//          void;
-//      }
-//      ext;
+//  	EmptyExt ext;
 //  };
 
 //  ===========================================================================
 open class ReferenceEntry(
     var sender: org.tokend.wallet.xdr.AccountID,
     var reference: org.tokend.wallet.xdr.String64,
-    var ext: ReferenceEntryExt
+    var opType: org.tokend.wallet.xdr.OperationType,
+    var securityType: org.tokend.wallet.xdr.Uint32,
+    var ext: org.tokend.wallet.xdr.EmptyExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
     sender.toXdr(stream)
     reference.toXdr(stream)
+    opType.toXdr(stream)
+    securityType.toXdr(stream)
     ext.toXdr(stream)
   }
 
   companion object Decoder: XdrDecodable<ReferenceEntry> by ReflectiveXdrDecoder.wrapType()
-
-  abstract class ReferenceEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
-    override fun toXdr(stream: XdrDataOutputStream) {
-        discriminant.toXdr(stream)
-    }
-
-    companion object Decoder: XdrDecodable<ReferenceEntryExt> by ReflectiveXdrDecoder.wrapType()
-
-    open class EmptyVersion: ReferenceEntryExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
-  }
 }
 
 // === xdr source ============================================================
@@ -968,7 +959,7 @@ open class SignerEntry(
 //          AssetEntry asset;
 //      case DATA:
 //          DataEntry data;
-//      case REFERENCE_ENTRY:
+//      case REFERENCE:
 //          ReferenceEntry reference;
 //      case REVIEWABLE_REQUEST:
 //  		ReviewableRequestEntry reviewableRequest;
@@ -1059,13 +1050,13 @@ open class LedgerEntry(
       companion object Decoder: XdrDecodable<Data> by ReflectiveXdrDecoder.wrapType()
     }
 
-    open class ReferenceEntry(var reference: org.tokend.wallet.xdr.ReferenceEntry): LedgerEntryData(org.tokend.wallet.xdr.LedgerEntryType.REFERENCE_ENTRY) {
+    open class Reference(var reference: org.tokend.wallet.xdr.ReferenceEntry): LedgerEntryData(org.tokend.wallet.xdr.LedgerEntryType.REFERENCE) {
       override fun toXdr(stream: XdrDataOutputStream) {
         super.toXdr(stream)
         reference.toXdr(stream)
       }
 
-      companion object Decoder: XdrDecodable<ReferenceEntry> by ReflectiveXdrDecoder.wrapType()
+      companion object Decoder: XdrDecodable<Reference> by ReflectiveXdrDecoder.wrapType()
     }
 
     open class ReviewableRequest(var reviewableRequest: org.tokend.wallet.xdr.ReviewableRequestEntry): LedgerEntryData(org.tokend.wallet.xdr.LedgerEntryType.REVIEWABLE_REQUEST) {
@@ -1197,17 +1188,15 @@ public enum class EnvelopeType(val value: kotlin.Int): XdrEncodable {
 //          }
 //          ext;
 //      } asset;
-//  case REFERENCE_ENTRY:
+//  case REFERENCE:
 //      struct
 //      {
-//  		AccountID sender;
-//  		string64 reference;
-//  		union switch (LedgerVersion v)
-//  		{
-//  		case EMPTY_VERSION:
-//  			void;
-//  		}
-//  		ext;
+//          AccountID sender;
+//          string64 reference;
+//          OperationType opType;
+//          uint32 securityType;
+//  
+//          EmptyExt ext;
 //      } reference;
 //  case REVIEWABLE_REQUEST:
 //      struct {
@@ -1312,13 +1301,13 @@ abstract class LedgerKey(@XdrDiscriminantField val discriminant: org.tokend.wall
     companion object Decoder: XdrDecodable<Asset> by ReflectiveXdrDecoder.wrapType()
   }
 
-  open class ReferenceEntry(var reference: LedgerKeyReference): LedgerKey(org.tokend.wallet.xdr.LedgerEntryType.REFERENCE_ENTRY) {
+  open class Reference(var reference: LedgerKeyReference): LedgerKey(org.tokend.wallet.xdr.LedgerEntryType.REFERENCE) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       reference.toXdr(stream)
     }
 
-    companion object Decoder: XdrDecodable<ReferenceEntry> by ReflectiveXdrDecoder.wrapType()
+    companion object Decoder: XdrDecodable<Reference> by ReflectiveXdrDecoder.wrapType()
   }
 
   open class ReviewableRequest(var reviewableRequest: LedgerKeyReviewableRequest): LedgerKey(org.tokend.wallet.xdr.LedgerEntryType.REVIEWABLE_REQUEST) {
@@ -1468,26 +1457,20 @@ abstract class LedgerKey(@XdrDiscriminantField val discriminant: org.tokend.wall
   open class LedgerKeyReference(
       var sender: org.tokend.wallet.xdr.AccountID,
       var reference: org.tokend.wallet.xdr.String64,
-      var ext: LedgerKeyReferenceExt
+      var opType: org.tokend.wallet.xdr.OperationType,
+      var securityType: org.tokend.wallet.xdr.Uint32,
+      var ext: org.tokend.wallet.xdr.EmptyExt
     ) : XdrEncodable {
 
     override fun toXdr(stream: XdrDataOutputStream) {
       sender.toXdr(stream)
       reference.toXdr(stream)
+      opType.toXdr(stream)
+      securityType.toXdr(stream)
       ext.toXdr(stream)
     }
 
     companion object Decoder: XdrDecodable<LedgerKeyReference> by ReflectiveXdrDecoder.wrapType()
-
-    abstract class LedgerKeyReferenceExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
-      override fun toXdr(stream: XdrDataOutputStream) {
-          discriminant.toXdr(stream)
-      }
-
-      companion object Decoder: XdrDecodable<LedgerKeyReferenceExt> by ReflectiveXdrDecoder.wrapType()
-
-      open class EmptyVersion: LedgerKeyReferenceExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
-    }
   }
   open class LedgerKeyReviewableRequest(
       var requestID: org.tokend.wallet.xdr.Uint64,
@@ -8511,7 +8494,7 @@ abstract class PublicKey(@XdrDiscriminantField val discriminant: org.tokend.wall
 //      BALANCE = 3,
 //      DATA = 4,
 //      ASSET = 5,
-//      REFERENCE_ENTRY = 6,
+//      REFERENCE = 6,
 //      REVIEWABLE_REQUEST = 7,
 //  	ACCOUNT_KYC = 8,
 //      KEY_VALUE = 9,
@@ -8526,7 +8509,7 @@ public enum class LedgerEntryType(val value: kotlin.Int): XdrEncodable {
   BALANCE(3),
   DATA(4),
   ASSET(5),
-  REFERENCE_ENTRY(6),
+  REFERENCE(6),
   REVIEWABLE_REQUEST(7),
   ACCOUNT_KYC(8),
   KEY_VALUE(9),
