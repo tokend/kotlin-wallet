@@ -30,6 +30,7 @@ class DecodingTest {
                         operations = arrayOf(
                                 ReviewableRequestOperation.CreateAsset(sourceRequest)
                         ),
+                        creatorDetails = "{}",
                         ext = EmptyExt.EmptyVersion()
                 )
         )
