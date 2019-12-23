@@ -720,6 +720,7 @@ abstract class ReviewableRequestOperation(@XdrDiscriminantField val discriminant
 //  
 //      // External details vector consists of comments written by request reviewers
 //      longstring externalDetails<>;
+//      longstring creatorDetails;
 //  
 //  	// reserved for future use
 //      union switch (LedgerVersion v)
@@ -742,6 +743,7 @@ open class ReviewableRequestEntry(
     var allTasks: org.tokend.wallet.xdr.Uint64,
     var pendingTasks: org.tokend.wallet.xdr.Uint64,
     var externalDetails: kotlin.Array<org.tokend.wallet.xdr.Longstring>,
+    var creatorDetails: org.tokend.wallet.xdr.Longstring,
     var ext: ReviewableRequestEntryExt
   ) : XdrEncodable {
 
@@ -762,6 +764,7 @@ open class ReviewableRequestEntry(
     externalDetails.forEach {
       it.toXdr(stream)
     }
+    creatorDetails.toXdr(stream)
     ext.toXdr(stream)
   }
 
@@ -2838,6 +2841,7 @@ abstract class CreateDataResult(@XdrDiscriminantField val discriminant: org.toke
 //  struct CreateReviewableRequestOp
 //  {
 //      uint32 securityType;
+//      longstring creatorDetails;
 //      ReviewableRequestOperation operations<>;
 //  
 //      EmptyExt ext;
@@ -2846,12 +2850,14 @@ abstract class CreateDataResult(@XdrDiscriminantField val discriminant: org.toke
 //  ===========================================================================
 open class CreateReviewableRequestOp(
     var securityType: org.tokend.wallet.xdr.Uint32,
+    var creatorDetails: org.tokend.wallet.xdr.Longstring,
     var operations: kotlin.Array<org.tokend.wallet.xdr.ReviewableRequestOperation>,
     var ext: org.tokend.wallet.xdr.EmptyExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
     securityType.toXdr(stream)
+    creatorDetails.toXdr(stream)
     operations.size.toXdr(stream)
     operations.forEach {
       it.toXdr(stream)
@@ -2871,7 +2877,8 @@ open class CreateReviewableRequestOp(
 //      INVALID_OPERATION = -1,
 //      TASKS_NOT_FOUND = -2,
 //      TOO_MANY_OPERATIONS = -3,
-//      SECURITY_TYPE_MISMATCH = -4
+//      SECURITY_TYPE_MISMATCH = -4,
+//      INVALID_CREATOR_DETAILS = -5
 //  };
 
 //  ===========================================================================
@@ -2881,6 +2888,7 @@ public enum class CreateReviewableRequestResultCode(val value: kotlin.Int): XdrE
   TASKS_NOT_FOUND(-2),
   TOO_MANY_OPERATIONS(-3),
   SECURITY_TYPE_MISMATCH(-4),
+  INVALID_CREATOR_DETAILS(-5),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -5443,6 +5451,7 @@ abstract class UpdateDataResult(@XdrDiscriminantField val discriminant: org.toke
 //      uint64 requestID;
 //  
 //      ReviewableRequestOperation operations<>;
+//      longstring creatorDetails;
 //  
 //      EmptyExt ext;
 //  };
@@ -5451,6 +5460,7 @@ abstract class UpdateDataResult(@XdrDiscriminantField val discriminant: org.toke
 open class UpdateReviewableRequestOp(
     var requestID: org.tokend.wallet.xdr.Uint64,
     var operations: kotlin.Array<org.tokend.wallet.xdr.ReviewableRequestOperation>,
+    var creatorDetails: org.tokend.wallet.xdr.Longstring,
     var ext: org.tokend.wallet.xdr.EmptyExt
   ) : XdrEncodable {
 
@@ -5460,6 +5470,7 @@ open class UpdateReviewableRequestOp(
     operations.forEach {
       it.toXdr(stream)
     }
+    creatorDetails.toXdr(stream)
     ext.toXdr(stream)
   }
 
@@ -5476,7 +5487,8 @@ open class UpdateReviewableRequestOp(
 //      TASKS_NOT_FOUND = -2,
 //      TOO_MANY_OPERATIONS = -3,
 //      NOT_FOUND = -4,
-//      SECURITY_TYPE_MISMATCH = -5
+//      SECURITY_TYPE_MISMATCH = -5,
+//      INVALID_CREATOR_DETAILS = -6
 //  };
 
 //  ===========================================================================
@@ -5487,6 +5499,7 @@ public enum class UpdateReviewableRequestResultCode(val value: kotlin.Int): XdrE
   TOO_MANY_OPERATIONS(-3),
   NOT_FOUND(-4),
   SECURITY_TYPE_MISMATCH(-5),
+  INVALID_CREATOR_DETAILS(-6),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
