@@ -3643,7 +3643,7 @@ abstract class DestructionResult(@XdrDiscriminantField val discriminant: org.tok
 //  struct InitiateKYCRecoveryOp
 //  {
 //      //: Address of account to be recovered
-//      AccountID account;
+//      AccountID targetAccount;
 //      //: New signer to set
 //      PublicKey signer;
 //  
@@ -3657,13 +3657,13 @@ abstract class DestructionResult(@XdrDiscriminantField val discriminant: org.tok
 
 //  ===========================================================================
 open class InitiateKYCRecoveryOp(
-    var account: org.tokend.wallet.xdr.AccountID,
+    var targetAccount: org.tokend.wallet.xdr.AccountID,
     var signer: org.tokend.wallet.xdr.PublicKey,
     var ext: InitiateKYCRecoveryOpExt
   ) : XdrEncodable {
 
   override fun toXdr(stream: XdrDataOutputStream) {
-    account.toXdr(stream)
+    targetAccount.toXdr(stream)
     signer.toXdr(stream)
     ext.toXdr(stream)
   }
@@ -3717,6 +3717,7 @@ public enum class InitiateKYCRecoveryResultCode(val value: kotlin.Int): XdrEncod
 //  case SUCCESS:
 //      struct
 //      {
+//           AccountID targetAccount;
 //           //: reserved for future use
 //           union switch (LedgerVersion v)
 //           {
@@ -3746,10 +3747,12 @@ abstract class InitiateKYCRecoveryResult(@XdrDiscriminantField val discriminant:
   }
 
   open class InitiateKYCRecoveryResultSuccess(
+      var targetAccount: org.tokend.wallet.xdr.AccountID,
       var ext: InitiateKYCRecoveryResultSuccessExt
     ) : XdrEncodable {
 
     override fun toXdr(stream: XdrDataOutputStream) {
+      targetAccount.toXdr(stream)
       ext.toXdr(stream)
     }
 
@@ -4018,6 +4021,7 @@ public enum class KYCRecoveryResultCode(val value: kotlin.Int): XdrEncodable {
 //  case SUCCESS:
 //      //: Is used to pass useful params if operation is success
 //      struct {
+//          AccountID targetAccount;
 //          //: reserved for future use
 //          EmptyExt ext;
 //      } success;
@@ -4043,10 +4047,12 @@ abstract class KYCRecoveryResult(@XdrDiscriminantField val discriminant: org.tok
   }
 
   open class KYCRecoveryResultSuccess(
+      var targetAccount: org.tokend.wallet.xdr.AccountID,
       var ext: org.tokend.wallet.xdr.EmptyExt
     ) : XdrEncodable {
 
     override fun toXdr(stream: XdrDataOutputStream) {
+      targetAccount.toXdr(stream)
       ext.toXdr(stream)
     }
 
