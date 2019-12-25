@@ -7,6 +7,7 @@ import org.tokend.wallet.xdr.utils.XdrDataOutputStream
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.util.*
+import kotlin.math.absoluteValue
 
 /**
  * Represents TokenD transaction - a set of operations that changes the state of the system.
@@ -68,7 +69,7 @@ class Transaction {
      * @param memo optional transaction payload
      * @param timeBounds time range during which the
      * transaction will be valid. Default transaction lifetime is [DEFAULT_LIFETIME_SECONDS]
-     * @param salt optional unique value, random by default, sign is ignored
+     * @param salt optional unique value, random by default, absolute value is taken
      *
      *  @throws IllegalStateException if no operations were added.
      */
@@ -90,7 +91,9 @@ class Transaction {
         this.memo = memo ?: Memo.MemoNone()
         this.timeBounds = timeBounds
                 ?: TimeBounds(0, networkParams.nowTimestamp + DEFAULT_LIFETIME_SECONDS)
-        this.salt = (salt ?: Random().nextLong()) and 0xffffffffL
+        this.salt = (salt?.also { require(it != Long.MIN_VALUE) { "Can't use $it as a salt" } }
+                        ?: (Random().nextLong() and 0x7fffffffffffffff))
+                .absoluteValue
     }
 
     /**
