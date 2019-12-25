@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Please check our [developers guide](https://gitlab.com/tokend/developers-guide)
 for further information about branching and tagging conventions.
 
+## [3.6.2] 2019-12-25
+
+### Fixed
+- Incorrect salt transform in `Transaction` constructor, use
+true absolute value now
+
 ## [3.6.1] 2019-11-26
 
 ### Added
@@ -97,4 +103,5 @@ of the required class in Kotlin or use `*.Decoder` static member in Java
 [3.5.0]: https://github.com/tokend/kotlin-wallet/compare/3.4.2...3.5.0
 [3.6.0]: https://github.com/tokend/kotlin-wallet/compare/3.5.0...3.6.0
 [3.6.1]: https://github.com/tokend/kotlin-wallet/compare/3.6.0...3.6.1
-[Unreleased]: https://github.com/tokend/kotlin-wallet/compare/3.6.1...HEAD
+[3.6.2]: https://github.com/tokend/kotlin-wallet/compare/3.6.1...3.6.2
+[Unreleased]: https://github.com/tokend/kotlin-wallet/compare/3.6.2...HEAD
