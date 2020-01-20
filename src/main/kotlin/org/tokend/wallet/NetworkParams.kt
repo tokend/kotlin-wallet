@@ -1,6 +1,7 @@
 package org.tokend.wallet
 
 import org.tokend.wallet.utils.Hashing
+import java.io.Serializable
 import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
@@ -9,7 +10,7 @@ import java.util.*
 /**
  * Holds network-specific parameters.
  */
-class NetworkParams {
+class NetworkParams: Serializable {
     /**
      * Passphrase of the network
      */
@@ -82,6 +83,8 @@ class NetworkParams {
     }
 
     companion object {
+        const val serialVersionUID = 5677019745177892600L
+
         /**
          * Default amount precision in TokenD.
          */
