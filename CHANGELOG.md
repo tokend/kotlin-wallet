@@ -114,4 +114,6 @@ of the required class in Kotlin or use `*.Decoder` static member in Java
 [3.6.0]: https://github.com/tokend/kotlin-wallet/compare/3.5.0...3.6.0
 [3.6.1]: https://github.com/tokend/kotlin-wallet/compare/3.6.0...3.6.1
 [3.6.2]: https://github.com/tokend/kotlin-wallet/compare/3.6.1...3.6.2
-[Unreleased]: https://github.com/tokend/kotlin-wallet/compare/3.6.2...HEAD
+[3.6.3]: https://github.com/tokend/kotlin-wallet/compare/3.6.2...3.6.3
+[3.6.4]: https://github.com/tokend/kotlin-wallet/compare/3.6.3...3.6.4
+[Unreleased]: https://github.com/tokend/kotlin-wallet/compare/3.6.4...HEAD
