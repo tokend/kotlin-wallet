@@ -119,6 +119,12 @@ class DecodingTest {
                 String.fromXdr(XdrDataInputStream(ByteArrayInputStream(it.toByteArray())))
             })
         }
+        "¬ Я так соскучился \uD83E\uDD70".also { source ->
+            Assert.assertEquals(source, ByteArrayOutputStream().let {
+                source.toXdr(XdrDataOutputStream(it))
+                String.fromXdr(XdrDataInputStream(ByteArrayInputStream(it.toByteArray())))
+            })
+        }
 
         byteArrayOf(1, 2, 3, 4).also { source ->
             Assert.assertArrayEquals(source, ByteArrayOutputStream().let {

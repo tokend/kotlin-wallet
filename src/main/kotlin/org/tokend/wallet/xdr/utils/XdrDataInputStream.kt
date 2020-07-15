@@ -3,7 +3,6 @@ package org.tokend.wallet.xdr.utils
 import java.io.DataInputStream
 import java.io.IOException
 import java.io.InputStream
-import java.nio.charset.Charset
 
 class XdrDataInputStream
 /**
@@ -28,10 +27,10 @@ class XdrDataInputStream
     @Throws(IOException::class)
     fun readString(): String {
         val l = readInt()
-        val ascii = ByteArray(l)
-        readFully(ascii)
+        val bytes = ByteArray(l)
+        readFully(bytes)
         pad()
-        return String(ascii, Charset.forName("US-ASCII"))
+        return String(bytes, Charsets.UTF_8)
     }
 
     @Throws(IOException::class)

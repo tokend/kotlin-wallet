@@ -14,7 +14,7 @@ class XdrDataOutputStream(out: OutputStream) : DataOutputStream(XdrOutputStream(
 
     @Throws(IOException::class)
     fun writeString(s: String) {
-        val chars = s.toByteArray()
+        val chars = s.toByteArray(Charsets.UTF_8)
         writeInt(chars.size)
         write(chars)
         pad()
