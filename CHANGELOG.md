@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Please check our [developers guide](https://gitlab.com/tokend/developers-guide)
 for further information about branching and tagging conventions.
 
+## [3.6.5] 2020-08-12
+
+### Changed
+- Updated XDR version to `d639694`
+
 ## [3.6.4] 2020-07-15
 
 ### Changed
@@ -114,4 +119,7 @@ of the required class in Kotlin or use `*.Decoder` static member in Java
 [3.6.0]: https://github.com/tokend/kotlin-wallet/compare/3.5.0...3.6.0
 [3.6.1]: https://github.com/tokend/kotlin-wallet/compare/3.6.0...3.6.1
 [3.6.2]: https://github.com/tokend/kotlin-wallet/compare/3.6.1...3.6.2
-[Unreleased]: https://github.com/tokend/kotlin-wallet/compare/3.6.2...HEAD
+[3.6.3]: https://github.com/tokend/kotlin-wallet/compare/3.6.2...3.6.3
+[3.6.4]: https://github.com/tokend/kotlin-wallet/compare/3.6.3...3.6.4
+[3.6.5]: https://github.com/tokend/kotlin-wallet/compare/3.6.4...3.6.5
+[Unreleased]: https://github.com/tokend/kotlin-wallet/compare/3.6.5...HEAD
