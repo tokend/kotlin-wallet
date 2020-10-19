@@ -2053,7 +2053,10 @@ open class ReferenceEntry(
 //  	KYC_RECOVERY = 18,
 //  	MANAGE_OFFER = 19,
 //  	CREATE_PAYMENT = 20,
-//  	PERFORM_REDEMPTION = 21
+//  	PERFORM_REDEMPTION = 21,
+//  	DATA_CREATION = 22,
+//  	DATA_UPDATE = 23,
+//  	DATA_REMOVE = 24
 //  };
 
 //  ===========================================================================
@@ -2079,6 +2082,9 @@ public enum class ReviewableRequestType(val value: kotlin.Int): XdrEncodable {
   MANAGE_OFFER(19),
   CREATE_PAYMENT(20),
   PERFORM_REDEMPTION(21),
+  DATA_CREATION(22),
+  DATA_UPDATE(23),
+  DATA_REMOVE(24),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -2188,6 +2194,13 @@ open class TasksExt(
 //  			CreatePaymentRequest createPaymentRequest;
 //          case PERFORM_REDEMPTION:
 //              RedemptionRequest redemptionRequest;
+//          case DATA_CREATION:
+//              DataCreationRequest dataCreationRequest;
+//          case DATA_UPDATE:
+//              DataUpdateRequest dataUpdateRequest;
+//          case DATA_REMOVE:
+//              DataRemoveRequest dataRemoveRequest;
+//  
 //  	} body;
 //  
 //  	TasksExt tasks;
@@ -2412,6 +2425,33 @@ open class ReviewableRequestEntry(
       }
 
       companion object Decoder: XdrDecodable<PerformRedemption> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class DataCreation(var dataCreationRequest: org.tokend.wallet.xdr.DataCreationRequest): ReviewableRequestEntryBody(org.tokend.wallet.xdr.ReviewableRequestType.DATA_CREATION) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        dataCreationRequest.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<DataCreation> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class DataUpdate(var dataUpdateRequest: org.tokend.wallet.xdr.DataUpdateRequest): ReviewableRequestEntryBody(org.tokend.wallet.xdr.ReviewableRequestType.DATA_UPDATE) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        dataUpdateRequest.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<DataUpdate> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class DataRemove(var dataRemoveRequest: org.tokend.wallet.xdr.DataRemoveRequest): ReviewableRequestEntryBody(org.tokend.wallet.xdr.ReviewableRequestType.DATA_REMOVE) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        dataRemoveRequest.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<DataRemove> by ReflectiveXdrDecoder.wrapType()
     }
   }
   abstract class ReviewableRequestEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
@@ -6101,6 +6141,420 @@ abstract class CancelChangeRoleRequestResult(@XdrDiscriminantField val discrimin
 
 // === xdr source ============================================================
 
+//  //: CancelDataCreationRequestOp is used to cancel reviwable request for data creation.
+//  //: If successful, request with the corresponding ID will be deleted
+//  struct CancelDataCreationRequestOp
+//  {
+//      //: ID of the DataCreationRequest request to be canceled
+//      uint64 requestID;
+//  
+//      //: Reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  
+//  };
+
+//  ===========================================================================
+open class CancelDataCreationRequestOp(
+    var requestID: org.tokend.wallet.xdr.Uint64,
+    var ext: CancelDataCreationRequestOpExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    requestID.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CancelDataCreationRequestOp> by ReflectiveXdrDecoder.wrapType()
+
+  abstract class CancelDataCreationRequestOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<CancelDataCreationRequestOpExt> by ReflectiveXdrDecoder.wrapType()
+
+    open class EmptyVersion: CancelDataCreationRequestOpExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Result codes for CancelDataCreationRequest operation
+//  enum CancelDataCreationRequestResultCode
+//  {
+//      // codes considered as "success" for the operation
+//      //: Operation is successfully applied
+//      SUCCESS = 0,
+//  
+//      // codes considered as "failure" for the operation
+//      //: ID of a request cannot be 0
+//      REQUEST_ID_INVALID = -1, // request id can not be equal zero
+//      //: request with provided ID is not found
+//      REQUEST_NOT_FOUND = -2 // trying to cancel not existing reviewable request
+//  };
+
+//  ===========================================================================
+public enum class CancelDataCreationRequestResultCode(val value: kotlin.Int): XdrEncodable {
+  SUCCESS(0),
+  REQUEST_ID_INVALID(-1),
+  REQUEST_NOT_FOUND(-2),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CancelDataCreationRequestResultCode> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
+//  //: Result of successful `CancelDataCreationRequestOp` application
+//  struct CancelDataCreationSuccess {
+//  
+//      //: Reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class CancelDataCreationSuccess(
+    var ext: CancelDataCreationSuccessExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CancelDataCreationSuccess> by ReflectiveXdrDecoder.wrapType()
+
+  abstract class CancelDataCreationSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<CancelDataCreationSuccessExt> by ReflectiveXdrDecoder.wrapType()
+
+    open class EmptyVersion: CancelDataCreationSuccessExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Result of CancelDataCreationRequest operation application along with the result code
+//  union CancelDataCreationRequestResult switch (CancelDataCreationRequestResultCode code)
+//  {
+//      case SUCCESS:
+//          CancelDataCreationSuccess success;
+//      default:
+//          void;
+//  };
+
+//  ===========================================================================
+abstract class CancelDataCreationRequestResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CancelDataCreationRequestResultCode): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CancelDataCreationRequestResult> by ReflectiveXdrDecoder.wrapType()
+
+  open class Success(var success: org.tokend.wallet.xdr.CancelDataCreationSuccess): CancelDataCreationRequestResult(org.tokend.wallet.xdr.CancelDataCreationRequestResultCode.SUCCESS) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      success.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<Success> by ReflectiveXdrDecoder.wrapType()
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: CancelDataRemoveRequestOp is used to cancel reviwable request for data Remove.
+//  //: If successful, request with the corresponding ID will be deleted
+//  struct CancelDataRemoveRequestOp
+//  {
+//      //: ID of the DataRemoveRequest request to be canceled
+//      uint64 requestID;
+//  
+//      //: Reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  
+//  };
+
+//  ===========================================================================
+open class CancelDataRemoveRequestOp(
+    var requestID: org.tokend.wallet.xdr.Uint64,
+    var ext: CancelDataRemoveRequestOpExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    requestID.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CancelDataRemoveRequestOp> by ReflectiveXdrDecoder.wrapType()
+
+  abstract class CancelDataRemoveRequestOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<CancelDataRemoveRequestOpExt> by ReflectiveXdrDecoder.wrapType()
+
+    open class EmptyVersion: CancelDataRemoveRequestOpExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Result codes for CancelDataRemoveRequest operation
+//  enum CancelDataRemoveRequestResultCode
+//  {
+//      // codes considered as "success" for the operation
+//      //: Operation is successfully applied
+//      SUCCESS = 0,
+//  
+//      // codes considered as "failure" for the operation
+//      //: ID of a request cannot be 0
+//      REQUEST_ID_INVALID = -1, // request id can not be equal zero
+//      //: request with provided ID is not found
+//      REQUEST_NOT_FOUND = -2 // trying to cancel not existing reviewable request
+//  };
+
+//  ===========================================================================
+public enum class CancelDataRemoveRequestResultCode(val value: kotlin.Int): XdrEncodable {
+  SUCCESS(0),
+  REQUEST_ID_INVALID(-1),
+  REQUEST_NOT_FOUND(-2),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CancelDataRemoveRequestResultCode> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
+//  //: Result of successful `CancelDataRemoveRequestOp` application
+//  struct CancelDataRemoveSuccess {
+//  
+//      //: Reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class CancelDataRemoveSuccess(
+    var ext: CancelDataRemoveSuccessExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CancelDataRemoveSuccess> by ReflectiveXdrDecoder.wrapType()
+
+  abstract class CancelDataRemoveSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<CancelDataRemoveSuccessExt> by ReflectiveXdrDecoder.wrapType()
+
+    open class EmptyVersion: CancelDataRemoveSuccessExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Result of CancelDataRemoveRequest operation application along with the result code
+//  union CancelDataRemoveRequestResult switch (CancelDataRemoveRequestResultCode code)
+//  {
+//      case SUCCESS:
+//          CancelDataRemoveSuccess success;
+//      default:
+//          void;
+//  };
+
+//  ===========================================================================
+abstract class CancelDataRemoveRequestResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CancelDataRemoveRequestResultCode): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CancelDataRemoveRequestResult> by ReflectiveXdrDecoder.wrapType()
+
+  open class Success(var success: org.tokend.wallet.xdr.CancelDataRemoveSuccess): CancelDataRemoveRequestResult(org.tokend.wallet.xdr.CancelDataRemoveRequestResultCode.SUCCESS) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      success.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<Success> by ReflectiveXdrDecoder.wrapType()
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: CancelDataUpdateRequestOp is used to cancel reviwable request for data Update.
+//  //: If successful, request with the corresponding ID will be deleted
+//  struct CancelDataUpdateRequestOp
+//  {
+//      //: ID of the DataUpdateRequest request to be canceled
+//      uint64 requestID;
+//  
+//      //: Reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  
+//  };
+
+//  ===========================================================================
+open class CancelDataUpdateRequestOp(
+    var requestID: org.tokend.wallet.xdr.Uint64,
+    var ext: CancelDataUpdateRequestOpExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    requestID.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CancelDataUpdateRequestOp> by ReflectiveXdrDecoder.wrapType()
+
+  abstract class CancelDataUpdateRequestOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<CancelDataUpdateRequestOpExt> by ReflectiveXdrDecoder.wrapType()
+
+    open class EmptyVersion: CancelDataUpdateRequestOpExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Result codes for CancelDataUpdateRequest operation
+//  enum CancelDataUpdateRequestResultCode
+//  {
+//      // codes considered as "success" for the operation
+//      //: Operation is successfully applied
+//      SUCCESS = 0,
+//  
+//      // codes considered as "failure" for the operation
+//      //: ID of a request cannot be 0
+//      REQUEST_ID_INVALID = -1, // request id can not be equal zero
+//      //: request with provided ID is not found
+//      REQUEST_NOT_FOUND = -2 // trying to cancel not existing reviewable request
+//  };
+
+//  ===========================================================================
+public enum class CancelDataUpdateRequestResultCode(val value: kotlin.Int): XdrEncodable {
+  SUCCESS(0),
+  REQUEST_ID_INVALID(-1),
+  REQUEST_NOT_FOUND(-2),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CancelDataUpdateRequestResultCode> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
+//  //: Result of successful `CancelDataUpdateRequestOp` application
+//  struct CancelDataUpdateSuccess {
+//  
+//      //: Reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class CancelDataUpdateSuccess(
+    var ext: CancelDataUpdateSuccessExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CancelDataUpdateSuccess> by ReflectiveXdrDecoder.wrapType()
+
+  abstract class CancelDataUpdateSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<CancelDataUpdateSuccessExt> by ReflectiveXdrDecoder.wrapType()
+
+    open class EmptyVersion: CancelDataUpdateSuccessExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Result of CancelDataUpdateRequest operation application along with the result code
+//  union CancelDataUpdateRequestResult switch (CancelDataUpdateRequestResultCode code)
+//  {
+//      case SUCCESS:
+//          CancelDataUpdateSuccess success;
+//      default:
+//          void;
+//  };
+
+//  ===========================================================================
+abstract class CancelDataUpdateRequestResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CancelDataUpdateRequestResultCode): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CancelDataUpdateRequestResult> by ReflectiveXdrDecoder.wrapType()
+
+  open class Success(var success: org.tokend.wallet.xdr.CancelDataUpdateSuccess): CancelDataUpdateRequestResult(org.tokend.wallet.xdr.CancelDataUpdateRequestResultCode.SUCCESS) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      success.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<Success> by ReflectiveXdrDecoder.wrapType()
+  }
+}
+
+// === xdr source ============================================================
+
 //  //: CancelSaleCreationRequest operation is used to cancel sale creation request.
 //  //: If successful, request with the corresponding ID will be deleted
 //  //: SaleCreationRequest with provided ID
@@ -7689,6 +8143,425 @@ abstract class CreateChangeRoleRequestResult(@XdrDiscriminantField val discrimin
 
       open class EmptyVersion: CreateChangeRoleRequestResultSuccessExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
     }
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct CreateDataCreationRequestOp
+//  {
+//      //: ID of the DataCreationRequest. If set to 0, a new request is created
+//      uint64 requestID;
+//  
+//      DataCreationRequest dataCreationRequest;
+//  
+//      uint32* allTasks;
+//  
+//      //: Reserved for future extension
+//      EmptyExt ext;
+//  };
+
+//  ===========================================================================
+open class CreateDataCreationRequestOp(
+    var requestID: org.tokend.wallet.xdr.Uint64,
+    var dataCreationRequest: org.tokend.wallet.xdr.DataCreationRequest,
+    @XdrOptionalField
+    var allTasks: org.tokend.wallet.xdr.Uint32?,
+    var ext: org.tokend.wallet.xdr.EmptyExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    requestID.toXdr(stream)
+    dataCreationRequest.toXdr(stream)
+    if (allTasks != null) {
+      true.toXdr(stream)
+      allTasks?.toXdr(stream)
+    } else {
+      false.toXdr(stream)
+    }
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CreateDataCreationRequestOp> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
+//  enum CreateDataCreationRequestResultCode
+//  {
+//      SUCCESS = 0,
+//      INVALID_VALUE = -1,
+//      CREATE_DATA_TASKS_NOT_FOUND = -2,
+//      REQUEST_NOT_FOUND = -3,
+//      INVALID_CREATOR_DETAILS = -4
+//  };
+
+//  ===========================================================================
+public enum class CreateDataCreationRequestResultCode(val value: kotlin.Int): XdrEncodable {
+  SUCCESS(0),
+  INVALID_VALUE(-1),
+  CREATE_DATA_TASKS_NOT_FOUND(-2),
+  REQUEST_NOT_FOUND(-3),
+  INVALID_CREATOR_DETAILS(-4),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CreateDataCreationRequestResultCode> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
+//  struct CreateDataCreationRequestSuccess {
+//      uint64 requestID;
+//      bool fulfilled;
+//      AccountID owner;
+//      uint64 id;
+//      uint64 type;
+//      longstring value;
+//  
+//      //: Reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class CreateDataCreationRequestSuccess(
+    var requestID: org.tokend.wallet.xdr.Uint64,
+    var fulfilled: kotlin.Boolean,
+    var owner: org.tokend.wallet.xdr.AccountID,
+    var id: org.tokend.wallet.xdr.Uint64,
+    var type: org.tokend.wallet.xdr.Uint64,
+    var value: org.tokend.wallet.xdr.Longstring,
+    var ext: CreateDataCreationRequestSuccessExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    requestID.toXdr(stream)
+    fulfilled.toXdr(stream)
+    owner.toXdr(stream)
+    id.toXdr(stream)
+    type.toXdr(stream)
+    value.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CreateDataCreationRequestSuccess> by ReflectiveXdrDecoder.wrapType()
+
+  abstract class CreateDataCreationRequestSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<CreateDataCreationRequestSuccessExt> by ReflectiveXdrDecoder.wrapType()
+
+    open class EmptyVersion: CreateDataCreationRequestSuccessExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  union CreateDataCreationRequestResult switch (CreateDataCreationRequestResultCode code)
+//  {
+//  case SUCCESS:
+//      CreateDataCreationRequestSuccess success;
+//  default:
+//      void;
+//  };
+
+//  ===========================================================================
+abstract class CreateDataCreationRequestResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CreateDataCreationRequestResultCode): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CreateDataCreationRequestResult> by ReflectiveXdrDecoder.wrapType()
+
+  open class Success(var success: org.tokend.wallet.xdr.CreateDataCreationRequestSuccess): CreateDataCreationRequestResult(org.tokend.wallet.xdr.CreateDataCreationRequestResultCode.SUCCESS) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      success.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<Success> by ReflectiveXdrDecoder.wrapType()
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct CreateDataRemoveRequestOp
+//  {
+//      //: ID of the DataRemoveRequest. If set to 0, a new request is created
+//      uint64 requestID;
+//  
+//      DataRemoveRequest dataRemoveRequest;
+//  
+//      uint32* allTasks;
+//  
+//      //: Reserved for future extension
+//      EmptyExt ext;
+//  };
+
+//  ===========================================================================
+open class CreateDataRemoveRequestOp(
+    var requestID: org.tokend.wallet.xdr.Uint64,
+    var dataRemoveRequest: org.tokend.wallet.xdr.DataRemoveRequest,
+    @XdrOptionalField
+    var allTasks: org.tokend.wallet.xdr.Uint32?,
+    var ext: org.tokend.wallet.xdr.EmptyExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    requestID.toXdr(stream)
+    dataRemoveRequest.toXdr(stream)
+    if (allTasks != null) {
+      true.toXdr(stream)
+      allTasks?.toXdr(stream)
+    } else {
+      false.toXdr(stream)
+    }
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CreateDataRemoveRequestOp> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
+//  enum CreateDataRemoveRequestResultCode
+//  {
+//      SUCCESS = 0,
+//      REMOVE_DATA_TASKS_NOT_FOUND = -1,
+//      DATA_NOT_FOUND = -2,
+//      INVALID_CREATOR_DETAILS = -3,
+//      REQUEST_NOT_FOUND = -4
+//  };
+
+//  ===========================================================================
+public enum class CreateDataRemoveRequestResultCode(val value: kotlin.Int): XdrEncodable {
+  SUCCESS(0),
+  REMOVE_DATA_TASKS_NOT_FOUND(-1),
+  DATA_NOT_FOUND(-2),
+  INVALID_CREATOR_DETAILS(-3),
+  REQUEST_NOT_FOUND(-4),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CreateDataRemoveRequestResultCode> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
+//  struct CreateDataRemoveRequestSuccess {
+//      uint64 requestID;
+//      bool fulfilled;
+//  
+//      //: Reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class CreateDataRemoveRequestSuccess(
+    var requestID: org.tokend.wallet.xdr.Uint64,
+    var fulfilled: kotlin.Boolean,
+    var ext: CreateDataRemoveRequestSuccessExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    requestID.toXdr(stream)
+    fulfilled.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CreateDataRemoveRequestSuccess> by ReflectiveXdrDecoder.wrapType()
+
+  abstract class CreateDataRemoveRequestSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<CreateDataRemoveRequestSuccessExt> by ReflectiveXdrDecoder.wrapType()
+
+    open class EmptyVersion: CreateDataRemoveRequestSuccessExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  union CreateDataRemoveRequestResult switch (CreateDataRemoveRequestResultCode code)
+//  {
+//  case SUCCESS:
+//      CreateDataRemoveRequestSuccess success;
+//  default:
+//      void;
+//  };
+
+//  ===========================================================================
+abstract class CreateDataRemoveRequestResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CreateDataRemoveRequestResultCode): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CreateDataRemoveRequestResult> by ReflectiveXdrDecoder.wrapType()
+
+  open class Success(var success: org.tokend.wallet.xdr.CreateDataRemoveRequestSuccess): CreateDataRemoveRequestResult(org.tokend.wallet.xdr.CreateDataRemoveRequestResultCode.SUCCESS) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      success.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<Success> by ReflectiveXdrDecoder.wrapType()
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct CreateDataUpdateRequestOp
+//  {
+//      //: ID of the DataUpdateRequest. If set to 0, a new request is created
+//      uint64 requestID;
+//  
+//      DataUpdateRequest dataUpdateRequest;
+//  
+//      uint32* allTasks;
+//  
+//      //: Reserved for future extension
+//      EmptyExt ext;
+//  };
+
+//  ===========================================================================
+open class CreateDataUpdateRequestOp(
+    var requestID: org.tokend.wallet.xdr.Uint64,
+    var dataUpdateRequest: org.tokend.wallet.xdr.DataUpdateRequest,
+    @XdrOptionalField
+    var allTasks: org.tokend.wallet.xdr.Uint32?,
+    var ext: org.tokend.wallet.xdr.EmptyExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    requestID.toXdr(stream)
+    dataUpdateRequest.toXdr(stream)
+    if (allTasks != null) {
+      true.toXdr(stream)
+      allTasks?.toXdr(stream)
+    } else {
+      false.toXdr(stream)
+    }
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CreateDataUpdateRequestOp> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
+//  enum CreateDataUpdateRequestResultCode
+//  {
+//      SUCCESS = 0,
+//      INVALID_VALUE = -1,
+//      UPDATE_DATA_TASKS_NOT_FOUND = -2,
+//      DATA_NOT_FOUND = -3,
+//      INVALID_CREATOR_DETAILS = -4,
+//      REQUEST_NOT_FOUND = -5
+//  };
+
+//  ===========================================================================
+public enum class CreateDataUpdateRequestResultCode(val value: kotlin.Int): XdrEncodable {
+  SUCCESS(0),
+  INVALID_VALUE(-1),
+  UPDATE_DATA_TASKS_NOT_FOUND(-2),
+  DATA_NOT_FOUND(-3),
+  INVALID_CREATOR_DETAILS(-4),
+  REQUEST_NOT_FOUND(-5),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CreateDataUpdateRequestResultCode> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
+//  struct CreateDataUpdateRequestSuccess {
+//      uint64 requestID;
+//      bool fulfilled;
+//  
+//      //: Reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class CreateDataUpdateRequestSuccess(
+    var requestID: org.tokend.wallet.xdr.Uint64,
+    var fulfilled: kotlin.Boolean,
+    var ext: CreateDataUpdateRequestSuccessExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    requestID.toXdr(stream)
+    fulfilled.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CreateDataUpdateRequestSuccess> by ReflectiveXdrDecoder.wrapType()
+
+  abstract class CreateDataUpdateRequestSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<CreateDataUpdateRequestSuccessExt> by ReflectiveXdrDecoder.wrapType()
+
+    open class EmptyVersion: CreateDataUpdateRequestSuccessExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  union CreateDataUpdateRequestResult switch (CreateDataUpdateRequestResultCode code)
+//  {
+//  case SUCCESS:
+//      CreateDataUpdateRequestSuccess success;
+//  default:
+//      void;
+//  };
+
+//  ===========================================================================
+abstract class CreateDataUpdateRequestResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CreateDataUpdateRequestResultCode): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CreateDataUpdateRequestResult> by ReflectiveXdrDecoder.wrapType()
+
+  open class Success(var success: org.tokend.wallet.xdr.CreateDataUpdateRequestSuccess): CreateDataUpdateRequestResult(org.tokend.wallet.xdr.CreateDataUpdateRequestResultCode.SUCCESS) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      success.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<Success> by ReflectiveXdrDecoder.wrapType()
   }
 }
 
@@ -10433,7 +11306,9 @@ open class ManageAccountRuleOp(
 //      //: It is not allowed to remove the rule if it is used at least in one role
 //      RULE_IS_USED = -2,
 //      //: Passed details has invalid json structure
-//      INVALID_DETAILS = -3
+//      INVALID_DETAILS = -3,
+//      //: Custom rule action can not be used with entries other than CUSTOM
+//      INVALID_ACTION = -4
 //  };
 
 //  ===========================================================================
@@ -10442,6 +11317,7 @@ public enum class ManageAccountRuleResultCode(val value: kotlin.Int): XdrEncodab
   NOT_FOUND(-1),
   RULE_IS_USED(-2),
   INVALID_DETAILS(-3),
+  INVALID_ACTION(-4),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -15514,7 +16390,9 @@ open class ManageSignerRuleOp(
 //      //: It is not allowed to remove the rule if it is attached to at least one role
 //      RULE_IS_USED = -2,
 //      //: Passed details have invalid json structure
-//      INVALID_DETAILS = -3
+//      INVALID_DETAILS = -3,
+//      //: Custom rule action can not be used with entries other than CUSTOM
+//      INVALID_ACTION = -4
 //  };
 
 //  ===========================================================================
@@ -15523,6 +16401,7 @@ public enum class ManageSignerRuleResultCode(val value: kotlin.Int): XdrEncodabl
   NOT_FOUND(-1),
   RULE_IS_USED(-2),
   INVALID_DETAILS(-3),
+  INVALID_ACTION(-4),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -17272,8 +18151,8 @@ public enum class ReviewRequestOpAction(val value: kotlin.Int): XdrEncodable {
 // === xdr source ============================================================
 
 //  //: Review details of a Limits Update request
-//  struct LimitsUpdateDetails { 
-//      //: Limits entry containing new limits to set 
+//  struct LimitsUpdateDetails {
+//      //: Limits entry containing new limits to set
 //      LimitsV2Entry newLimitsV2;
 //  
 //      //:reserved for future use
@@ -17350,7 +18229,7 @@ open class WithdrawalDetails(
 
 // === xdr source ============================================================
 
-//  //: Details of AML Alert 
+//  //: Details of AML Alert
 //  struct AMLAlertDetails {
 //      //: Comment on reason of AML Alert
 //      string comment<>;
@@ -17717,6 +18596,33 @@ open class AtomicSwapBidExtended(
 
 // === xdr source ============================================================
 
+//  struct DataCreationExtended {
+//      //: Owner of the created data entry
+//      AccountID owner;
+//      //: ID of the created data entry
+//      uint64 id;
+//      //: Security type of the created data entry
+//      uint64 type;
+//  };
+
+//  ===========================================================================
+open class DataCreationExtended(
+    var owner: org.tokend.wallet.xdr.AccountID,
+    var id: org.tokend.wallet.xdr.Uint64,
+    var type: org.tokend.wallet.xdr.Uint64
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    owner.toXdr(stream)
+    id.toXdr(stream)
+    type.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<DataCreationExtended> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
 //  //: Extended result of a Review Request operation containing details specific to certain request types
 //  struct ExtendedResult {
 //      //: Indicates whether or not the request that is being reviewed was applied
@@ -17739,6 +18645,8 @@ open class AtomicSwapBidExtended(
 //          PaymentResult paymentResult;
 //      case PERFORM_REDEMPTION:
 //          CreateRedemptionRequestResult createRedemptionResult;
+//      case DATA_CREATION:
+//          DataCreationExtended dataCreationExtended;
 //      } typeExt;
 //  
 //      //: Reserved for future use
@@ -17835,6 +18743,15 @@ open class ExtendedResult(
       }
 
       companion object Decoder: XdrDecodable<PerformRedemption> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class DataCreation(var dataCreationExtended: org.tokend.wallet.xdr.DataCreationExtended): ExtendedResultTypeExt(org.tokend.wallet.xdr.ReviewableRequestType.DATA_CREATION) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        dataCreationExtended.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<DataCreation> by ReflectiveXdrDecoder.wrapType()
     }
   }
   abstract class ExtendedResultExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
@@ -17984,7 +18901,7 @@ open class ReviewRequestOp(
 //      SUCCESS = 0,
 //  
 //      //: Codes considered as "failure" for an operation
-//      //: Reject reason must be empty on approve and not empty on reject/permanent 
+//      //: Reject reason must be empty on approve and not empty on reject/permanent
 //      INVALID_REASON = -1,
 //      //: Unknown action to perform on ReviewableRequest
 //      INVALID_ACTION = -2,
@@ -18037,7 +18954,7 @@ open class ReviewRequestOp(
 //      //: Trying to create a sale with one of the quote assets that doesn't exist
 //      QUOTE_ASSET_NOT_FOUND = -550,
 //  
-//      //: Change role 
+//      //: Change role
 //      //: Trying to remove zero tasks
 //      NON_ZERO_TASKS_TO_REMOVE_NOT_ALLOWED = -600,
 //      //: There is no account role with provided id
@@ -18102,9 +19019,12 @@ open class ReviewRequestOp(
 //  
 //      // offer
 //      MANAGE_OFFER_FAILED = -1700,
-//      
+//  
 //      // payment
-//      PAYMENT_FAILED = -1800
+//      PAYMENT_FAILED = -1800,
+//  
+//      // Update Data
+//      DATA_NOT_FOUND = -1900
 //  };
 
 //  ===========================================================================
@@ -18172,6 +19092,7 @@ public enum class ReviewRequestResultCode(val value: kotlin.Int): XdrEncodable {
   INVALID_SIGNER_DATA(-1600),
   MANAGE_OFFER_FAILED(-1700),
   PAYMENT_FAILED(-1800),
+  DATA_NOT_FOUND(-1900),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -19270,6 +20191,30 @@ abstract class AuthenticatedMessage(@XdrDiscriminantField val discriminant: org.
 //          //: reserved for future extension
 //          EmptyExt ext;
 //      } performRedemption;
+//  case DATA_CREATION:
+//      struct
+//      {
+//          //: Numeric type of the data
+//          uint64 type;
+//          //: Reserved for future extension
+//          EmptyExt ext;
+//      } dataCreation;
+//  case DATA_UPDATE:
+//      struct
+//      {
+//          //: Numeric type of the data
+//          uint64 type;
+//          //: Reserved for future extension
+//          EmptyExt ext;
+//      } dataUpdate;
+//  case DATA_REMOVE:
+//      struct
+//      {
+//          //: Numeric type of the data
+//          uint64 type;
+//          //: Reserved for future extension
+//          EmptyExt ext;
+//      } dataRemove;
 //  default:
 //      //: reserved for future extension
 //      EmptyExt ext;
@@ -19362,6 +20307,33 @@ abstract class ReviewableRequestResource(@XdrDiscriminantField val discriminant:
     }
 
     companion object Decoder: XdrDecodable<PerformRedemption> by ReflectiveXdrDecoder.wrapType()
+  }
+
+  open class DataCreation(var dataCreation: ReviewableRequestResourceDataCreation): ReviewableRequestResource(org.tokend.wallet.xdr.ReviewableRequestType.DATA_CREATION) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      dataCreation.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<DataCreation> by ReflectiveXdrDecoder.wrapType()
+  }
+
+  open class DataUpdate(var dataUpdate: ReviewableRequestResourceDataUpdate): ReviewableRequestResource(org.tokend.wallet.xdr.ReviewableRequestType.DATA_UPDATE) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      dataUpdate.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<DataUpdate> by ReflectiveXdrDecoder.wrapType()
+  }
+
+  open class DataRemove(var dataRemove: ReviewableRequestResourceDataRemove): ReviewableRequestResource(org.tokend.wallet.xdr.ReviewableRequestType.DATA_REMOVE) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      dataRemove.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<DataRemove> by ReflectiveXdrDecoder.wrapType()
   }
 
   open class ReviewableRequestResourceCreateSale(
@@ -19534,6 +20506,76 @@ abstract class ReviewableRequestResource(@XdrDiscriminantField val discriminant:
 
     companion object Decoder: XdrDecodable<ReviewableRequestResourcePerformRedemption> by ReflectiveXdrDecoder.wrapType()
   }
+  open class ReviewableRequestResourceDataCreation(
+      var type: org.tokend.wallet.xdr.Uint64,
+      var ext: org.tokend.wallet.xdr.EmptyExt
+    ) : XdrEncodable {
+
+    override fun toXdr(stream: XdrDataOutputStream) {
+      type.toXdr(stream)
+      ext.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<ReviewableRequestResourceDataCreation> by ReflectiveXdrDecoder.wrapType()
+  }
+  open class ReviewableRequestResourceDataUpdate(
+      var type: org.tokend.wallet.xdr.Uint64,
+      var ext: org.tokend.wallet.xdr.EmptyExt
+    ) : XdrEncodable {
+
+    override fun toXdr(stream: XdrDataOutputStream) {
+      type.toXdr(stream)
+      ext.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<ReviewableRequestResourceDataUpdate> by ReflectiveXdrDecoder.wrapType()
+  }
+  open class ReviewableRequestResourceDataRemove(
+      var type: org.tokend.wallet.xdr.Uint64,
+      var ext: org.tokend.wallet.xdr.EmptyExt
+    ) : XdrEncodable {
+
+    override fun toXdr(stream: XdrDataOutputStream) {
+      type.toXdr(stream)
+      ext.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<ReviewableRequestResourceDataRemove> by ReflectiveXdrDecoder.wrapType()
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Describes custom rule resource that can be used outside of the Core for flexible access control
+//  struct CustomRuleResource {
+//      //: Action attributes
+//      longstring *action;
+//      //: Resource attributes
+//      longstring resource;
+//  
+//      EmptyExt ext;
+//  };
+
+//  ===========================================================================
+open class CustomRuleResource(
+    @XdrOptionalField
+    var action: org.tokend.wallet.xdr.Longstring?,
+    var resource: org.tokend.wallet.xdr.Longstring,
+    var ext: org.tokend.wallet.xdr.EmptyExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    if (action != null) {
+      true.toXdr(stream)
+      action?.toXdr(stream)
+    } else {
+      false.toXdr(stream)
+    }
+    resource.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CustomRuleResource> by ReflectiveXdrDecoder.wrapType()
 }
 
 // === xdr source ============================================================
@@ -19677,6 +20719,8 @@ abstract class ReviewableRequestResource(@XdrDiscriminantField val discriminant:
 //          //: Reserved for future extension
 //          EmptyExt ext;
 //      } data;
+//  case CUSTOM:
+//      CustomRuleResource custom;
 //  default:
 //      //: reserved for future extension
 //      EmptyExt ext;
@@ -19798,6 +20842,15 @@ abstract class AccountRuleResource(@XdrDiscriminantField val discriminant: org.t
     }
 
     companion object Decoder: XdrDecodable<Data> by ReflectiveXdrDecoder.wrapType()
+  }
+
+  open class Custom(var custom: org.tokend.wallet.xdr.CustomRuleResource): AccountRuleResource(org.tokend.wallet.xdr.LedgerEntryType.CUSTOM) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      custom.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<Custom> by ReflectiveXdrDecoder.wrapType()
   }
 
   open class AccountRuleResourceAsset(
@@ -20013,7 +21066,8 @@ abstract class AccountRuleResource(@XdrDiscriminantField val discriminant: org.t
 //      EXCHANGE = 21,
 //      RECEIVE_REDEMPTION = 22,
 //      UPDATE = 23,
-//      UPDATE_FOR_OTHER = 24
+//      UPDATE_FOR_OTHER = 24,
+//      CUSTOM = 25
 //  };
 
 //  ===========================================================================
@@ -20042,6 +21096,7 @@ public enum class AccountRuleAction(val value: kotlin.Int): XdrEncodable {
   RECEIVE_REDEMPTION(22),
   UPDATE(23),
   UPDATE_FOR_OTHER(24),
+  CUSTOM(25),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -20223,6 +21278,8 @@ public enum class AccountRuleAction(val value: kotlin.Int): XdrEncodable {
 //          //: Reserved for future extension
 //          EmptyExt ext;
 //      } data;
+//  case CUSTOM:
+//      CustomRuleResource custom;
 //  default:
 //      //: reserved for future extension
 //      EmptyExt ext;
@@ -20371,6 +21428,15 @@ abstract class SignerRuleResource(@XdrDiscriminantField val discriminant: org.to
     }
 
     companion object Decoder: XdrDecodable<Data> by ReflectiveXdrDecoder.wrapType()
+  }
+
+  open class Custom(var custom: org.tokend.wallet.xdr.CustomRuleResource): SignerRuleResource(org.tokend.wallet.xdr.LedgerEntryType.CUSTOM) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      custom.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<Custom> by ReflectiveXdrDecoder.wrapType()
   }
 
   open class SignerRuleResourceReviewableRequest(
@@ -20625,7 +21691,8 @@ abstract class SignerRuleResource(@XdrDiscriminantField val discriminant: org.to
 //      CREATE_FOR_OTHER_WITH_TASKS = 18,
 //      REMOVE_FOR_OTHER = 19,
 //      EXCHANGE = 20,
-//      UPDATE_FOR_OTHER = 21
+//      UPDATE_FOR_OTHER = 21,
+//      CUSTOM = 22
 //  };
 
 //  ===========================================================================
@@ -20651,6 +21718,7 @@ public enum class SignerRuleAction(val value: kotlin.Int): XdrEncodable {
   REMOVE_FOR_OTHER(19),
   EXCHANGE(20),
   UPDATE_FOR_OTHER(21),
+  CUSTOM(22),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -21091,6 +22159,65 @@ open class ContractRequest(
     companion object Decoder: XdrDecodable<ContractRequestExt> by ReflectiveXdrDecoder.wrapType()
 
     open class EmptyVersion: ContractRequestExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct DataCreationRequest {
+//      //: Numeric type, used for access control
+//      uint64 type;
+//  
+//      // Sequence number increases when request is rejected
+//  	uint32 sequenceNumber;
+//  
+//      //: Owner of data to create
+//      AccountID owner;
+//  
+//      //: Value stored
+//      longstring value;
+//  
+//      //: Arbitrary stringified json object that can be used to attach data to be reviewed by an admin
+//      longstring creatorDetails; // details set by requester
+//  
+//      //: reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class DataCreationRequest(
+    var type: org.tokend.wallet.xdr.Uint64,
+    var sequenceNumber: org.tokend.wallet.xdr.Uint32,
+    var owner: org.tokend.wallet.xdr.AccountID,
+    var value: org.tokend.wallet.xdr.Longstring,
+    var creatorDetails: org.tokend.wallet.xdr.Longstring,
+    var ext: DataCreationRequestExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    type.toXdr(stream)
+    sequenceNumber.toXdr(stream)
+    owner.toXdr(stream)
+    value.toXdr(stream)
+    creatorDetails.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<DataCreationRequest> by ReflectiveXdrDecoder.wrapType()
+
+  abstract class DataCreationRequestExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<DataCreationRequestExt> by ReflectiveXdrDecoder.wrapType()
+
+    open class EmptyVersion: DataCreationRequestExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -21595,6 +22722,55 @@ open class RedemptionRequest(
 
 // === xdr source ============================================================
 
+//  struct DataRemoveRequest {
+//      //: Id of the data entry
+//      uint64 id;
+//  
+//      // Sequence number increases when request is rejected
+//  	uint32 sequenceNumber;
+//  
+//      //: Arbitrary stringified json object that can be used to attach data to be reviewed by an admin
+//      longstring creatorDetails; // details set by requester
+//  
+//      //: reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class DataRemoveRequest(
+    var id: org.tokend.wallet.xdr.Uint64,
+    var sequenceNumber: org.tokend.wallet.xdr.Uint32,
+    var creatorDetails: org.tokend.wallet.xdr.Longstring,
+    var ext: DataRemoveRequestExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    id.toXdr(stream)
+    sequenceNumber.toXdr(stream)
+    creatorDetails.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<DataRemoveRequest> by ReflectiveXdrDecoder.wrapType()
+
+  abstract class DataRemoveRequestExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<DataRemoveRequestExt> by ReflectiveXdrDecoder.wrapType()
+
+    open class EmptyVersion: DataRemoveRequestExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
 //  //: SaleCreationRequestQuoteAsset is a structure that contains an asset code with price
 //  struct SaleCreationRequestQuoteAsset {
 //      //: AssetCode of quote asset
@@ -21786,6 +22962,60 @@ open class SaleCreationRequest(
 
       companion object Decoder: XdrDecodable<AddSaleWhitelists> by ReflectiveXdrDecoder.wrapType()
     }
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct DataUpdateRequest {
+//      //: Id of the data entry
+//      uint64 id;
+//  
+//      // Sequence number increases when request is rejected
+//  	uint32 sequenceNumber;
+//  
+//      //: Value stored
+//      longstring value;
+//  
+//      //: Arbitrary stringified json object that can be used to attach data to be reviewed by an admin
+//      longstring creatorDetails; // details set by requester
+//  
+//      //: reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class DataUpdateRequest(
+    var id: org.tokend.wallet.xdr.Uint64,
+    var sequenceNumber: org.tokend.wallet.xdr.Uint32,
+    var value: org.tokend.wallet.xdr.Longstring,
+    var creatorDetails: org.tokend.wallet.xdr.Longstring,
+    var ext: DataUpdateRequestExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    id.toXdr(stream)
+    sequenceNumber.toXdr(stream)
+    value.toXdr(stream)
+    creatorDetails.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<DataUpdateRequest> by ReflectiveXdrDecoder.wrapType()
+
+  abstract class DataUpdateRequestExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<DataUpdateRequestExt> by ReflectiveXdrDecoder.wrapType()
+
+    open class EmptyVersion: DataUpdateRequestExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
   }
 }
 
@@ -22010,7 +23240,20 @@ open class WithdrawalRequest(
 //          UpdateDataOp updateDataOp;
 //      case REMOVE_DATA:
 //          RemoveDataOp removeDataOp;
+//      case CREATE_DATA_CREATION_REQUEST:
+//          CreateDataCreationRequestOp createDataCreationRequestOp;
+//      case CANCEL_DATA_CREATION_REQUEST:
+//          CancelDataCreationRequestOp cancelDataCreationRequestOp;
+//      case CREATE_DATA_UPDATE_REQUEST:
+//          CreateDataUpdateRequestOp createDataUpdateRequestOp;
+//      case CREATE_DATA_REMOVE_REQUEST:
+//          CreateDataRemoveRequestOp createDataRemoveRequestOp;
+//      case CANCEL_DATA_UPDATE_REQUEST:
+//          CancelDataUpdateRequestOp cancelDataUpdateRequestOp;
+//      case CANCEL_DATA_REMOVE_REQUEST:
+//          CancelDataRemoveRequestOp cancelDataRemoveRequestOp;
 //      }
+//  
 //      body;
 //  };
 
@@ -22516,6 +23759,60 @@ open class Operation(
 
       companion object Decoder: XdrDecodable<RemoveData> by ReflectiveXdrDecoder.wrapType()
     }
+
+    open class CreateDataCreationRequest(var createDataCreationRequestOp: org.tokend.wallet.xdr.CreateDataCreationRequestOp): OperationBody(org.tokend.wallet.xdr.OperationType.CREATE_DATA_CREATION_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        createDataCreationRequestOp.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<CreateDataCreationRequest> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class CancelDataCreationRequest(var cancelDataCreationRequestOp: org.tokend.wallet.xdr.CancelDataCreationRequestOp): OperationBody(org.tokend.wallet.xdr.OperationType.CANCEL_DATA_CREATION_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        cancelDataCreationRequestOp.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<CancelDataCreationRequest> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class CreateDataUpdateRequest(var createDataUpdateRequestOp: org.tokend.wallet.xdr.CreateDataUpdateRequestOp): OperationBody(org.tokend.wallet.xdr.OperationType.CREATE_DATA_UPDATE_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        createDataUpdateRequestOp.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<CreateDataUpdateRequest> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class CreateDataRemoveRequest(var createDataRemoveRequestOp: org.tokend.wallet.xdr.CreateDataRemoveRequestOp): OperationBody(org.tokend.wallet.xdr.OperationType.CREATE_DATA_REMOVE_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        createDataRemoveRequestOp.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<CreateDataRemoveRequest> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class CancelDataUpdateRequest(var cancelDataUpdateRequestOp: org.tokend.wallet.xdr.CancelDataUpdateRequestOp): OperationBody(org.tokend.wallet.xdr.OperationType.CANCEL_DATA_UPDATE_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        cancelDataUpdateRequestOp.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<CancelDataUpdateRequest> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class CancelDataRemoveRequest(var cancelDataRemoveRequestOp: org.tokend.wallet.xdr.CancelDataRemoveRequestOp): OperationBody(org.tokend.wallet.xdr.OperationType.CANCEL_DATA_REMOVE_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        cancelDataRemoveRequestOp.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<CancelDataRemoveRequest> by ReflectiveXdrDecoder.wrapType()
+    }
   }
 }
 
@@ -22921,6 +24218,18 @@ open class AccountRuleRequirement(
 //          UpdateDataResult updateDataResult;
 //      case REMOVE_DATA:
 //          RemoveDataResult removeDataResult;
+//      case CREATE_DATA_CREATION_REQUEST:
+//          CreateDataCreationRequestResult createDataCreationRequestResult;
+//      case CANCEL_DATA_CREATION_REQUEST:
+//          CancelDataCreationRequestResult cancelDataCreationRequestResult;
+//      case CREATE_DATA_UPDATE_REQUEST:
+//          CreateDataUpdateRequestResult createDataUpdateRequestResult;
+//      case CREATE_DATA_REMOVE_REQUEST:
+//          CreateDataRemoveRequestResult createDataRemoveRequestResult;
+//      case CANCEL_DATA_UPDATE_REQUEST:
+//          CancelDataUpdateRequestResult cancelDataUpdateRequestResult;
+//      case CANCEL_DATA_REMOVE_REQUEST:
+//          CancelDataRemoveRequestResult cancelDataRemoveRequestResult;
 //      }
 //      tr;
 //  case opNO_ENTRY:
@@ -23449,6 +24758,60 @@ abstract class OperationResult(@XdrDiscriminantField val discriminant: org.token
 
       companion object Decoder: XdrDecodable<RemoveData> by ReflectiveXdrDecoder.wrapType()
     }
+
+    open class CreateDataCreationRequest(var createDataCreationRequestResult: org.tokend.wallet.xdr.CreateDataCreationRequestResult): OperationResultTr(org.tokend.wallet.xdr.OperationType.CREATE_DATA_CREATION_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        createDataCreationRequestResult.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<CreateDataCreationRequest> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class CancelDataCreationRequest(var cancelDataCreationRequestResult: org.tokend.wallet.xdr.CancelDataCreationRequestResult): OperationResultTr(org.tokend.wallet.xdr.OperationType.CANCEL_DATA_CREATION_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        cancelDataCreationRequestResult.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<CancelDataCreationRequest> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class CreateDataUpdateRequest(var createDataUpdateRequestResult: org.tokend.wallet.xdr.CreateDataUpdateRequestResult): OperationResultTr(org.tokend.wallet.xdr.OperationType.CREATE_DATA_UPDATE_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        createDataUpdateRequestResult.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<CreateDataUpdateRequest> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class CreateDataRemoveRequest(var createDataRemoveRequestResult: org.tokend.wallet.xdr.CreateDataRemoveRequestResult): OperationResultTr(org.tokend.wallet.xdr.OperationType.CREATE_DATA_REMOVE_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        createDataRemoveRequestResult.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<CreateDataRemoveRequest> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class CancelDataUpdateRequest(var cancelDataUpdateRequestResult: org.tokend.wallet.xdr.CancelDataUpdateRequestResult): OperationResultTr(org.tokend.wallet.xdr.OperationType.CANCEL_DATA_UPDATE_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        cancelDataUpdateRequestResult.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<CancelDataUpdateRequest> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class CancelDataRemoveRequest(var cancelDataRemoveRequestResult: org.tokend.wallet.xdr.CancelDataRemoveRequestResult): OperationResultTr(org.tokend.wallet.xdr.OperationType.CANCEL_DATA_REMOVE_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        cancelDataRemoveRequestResult.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<CancelDataRemoveRequest> by ReflectiveXdrDecoder.wrapType()
+    }
   }
 }
 
@@ -23883,7 +25246,8 @@ abstract class PublicKey(@XdrDiscriminantField val discriminant: org.tokend.wall
 //      ACCOUNT_SPECIFIC_RULE = 36,
 //      INITIATE_KYC_RECOVERY = 37,
 //      SWAP = 38,
-//      DATA = 39
+//      DATA = 39,
+//      CUSTOM = 40
 //  };
 
 //  ===========================================================================
@@ -23925,6 +25289,7 @@ public enum class LedgerEntryType(val value: kotlin.Int): XdrEncodable {
   INITIATE_KYC_RECOVERY(37),
   SWAP(38),
   DATA(39),
+  CUSTOM(40),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -24201,7 +25566,13 @@ open class Fee(
 //      CREATE_REDEMPTION_REQUEST = 56,
 //      CREATE_DATA = 57,
 //      UPDATE_DATA = 58,
-//      REMOVE_DATA = 59
+//      REMOVE_DATA = 59,
+//      CREATE_DATA_CREATION_REQUEST = 60,
+//      CANCEL_DATA_CREATION_REQUEST = 61,
+//      CREATE_DATA_UPDATE_REQUEST = 62,
+//      CREATE_DATA_REMOVE_REQUEST = 63,
+//      CANCEL_DATA_UPDATE_REQUEST = 64,
+//      CANCEL_DATA_REMOVE_REQUEST = 65
 //  };
 
 //  ===========================================================================
@@ -24259,6 +25630,12 @@ public enum class OperationType(val value: kotlin.Int): XdrEncodable {
   CREATE_DATA(57),
   UPDATE_DATA(58),
   REMOVE_DATA(59),
+  CREATE_DATA_CREATION_REQUEST(60),
+  CANCEL_DATA_CREATION_REQUEST(61),
+  CREATE_DATA_UPDATE_REQUEST(62),
+  CREATE_DATA_REMOVE_REQUEST(63),
+  CANCEL_DATA_UPDATE_REQUEST(64),
+  CANCEL_DATA_REMOVE_REQUEST(65),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
