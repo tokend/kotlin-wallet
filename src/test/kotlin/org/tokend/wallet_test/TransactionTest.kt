@@ -68,33 +68,4 @@ class TransactionTest {
         val hash = Base64.encode(sampleTransaction.getHash()).toString(Charsets.UTF_8)
         Assert.assertEquals(expectedHash, hash)
     }
-
-    @Test
-    fun salt() {
-        val salt = Long.MIN_VALUE + 1
-        val transaction = Transaction(
-                network,
-                PublicKeyFactory.fromAccountId(sourceAccountId),
-                listOf(Operation(null, Operation.OperationBody.Payment(paymentOp))),
-                salt = salt
-        )
-        Assert.assertEquals("Absolute salt value must be used", Long.MAX_VALUE, transaction.salt)
-    }
-
-    @Test
-    fun saltLongMinValue() {
-        try {
-            Transaction(
-                    network,
-                    PublicKeyFactory.fromAccountId(sourceAccountId),
-                    listOf(Operation(null, Operation.OperationBody.Payment(paymentOp))),
-                    salt = Long.MIN_VALUE
-            )
-        } catch (e: IllegalArgumentException) {
-            // OK
-            return
-        }
-
-        Assert.fail("Long.MIN_VALUE can't be used as a salt")
-    }
 }

@@ -81,6 +81,19 @@ class DecodingTest {
             })
         }
 
+        Int.MAX_VALUE.also { source ->
+            Assert.assertEquals(source, ByteArrayOutputStream().let {
+                source.toXdr(XdrDataOutputStream(it))
+                Int.fromXdr(XdrDataInputStream(ByteArrayInputStream(it.toByteArray())))
+            })
+        }
+        (Int.MIN_VALUE).also { source ->
+            Assert.assertEquals(source, ByteArrayOutputStream().let {
+                source.toXdr(XdrDataOutputStream(it))
+                Int.fromXdr(XdrDataInputStream(ByteArrayInputStream(it.toByteArray())))
+            })
+        }
+
         55L.also { source ->
             Assert.assertEquals(source, ByteArrayOutputStream().let {
                 source.toXdr(XdrDataOutputStream(it))
@@ -88,6 +101,18 @@ class DecodingTest {
             })
         }
         (-55L).also { source ->
+            Assert.assertEquals(source, ByteArrayOutputStream().let {
+                source.toXdr(XdrDataOutputStream(it))
+                Long.fromXdr(XdrDataInputStream(ByteArrayInputStream(it.toByteArray())))
+            })
+        }
+        Long.MAX_VALUE.also { source ->
+            Assert.assertEquals(source, ByteArrayOutputStream().let {
+                source.toXdr(XdrDataOutputStream(it))
+                Long.fromXdr(XdrDataInputStream(ByteArrayInputStream(it.toByteArray())))
+            })
+        }
+        (Long.MIN_VALUE).also { source ->
             Assert.assertEquals(source, ByteArrayOutputStream().let {
                 source.toXdr(XdrDataOutputStream(it))
                 Long.fromXdr(XdrDataInputStream(ByteArrayInputStream(it.toByteArray())))

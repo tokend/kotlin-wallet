@@ -12,6 +12,7 @@ class XdrModelsTests {
     private val BALANCE_ID = "BA7UXH23ZELVU6XZFEXMAE3J4QJTGG3F5ZPOV2BJ335CMGO6BHWRODQG"
     private val ASSET_CODE = "OLG"
     private val AMOUNT = 12345600L
+    private val SUPER_AMOUNT = -1L
     private val BYTES_ACCOUNT_ID: PublicKey = PublicKey.KeyTypeEd25519(Uint256(Base32Check.decodeAccountId(ACCOUNT_ID)))
     private val BYTES_BALANCE_ID: PublicKey = PublicKey.KeyTypeEd25519(Uint256(Base32Check.decodeBalanceId(BALANCE_ID)))
 
@@ -78,5 +79,12 @@ class XdrModelsTests {
 
         Assert.assertEquals("AAAAAAAAACYAAAAAAAAAAHteR0/xHy/UY52BNKpS2XhbRQ9sVCsVfrSwiwW7X7B9AAAAAAAAAP8AAAD/AAAA/wAAAAAAAAAAAAAAAA==",
                 op.toBase64())
+    }
+
+    @Test
+    fun testTimeBounds() {
+        val timeBounds = TimeBounds(0, SUPER_AMOUNT)
+
+        Assert.assertEquals("AAAAAAAAAAD//////////w==", timeBounds.toBase64())
     }
 }
