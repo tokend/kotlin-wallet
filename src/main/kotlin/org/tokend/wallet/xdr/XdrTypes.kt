@@ -1174,6 +1174,51 @@ open class DataEntry(
 
 // === xdr source ============================================================
 
+//  struct DeferredPaymentEntry
+//  {
+//      //: ID of the deferred payment entry
+//      uint64 id;
+//  
+//      uint64 amount;
+//  
+//      longstring details;
+//  
+//      //: Creator of the entry
+//      AccountID source;
+//      BalanceID sourceBalance;
+//  
+//      AccountID destination;
+//  
+//      //: Reserved for future extension
+//      EmptyExt ext;
+//  };
+
+//  ===========================================================================
+open class DeferredPaymentEntry(
+    var id: org.tokend.wallet.xdr.Uint64,
+    var amount: org.tokend.wallet.xdr.Uint64,
+    var details: org.tokend.wallet.xdr.Longstring,
+    var source: org.tokend.wallet.xdr.AccountID,
+    var sourceBalance: org.tokend.wallet.xdr.BalanceID,
+    var destination: org.tokend.wallet.xdr.AccountID,
+    var ext: org.tokend.wallet.xdr.EmptyExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    id.toXdr(stream)
+    amount.toXdr(stream)
+    details.toXdr(stream)
+    source.toXdr(stream)
+    sourceBalance.toXdr(stream)
+    destination.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<DeferredPaymentEntry> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
 //  struct ExternalSystemAccountIDPoolEntry
 //  {
 //      uint64 poolEntryID;
@@ -2056,7 +2101,9 @@ open class ReferenceEntry(
 //  	PERFORM_REDEMPTION = 21,
 //  	DATA_CREATION = 22,
 //  	DATA_UPDATE = 23,
-//  	DATA_REMOVE = 24
+//  	DATA_REMOVE = 24,
+//  	CREATE_DEFERRED_PAYMENT = 25,
+//      CLOSE_DEFERRED_PAYMENT = 26
 //  };
 
 //  ===========================================================================
@@ -2085,6 +2132,8 @@ public enum class ReviewableRequestType(val value: kotlin.Int): XdrEncodable {
   DATA_CREATION(22),
   DATA_UPDATE(23),
   DATA_REMOVE(24),
+  CREATE_DEFERRED_PAYMENT(25),
+  CLOSE_DEFERRED_PAYMENT(26),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -2200,6 +2249,10 @@ open class TasksExt(
 //              DataUpdateRequest dataUpdateRequest;
 //          case DATA_REMOVE:
 //              DataRemoveRequest dataRemoveRequest;
+//          case CREATE_DEFERRED_PAYMENT:
+//              CreateDeferredPaymentRequest createDeferredPaymentRequest;
+//          case CLOSE_DEFERRED_PAYMENT:
+//              CloseDeferredPaymentRequest closeDeferredPaymentRequest;
 //  
 //  	} body;
 //  
@@ -2452,6 +2505,24 @@ open class ReviewableRequestEntry(
       }
 
       companion object Decoder: XdrDecodable<DataRemove> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class CreateDeferredPayment(var createDeferredPaymentRequest: org.tokend.wallet.xdr.CreateDeferredPaymentRequest): ReviewableRequestEntryBody(org.tokend.wallet.xdr.ReviewableRequestType.CREATE_DEFERRED_PAYMENT) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        createDeferredPaymentRequest.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<CreateDeferredPayment> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class CloseDeferredPayment(var closeDeferredPaymentRequest: org.tokend.wallet.xdr.CloseDeferredPaymentRequest): ReviewableRequestEntryBody(org.tokend.wallet.xdr.ReviewableRequestType.CLOSE_DEFERRED_PAYMENT) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        closeDeferredPaymentRequest.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<CloseDeferredPayment> by ReflectiveXdrDecoder.wrapType()
     }
   }
   abstract class ReviewableRequestEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
@@ -3372,6 +3443,8 @@ public enum class ThresholdIndexes(val value: kotlin.Int): XdrEncodable {
 //          SwapEntry swap;
 //      case DATA:
 //          DataEntry data;
+//      case DEFERRED_PAYMENT:
+//          DeferredPaymentEntry deferredPayment;
 //      }
 //      data;
 //  
@@ -3692,6 +3765,15 @@ open class LedgerEntry(
       }
 
       companion object Decoder: XdrDecodable<Data> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class DeferredPayment(var deferredPayment: org.tokend.wallet.xdr.DeferredPaymentEntry): LedgerEntryData(org.tokend.wallet.xdr.LedgerEntryType.DEFERRED_PAYMENT) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        deferredPayment.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<DeferredPayment> by ReflectiveXdrDecoder.wrapType()
     }
   }
   abstract class LedgerEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
@@ -4041,6 +4123,12 @@ public enum class EnvelopeType(val value: kotlin.Int): XdrEncodable {
 //  
 //          EmptyExt ext;
 //      } data;
+//  case DEFERRED_PAYMENT:
+//      struct {
+//          uint64 id;
+//  
+//          EmptyExt ext;
+//      } deferredPayment;
 //  };
 
 //  ===========================================================================
@@ -4337,6 +4425,15 @@ abstract class LedgerKey(@XdrDiscriminantField val discriminant: org.tokend.wall
     }
 
     companion object Decoder: XdrDecodable<Data> by ReflectiveXdrDecoder.wrapType()
+  }
+
+  open class DeferredPayment(var deferredPayment: LedgerKeyDeferredPayment): LedgerKey(org.tokend.wallet.xdr.LedgerEntryType.DEFERRED_PAYMENT) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      deferredPayment.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<DeferredPayment> by ReflectiveXdrDecoder.wrapType()
   }
 
   open class LedgerKeyAccount(
@@ -5000,6 +5097,18 @@ abstract class LedgerKey(@XdrDiscriminantField val discriminant: org.tokend.wall
     }
 
     companion object Decoder: XdrDecodable<LedgerKeyData> by ReflectiveXdrDecoder.wrapType()
+  }
+  open class LedgerKeyDeferredPayment(
+      var id: org.tokend.wallet.xdr.Uint64,
+      var ext: org.tokend.wallet.xdr.EmptyExt
+    ) : XdrEncodable {
+
+    override fun toXdr(stream: XdrDataOutputStream) {
+      id.toXdr(stream)
+      ext.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<LedgerKeyDeferredPayment> by ReflectiveXdrDecoder.wrapType()
   }
 }
 
@@ -6141,6 +6250,136 @@ abstract class CancelChangeRoleRequestResult(@XdrDiscriminantField val discrimin
 
 // === xdr source ============================================================
 
+//  //: CancelCloseDeferredPaymentRequestOp is used to cancel existing deferred payment creation request
+//  struct CancelCloseDeferredPaymentRequestOp
+//  {
+//      //: id of existing request
+//      uint64 requestID;
+//  
+//      //: reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      } ext;
+//  };
+
+//  ===========================================================================
+open class CancelCloseDeferredPaymentRequestOp(
+    var requestID: org.tokend.wallet.xdr.Uint64,
+    var ext: CancelCloseDeferredPaymentRequestOpExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    requestID.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CancelCloseDeferredPaymentRequestOp> by ReflectiveXdrDecoder.wrapType()
+
+  abstract class CancelCloseDeferredPaymentRequestOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<CancelCloseDeferredPaymentRequestOpExt> by ReflectiveXdrDecoder.wrapType()
+
+    open class EmptyVersion: CancelCloseDeferredPaymentRequestOpExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Result codes of CancelCloseDeferredPaymentRequestOp
+//  enum CancelCloseDeferredPaymentRequestResultCode
+//  {
+//      //: Atomic swap ask was successfully removed or marked as canceled
+//      SUCCESS = 0,
+//  
+//      // codes considered as "failure" for the operation
+//      NOT_FOUND = -1
+//  };
+
+//  ===========================================================================
+public enum class CancelCloseDeferredPaymentRequestResultCode(val value: kotlin.Int): XdrEncodable {
+  SUCCESS(0),
+  NOT_FOUND(-1),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CancelCloseDeferredPaymentRequestResultCode> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
+//  //: Success result of CancelCloseDeferredPaymentRequestOp application
+//  struct CancelCloseDeferredPaymentRequestResultSuccess
+//  {
+//      //: reserved for the future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      } ext;
+//  };
+
+//  ===========================================================================
+open class CancelCloseDeferredPaymentRequestResultSuccess(
+    var ext: CancelCloseDeferredPaymentRequestResultSuccessExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CancelCloseDeferredPaymentRequestResultSuccess> by ReflectiveXdrDecoder.wrapType()
+
+  abstract class CancelCloseDeferredPaymentRequestResultSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<CancelCloseDeferredPaymentRequestResultSuccessExt> by ReflectiveXdrDecoder.wrapType()
+
+    open class EmptyVersion: CancelCloseDeferredPaymentRequestResultSuccessExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Result of CancelCloseDeferredPaymentRequestOp application
+//  union CancelCloseDeferredPaymentRequestResult switch (CancelCloseDeferredPaymentRequestResultCode code)
+//  {
+//  case SUCCESS:
+//      //: is used to pass useful fields after successful operation applying
+//      CancelCloseDeferredPaymentRequestResultSuccess success;
+//  default:
+//      void;
+//  };
+
+//  ===========================================================================
+abstract class CancelCloseDeferredPaymentRequestResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CancelCloseDeferredPaymentRequestResultCode): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CancelCloseDeferredPaymentRequestResult> by ReflectiveXdrDecoder.wrapType()
+
+  open class Success(var success: org.tokend.wallet.xdr.CancelCloseDeferredPaymentRequestResultSuccess): CancelCloseDeferredPaymentRequestResult(org.tokend.wallet.xdr.CancelCloseDeferredPaymentRequestResultCode.SUCCESS) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      success.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<Success> by ReflectiveXdrDecoder.wrapType()
+  }
+}
+
+// === xdr source ============================================================
+
 //  //: CancelDataCreationRequestOp is used to cancel reviwable request for data creation.
 //  //: If successful, request with the corresponding ID will be deleted
 //  struct CancelDataCreationRequestOp
@@ -6544,6 +6783,141 @@ abstract class CancelDataUpdateRequestResult(@XdrDiscriminantField val discrimin
   companion object Decoder: XdrDecodable<CancelDataUpdateRequestResult> by ReflectiveXdrDecoder.wrapType()
 
   open class Success(var success: org.tokend.wallet.xdr.CancelDataUpdateSuccess): CancelDataUpdateRequestResult(org.tokend.wallet.xdr.CancelDataUpdateRequestResultCode.SUCCESS) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      success.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<Success> by ReflectiveXdrDecoder.wrapType()
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: CancelDeferredPaymentCreationRequestOp is used to cancel existing deferred payment creation request
+//  struct CancelDeferredPaymentCreationRequestOp
+//  {
+//      //: id of existing request
+//      uint64 requestID;
+//  
+//      //: reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      } ext;
+//  };
+
+//  ===========================================================================
+open class CancelDeferredPaymentCreationRequestOp(
+    var requestID: org.tokend.wallet.xdr.Uint64,
+    var ext: CancelDeferredPaymentCreationRequestOpExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    requestID.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CancelDeferredPaymentCreationRequestOp> by ReflectiveXdrDecoder.wrapType()
+
+  abstract class CancelDeferredPaymentCreationRequestOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<CancelDeferredPaymentCreationRequestOpExt> by ReflectiveXdrDecoder.wrapType()
+
+    open class EmptyVersion: CancelDeferredPaymentCreationRequestOpExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Result codes of CancelDeferredPaymentCreationRequestOp
+//  enum CancelDeferredPaymentCreationRequestResultCode
+//  {
+//      //: Atomic swap ask was successfully removed or marked as canceled
+//      SUCCESS = 0,
+//  
+//      // codes considered as "failure" for the operation
+//      //: There is no atomic swap ask with such id
+//      NOT_FOUND = -1, // request does not exist
+//      REQUEST_ID_INVALID = -2,
+//      LINE_FULL = -3
+//  };
+
+//  ===========================================================================
+public enum class CancelDeferredPaymentCreationRequestResultCode(val value: kotlin.Int): XdrEncodable {
+  SUCCESS(0),
+  NOT_FOUND(-1),
+  REQUEST_ID_INVALID(-2),
+  LINE_FULL(-3),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CancelDeferredPaymentCreationRequestResultCode> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
+//  //: Success result of CancelDeferredPaymentCreationRequestOp application
+//  struct CancelDeferredPaymentCreationRequestResultSuccess
+//  {
+//      //: reserved for the future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      } ext;
+//  };
+
+//  ===========================================================================
+open class CancelDeferredPaymentCreationRequestResultSuccess(
+    var ext: CancelDeferredPaymentCreationRequestResultSuccessExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CancelDeferredPaymentCreationRequestResultSuccess> by ReflectiveXdrDecoder.wrapType()
+
+  abstract class CancelDeferredPaymentCreationRequestResultSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<CancelDeferredPaymentCreationRequestResultSuccessExt> by ReflectiveXdrDecoder.wrapType()
+
+    open class EmptyVersion: CancelDeferredPaymentCreationRequestResultSuccessExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Result of CancelDeferredPaymentCreationRequestOp application
+//  union CancelDeferredPaymentCreationRequestResult switch (CancelDeferredPaymentCreationRequestResultCode code)
+//  {
+//  case SUCCESS:
+//      //: is used to pass useful fields after successful operation applying
+//      CancelDeferredPaymentCreationRequestResultSuccess success;
+//  default:
+//      void;
+//  };
+
+//  ===========================================================================
+abstract class CancelDeferredPaymentCreationRequestResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CancelDeferredPaymentCreationRequestResultCode): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CancelDeferredPaymentCreationRequestResult> by ReflectiveXdrDecoder.wrapType()
+
+  open class Success(var success: org.tokend.wallet.xdr.CancelDeferredPaymentCreationRequestResultSuccess): CancelDeferredPaymentCreationRequestResult(org.tokend.wallet.xdr.CancelDeferredPaymentCreationRequestResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
@@ -8148,6 +8522,246 @@ abstract class CreateChangeRoleRequestResult(@XdrDiscriminantField val discrimin
 
 // === xdr source ============================================================
 
+//  //: CreateCloseDeferredPaymentRequestOp is used to create `CLOSE_DEFERRED_PAYMENT` request
+//  struct CreateCloseDeferredPaymentRequestOp
+//  {
+//  
+//      uint64 requestID;
+//  
+//      //: Body of request which will be created
+//      CloseDeferredPaymentRequest request;
+//  
+//      uint32* allTasks;
+//      //: reserved for the future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class CreateCloseDeferredPaymentRequestOp(
+    var requestID: org.tokend.wallet.xdr.Uint64,
+    var request: org.tokend.wallet.xdr.CloseDeferredPaymentRequest,
+    @XdrOptionalField
+    var allTasks: org.tokend.wallet.xdr.Uint32?,
+    var ext: CreateCloseDeferredPaymentRequestOpExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    requestID.toXdr(stream)
+    request.toXdr(stream)
+    if (allTasks != null) {
+      true.toXdr(stream)
+      allTasks?.toXdr(stream)
+    } else {
+      false.toXdr(stream)
+    }
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CreateCloseDeferredPaymentRequestOp> by ReflectiveXdrDecoder.wrapType()
+
+  abstract class CreateCloseDeferredPaymentRequestOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<CreateCloseDeferredPaymentRequestOpExt> by ReflectiveXdrDecoder.wrapType()
+
+    open class EmptyVersion: CreateCloseDeferredPaymentRequestOpExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Result codes of CreateAtomicSwapBidRequestOp
+//  enum CreateCloseDeferredPaymentRequestResultCode
+//  {
+//      //: `CLOSE_DEFERRED_PAYMENT` request has either been successfully created
+//      //: or auto approved
+//      SUCCESS = 0,
+//  
+//      UNDERFUNDED = -1,
+//      INVALID_CREATOR_DETAILS = -2,
+//      NOT_AUTHORIZED = -3,
+//      DESTINATION_ACCOUNT_NOT_FOUND = -4,
+//      INCORRECT_PRECISION = -5,
+//      ASSET_MISMATCH = -6,
+//      LINE_FULL = -7,
+//      TASKS_NOT_FOUND = -8,
+//      INVALID_AMOUNT = -9,
+//      DESTINATION_BALANCE_NOT_FOUND = -10,
+//      REQUEST_NOT_FOUND = -11
+//  };
+
+//  ===========================================================================
+public enum class CreateCloseDeferredPaymentRequestResultCode(val value: kotlin.Int): XdrEncodable {
+  SUCCESS(0),
+  UNDERFUNDED(-1),
+  INVALID_CREATOR_DETAILS(-2),
+  NOT_AUTHORIZED(-3),
+  DESTINATION_ACCOUNT_NOT_FOUND(-4),
+  INCORRECT_PRECISION(-5),
+  ASSET_MISMATCH(-6),
+  LINE_FULL(-7),
+  TASKS_NOT_FOUND(-8),
+  INVALID_AMOUNT(-9),
+  DESTINATION_BALANCE_NOT_FOUND(-10),
+  REQUEST_NOT_FOUND(-11),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CreateCloseDeferredPaymentRequestResultCode> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
+//  enum CloseDeferredPaymentEffect
+//  {
+//      CHARGED = 0,
+//      DELETED = 1
+//  };
+
+//  ===========================================================================
+public enum class CloseDeferredPaymentEffect(val value: kotlin.Int): XdrEncodable {
+  CHARGED(0),
+  DELETED(1),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CloseDeferredPaymentEffect> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
+//  struct CloseDeferredPaymentResult
+//  {
+//      uint64 deferredPaymentID;
+//  
+//      AccountID destination;
+//      BalanceID destinationBalance;
+//  
+//      CloseDeferredPaymentEffect effect;
+//  
+//      EmptyExt ext;
+//  };
+
+//  ===========================================================================
+open class CloseDeferredPaymentResult(
+    var deferredPaymentID: org.tokend.wallet.xdr.Uint64,
+    var destination: org.tokend.wallet.xdr.AccountID,
+    var destinationBalance: org.tokend.wallet.xdr.BalanceID,
+    var effect: org.tokend.wallet.xdr.CloseDeferredPaymentEffect,
+    var ext: org.tokend.wallet.xdr.EmptyExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    deferredPaymentID.toXdr(stream)
+    destination.toXdr(stream)
+    destinationBalance.toXdr(stream)
+    effect.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CloseDeferredPaymentResult> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
+//  //: Success result of CreateASwapAskCreationRequestOp application
+//  struct CreateCloseDeferredPaymentRequestSuccess
+//  {
+//      uint64 requestID;
+//      bool fulfilled;
+//      uint64 deferredPaymentID;
+//  
+//      CloseDeferredPaymentResult* extendedResult;
+//  
+//      //: reserved for the future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      } ext;
+//  };
+
+//  ===========================================================================
+open class CreateCloseDeferredPaymentRequestSuccess(
+    var requestID: org.tokend.wallet.xdr.Uint64,
+    var fulfilled: kotlin.Boolean,
+    var deferredPaymentID: org.tokend.wallet.xdr.Uint64,
+    @XdrOptionalField
+    var extendedResult: org.tokend.wallet.xdr.CloseDeferredPaymentResult?,
+    var ext: CreateCloseDeferredPaymentRequestSuccessExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    requestID.toXdr(stream)
+    fulfilled.toXdr(stream)
+    deferredPaymentID.toXdr(stream)
+    if (extendedResult != null) {
+      true.toXdr(stream)
+      extendedResult?.toXdr(stream)
+    } else {
+      false.toXdr(stream)
+    }
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CreateCloseDeferredPaymentRequestSuccess> by ReflectiveXdrDecoder.wrapType()
+
+  abstract class CreateCloseDeferredPaymentRequestSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<CreateCloseDeferredPaymentRequestSuccessExt> by ReflectiveXdrDecoder.wrapType()
+
+    open class EmptyVersion: CreateCloseDeferredPaymentRequestSuccessExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Result of CreateCloseDeferredPaymentRequestOp application
+//  union CreateCloseDeferredPaymentRequestResult switch (CreateCloseDeferredPaymentRequestResultCode code)
+//  {
+//  case SUCCESS:
+//      //: is used to pass useful fields after successful operation applying
+//      CreateCloseDeferredPaymentRequestSuccess success;
+//  default:
+//      void;
+//  };
+
+//  ===========================================================================
+abstract class CreateCloseDeferredPaymentRequestResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CreateCloseDeferredPaymentRequestResultCode): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CreateCloseDeferredPaymentRequestResult> by ReflectiveXdrDecoder.wrapType()
+
+  open class Success(var success: org.tokend.wallet.xdr.CreateCloseDeferredPaymentRequestSuccess): CreateCloseDeferredPaymentRequestResult(org.tokend.wallet.xdr.CreateCloseDeferredPaymentRequestResultCode.SUCCESS) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      success.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<Success> by ReflectiveXdrDecoder.wrapType()
+  }
+}
+
+// === xdr source ============================================================
+
 //  struct CreateDataCreationRequestOp
 //  {
 //      //: ID of the DataCreationRequest. If set to 0, a new request is created
@@ -8662,6 +9276,179 @@ abstract class CreateDataResult(@XdrDiscriminantField val discriminant: org.toke
   companion object Decoder: XdrDecodable<CreateDataResult> by ReflectiveXdrDecoder.wrapType()
 
   open class Success(var success: org.tokend.wallet.xdr.CreateDataSuccess): CreateDataResult(org.tokend.wallet.xdr.CreateDataResultCode.SUCCESS) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      success.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<Success> by ReflectiveXdrDecoder.wrapType()
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: CreateDeferredPaymentCreationRequestOp is used to create `CREATE_DEFERRED_PAYMENT` request
+//  struct CreateDeferredPaymentCreationRequestOp
+//  {
+//  
+//      uint64 requestID;
+//      //: Body of request which will be created
+//      CreateDeferredPaymentRequest request;
+//  
+//      //: (optional) Bit mask whose flags must be cleared in order for `CREATE_ATOMIC_SWAP_BID` request to be approved,
+//      //: which will be used instead of key-value by `create_deferred_payment_creation_request_tasks` key
+//      uint32* allTasks;
+//      //: reserved for the future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      }
+//      ext;
+//  };
+
+//  ===========================================================================
+open class CreateDeferredPaymentCreationRequestOp(
+    var requestID: org.tokend.wallet.xdr.Uint64,
+    var request: org.tokend.wallet.xdr.CreateDeferredPaymentRequest,
+    @XdrOptionalField
+    var allTasks: org.tokend.wallet.xdr.Uint32?,
+    var ext: CreateDeferredPaymentCreationRequestOpExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    requestID.toXdr(stream)
+    request.toXdr(stream)
+    if (allTasks != null) {
+      true.toXdr(stream)
+      allTasks?.toXdr(stream)
+    } else {
+      false.toXdr(stream)
+    }
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CreateDeferredPaymentCreationRequestOp> by ReflectiveXdrDecoder.wrapType()
+
+  abstract class CreateDeferredPaymentCreationRequestOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<CreateDeferredPaymentCreationRequestOpExt> by ReflectiveXdrDecoder.wrapType()
+
+    open class EmptyVersion: CreateDeferredPaymentCreationRequestOpExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Result codes of CreateAtomicSwapBidRequestOp
+//  enum CreateDeferredPaymentCreationRequestResultCode
+//  {
+//      //: `CREATE_DEFERRED_PAYMENT` request has either been successfully created
+//      //: or auto approved
+//      SUCCESS = 0,
+//  
+//      SOURCE_BALANCE_NOT_FOUND = -1,
+//      DESTINATION_ACCOUNT_NOT_FOUND = -2,
+//      INCORRECT_PRECISION = -3,
+//      UNDERFUNDED = -4,
+//      TASKS_NOT_FOUND = -5,
+//      INVALID_CREATOR_DETAILS = -6,
+//      INVALID_AMOUNT = -7,
+//      REQUEST_NOT_FOUND = -8
+//  };
+
+//  ===========================================================================
+public enum class CreateDeferredPaymentCreationRequestResultCode(val value: kotlin.Int): XdrEncodable {
+  SUCCESS(0),
+  SOURCE_BALANCE_NOT_FOUND(-1),
+  DESTINATION_ACCOUNT_NOT_FOUND(-2),
+  INCORRECT_PRECISION(-3),
+  UNDERFUNDED(-4),
+  TASKS_NOT_FOUND(-5),
+  INVALID_CREATOR_DETAILS(-6),
+  INVALID_AMOUNT(-7),
+  REQUEST_NOT_FOUND(-8),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CreateDeferredPaymentCreationRequestResultCode> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
+//  //: Success result of CreateASwapAskCreationRequestOp application
+//  struct CreateDeferredPaymentCreationRequestSuccess
+//  {
+//      //: id of created request
+//      uint64 requestID;
+//      //: Indicates whether or not the `CREATE_ATOMIC_SWAP_ASK` request was auto approved and fulfilled
+//      bool fulfilled;
+//      //: ID of a newly created ask (if the ask  creation request has been auto approved)
+//      uint64 deferredPaymentID;
+//  
+//      //: reserved for the future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      } ext;
+//  };
+
+//  ===========================================================================
+open class CreateDeferredPaymentCreationRequestSuccess(
+    var requestID: org.tokend.wallet.xdr.Uint64,
+    var fulfilled: kotlin.Boolean,
+    var deferredPaymentID: org.tokend.wallet.xdr.Uint64,
+    var ext: CreateDeferredPaymentCreationRequestSuccessExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    requestID.toXdr(stream)
+    fulfilled.toXdr(stream)
+    deferredPaymentID.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CreateDeferredPaymentCreationRequestSuccess> by ReflectiveXdrDecoder.wrapType()
+
+  abstract class CreateDeferredPaymentCreationRequestSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<CreateDeferredPaymentCreationRequestSuccessExt> by ReflectiveXdrDecoder.wrapType()
+
+    open class EmptyVersion: CreateDeferredPaymentCreationRequestSuccessExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
+//  //: Result of CreateDeferredPaymentCreationRequestOp application
+//  union CreateDeferredPaymentCreationRequestResult switch (CreateDeferredPaymentCreationRequestResultCode code)
+//  {
+//  case SUCCESS:
+//      //: is used to pass useful fields after successful operation applying
+//      CreateDeferredPaymentCreationRequestSuccess success;
+//  default:
+//      void;
+//  };
+
+//  ===========================================================================
+abstract class CreateDeferredPaymentCreationRequestResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CreateDeferredPaymentCreationRequestResultCode): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CreateDeferredPaymentCreationRequestResult> by ReflectiveXdrDecoder.wrapType()
+
+  open class Success(var success: org.tokend.wallet.xdr.CreateDeferredPaymentCreationRequestSuccess): CreateDeferredPaymentCreationRequestResult(org.tokend.wallet.xdr.CreateDeferredPaymentCreationRequestResultCode.SUCCESS) {
     override fun toXdr(stream: XdrDataOutputStream) {
       super.toXdr(stream)
       success.toXdr(stream)
@@ -15431,13 +16218,15 @@ abstract class ManagePollResult(@XdrDiscriminantField val discriminant: org.toke
 //  enum ManageSaleAction
 //  {
 //      CREATE_UPDATE_DETAILS_REQUEST = 1,
-//      CANCEL = 2
+//      CANCEL = 2,
+//      UPDATE_TIME = 3
 //  };
 
 //  ===========================================================================
 public enum class ManageSaleAction(val value: kotlin.Int): XdrEncodable {
   CREATE_UPDATE_DETAILS_REQUEST(1),
   CANCEL(2),
+  UPDATE_TIME(3),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -15503,6 +16292,49 @@ open class UpdateSaleDetailsData(
 
 // === xdr source ============================================================
 
+//  //: Details are valid if one of the fileds is not zero
+//  struct UpdateTimeData {
+//      //: start time can be updated if sale is not started yet (zero means no changes)
+//      uint64 newStartTime; 
+//      //: end time should be greater than start time (zero means no changes)
+//      uint64 newEndTime;
+//  
+//      //: Reserved for future use
+//      union switch (LedgerVersion v)
+//      {
+//      case EMPTY_VERSION:
+//          void;
+//      } ext;
+//  };
+
+//  ===========================================================================
+open class UpdateTimeData(
+    var newStartTime: org.tokend.wallet.xdr.Uint64,
+    var newEndTime: org.tokend.wallet.xdr.Uint64,
+    var ext: UpdateTimeDataExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    newStartTime.toXdr(stream)
+    newEndTime.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<UpdateTimeData> by ReflectiveXdrDecoder.wrapType()
+
+  abstract class UpdateTimeDataExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<UpdateTimeDataExt> by ReflectiveXdrDecoder.wrapType()
+
+    open class EmptyVersion: UpdateTimeDataExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
+  }
+}
+
+// === xdr source ============================================================
+
 //  //: ManageSaleOp is used to cancel a sale, or create a reviewable request which, after approval, will update sale details.
 //  struct ManageSaleOp
 //  {
@@ -15514,6 +16346,8 @@ open class UpdateSaleDetailsData(
 //          UpdateSaleDetailsData updateSaleDetailsData;
 //      case CANCEL:
 //          void;
+//      case UPDATE_TIME:
+//          UpdateTimeData updateTime;
 //      } data;
 //  
 //      //: Reserved for future use
@@ -15556,6 +16390,15 @@ open class ManageSaleOp(
     }
 
     open class Cancel: ManageSaleOpData(org.tokend.wallet.xdr.ManageSaleAction.CANCEL)
+
+    open class UpdateTime(var updateTime: org.tokend.wallet.xdr.UpdateTimeData): ManageSaleOpData(org.tokend.wallet.xdr.ManageSaleAction.UPDATE_TIME) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        updateTime.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<UpdateTime> by ReflectiveXdrDecoder.wrapType()
+    }
   }
   abstract class ManageSaleOpExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
@@ -15588,7 +16431,13 @@ open class ManageSaleOp(
 //      //: It is not allowed to set allTasks for a pending reviewable request
 //      NOT_ALLOWED_TO_SET_TASKS_ON_UPDATE = -5, // not allowed to set allTasks on request update
 //      //: Update sale details tasks are not set in the system, i.e. it's not allowed to perform the update of sale details 
-//      SALE_UPDATE_DETAILS_TASKS_NOT_FOUND = -6
+//      SALE_UPDATE_DETAILS_TASKS_NOT_FOUND = -6,
+//      //: Both fields are zero
+//      INVALID_UPDATE_TIME_DATA = -7,
+//      //: Start time could not be updated (sale has already started)
+//      INVALID_START_TIME = -8,
+//      //: End time could not be less than start time
+//      INVALID_END_TIME = -9
 //  };
 
 //  ===========================================================================
@@ -15600,6 +16449,9 @@ public enum class ManageSaleResultCode(val value: kotlin.Int): XdrEncodable {
   UPDATE_DETAILS_REQUEST_NOT_FOUND(-4),
   NOT_ALLOWED_TO_SET_TASKS_ON_UPDATE(-5),
   SALE_UPDATE_DETAILS_TASKS_NOT_FOUND(-6),
+  INVALID_UPDATE_TIME_DATA(-7),
+  INVALID_START_TIME(-8),
+  INVALID_END_TIME(-9),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -15622,6 +16474,7 @@ public enum class ManageSaleResultCode(val value: kotlin.Int): XdrEncodable {
 //      case CREATE_UPDATE_DETAILS_REQUEST:
 //          uint64 requestID;
 //      case CANCEL:
+//      case UPDATE_TIME:
 //          void;
 //      } response;
 //  
@@ -15666,6 +16519,8 @@ open class ManageSaleResultSuccess(
     }
 
     open class Cancel: ManageSaleResultSuccessResponse(org.tokend.wallet.xdr.ManageSaleAction.CANCEL)
+
+    open class UpdateTime: ManageSaleResultSuccessResponse(org.tokend.wallet.xdr.ManageSaleAction.UPDATE_TIME)
   }
   abstract class ManageSaleResultSuccessExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
     override fun toXdr(stream: XdrDataOutputStream) {
@@ -18596,6 +19451,35 @@ open class AtomicSwapBidExtended(
 
 // === xdr source ============================================================
 
+//  struct CreateDeferredPaymentResult
+//  {
+//      uint64 deferredPaymentID;
+//      AccountID destination;
+//      AccountID source;
+//  
+//      EmptyExt ext;
+//  };
+
+//  ===========================================================================
+open class CreateDeferredPaymentResult(
+    var deferredPaymentID: org.tokend.wallet.xdr.Uint64,
+    var destination: org.tokend.wallet.xdr.AccountID,
+    var source: org.tokend.wallet.xdr.AccountID,
+    var ext: org.tokend.wallet.xdr.EmptyExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    deferredPaymentID.toXdr(stream)
+    destination.toXdr(stream)
+    source.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CreateDeferredPaymentResult> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
 //  struct DataCreationExtended {
 //      //: Owner of the created data entry
 //      AccountID owner;
@@ -18647,6 +19531,11 @@ open class DataCreationExtended(
 //          CreateRedemptionRequestResult createRedemptionResult;
 //      case DATA_CREATION:
 //          DataCreationExtended dataCreationExtended;
+//      case CREATE_DEFERRED_PAYMENT:
+//          CreateDeferredPaymentResult createDeferredPaymentResult;
+//      case CLOSE_DEFERRED_PAYMENT:
+//           CloseDeferredPaymentResult closeDeferredPaymentResult;
+//  
 //      } typeExt;
 //  
 //      //: Reserved for future use
@@ -18752,6 +19641,24 @@ open class ExtendedResult(
       }
 
       companion object Decoder: XdrDecodable<DataCreation> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class CreateDeferredPayment(var createDeferredPaymentResult: org.tokend.wallet.xdr.CreateDeferredPaymentResult): ExtendedResultTypeExt(org.tokend.wallet.xdr.ReviewableRequestType.CREATE_DEFERRED_PAYMENT) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        createDeferredPaymentResult.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<CreateDeferredPayment> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class CloseDeferredPayment(var closeDeferredPaymentResult: org.tokend.wallet.xdr.CloseDeferredPaymentResult): ExtendedResultTypeExt(org.tokend.wallet.xdr.ReviewableRequestType.CLOSE_DEFERRED_PAYMENT) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        closeDeferredPaymentResult.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<CloseDeferredPayment> by ReflectiveXdrDecoder.wrapType()
     }
   }
   abstract class ExtendedResultExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
@@ -20215,6 +21122,22 @@ abstract class AuthenticatedMessage(@XdrDiscriminantField val discriminant: org.
 //          //: Reserved for future extension
 //          EmptyExt ext;
 //      } dataRemove;
+//  case CREATE_DEFERRED_PAYMENT:
+//      struct
+//      {
+//          AssetCode assetCode;
+//  
+//          uint64 assetType;
+//          EmptyExt ext;
+//      } createDeferredPayment;
+//  case CLOSE_DEFERRED_PAYMENT:
+//      struct
+//      {
+//          AssetCode assetCode;
+//  
+//          uint64 assetType;
+//          EmptyExt ext;
+//      } closeDeferredPayment;
 //  default:
 //      //: reserved for future extension
 //      EmptyExt ext;
@@ -20334,6 +21257,24 @@ abstract class ReviewableRequestResource(@XdrDiscriminantField val discriminant:
     }
 
     companion object Decoder: XdrDecodable<DataRemove> by ReflectiveXdrDecoder.wrapType()
+  }
+
+  open class CreateDeferredPayment(var createDeferredPayment: ReviewableRequestResourceCreateDeferredPayment): ReviewableRequestResource(org.tokend.wallet.xdr.ReviewableRequestType.CREATE_DEFERRED_PAYMENT) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      createDeferredPayment.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<CreateDeferredPayment> by ReflectiveXdrDecoder.wrapType()
+  }
+
+  open class CloseDeferredPayment(var closeDeferredPayment: ReviewableRequestResourceCloseDeferredPayment): ReviewableRequestResource(org.tokend.wallet.xdr.ReviewableRequestType.CLOSE_DEFERRED_PAYMENT) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      closeDeferredPayment.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<CloseDeferredPayment> by ReflectiveXdrDecoder.wrapType()
   }
 
   open class ReviewableRequestResourceCreateSale(
@@ -20541,6 +21482,34 @@ abstract class ReviewableRequestResource(@XdrDiscriminantField val discriminant:
     }
 
     companion object Decoder: XdrDecodable<ReviewableRequestResourceDataRemove> by ReflectiveXdrDecoder.wrapType()
+  }
+  open class ReviewableRequestResourceCreateDeferredPayment(
+      var assetCode: org.tokend.wallet.xdr.AssetCode,
+      var assetType: org.tokend.wallet.xdr.Uint64,
+      var ext: org.tokend.wallet.xdr.EmptyExt
+    ) : XdrEncodable {
+
+    override fun toXdr(stream: XdrDataOutputStream) {
+      assetCode.toXdr(stream)
+      assetType.toXdr(stream)
+      ext.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<ReviewableRequestResourceCreateDeferredPayment> by ReflectiveXdrDecoder.wrapType()
+  }
+  open class ReviewableRequestResourceCloseDeferredPayment(
+      var assetCode: org.tokend.wallet.xdr.AssetCode,
+      var assetType: org.tokend.wallet.xdr.Uint64,
+      var ext: org.tokend.wallet.xdr.EmptyExt
+    ) : XdrEncodable {
+
+    override fun toXdr(stream: XdrDataOutputStream) {
+      assetCode.toXdr(stream)
+      assetType.toXdr(stream)
+      ext.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<ReviewableRequestResourceCloseDeferredPayment> by ReflectiveXdrDecoder.wrapType()
   }
 }
 
@@ -22112,6 +23081,98 @@ open class ChangeRoleRequest(
 
 // === xdr source ============================================================
 
+//  //: Defines the type of destination of the payment
+//  enum CloseDeferredPaymentDestinationType {
+//      ACCOUNT = 0,
+//      BALANCE = 1
+//  };
+
+//  ===========================================================================
+public enum class CloseDeferredPaymentDestinationType(val value: kotlin.Int): XdrEncodable {
+  ACCOUNT(0),
+  BALANCE(1),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CloseDeferredPaymentDestinationType> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
+//  struct CloseDeferredPaymentRequest {
+//      uint64 deferredPaymentID;
+//  
+//      //: `destination` defines the type of instance that receives the payment based on given PaymentDestinationType
+//      union switch (CloseDeferredPaymentDestinationType type) {
+//          case ACCOUNT:
+//              AccountID accountID;
+//          case BALANCE:
+//              BalanceID balanceID;
+//      } destination;
+//  
+//      //: Arbitrary stringified json object that can be used to attach data to be reviewed by an admin
+//      longstring creatorDetails; // details set by requester
+//  
+//      uint64 amount;
+//  
+//      uint32 sequenceNumber;
+//  
+//      EmptyExt ext;
+//  };
+
+//  ===========================================================================
+open class CloseDeferredPaymentRequest(
+    var deferredPaymentID: org.tokend.wallet.xdr.Uint64,
+    var destination: CloseDeferredPaymentRequestDestination,
+    var creatorDetails: org.tokend.wallet.xdr.Longstring,
+    var amount: org.tokend.wallet.xdr.Uint64,
+    var sequenceNumber: org.tokend.wallet.xdr.Uint32,
+    var ext: org.tokend.wallet.xdr.EmptyExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    deferredPaymentID.toXdr(stream)
+    destination.toXdr(stream)
+    creatorDetails.toXdr(stream)
+    amount.toXdr(stream)
+    sequenceNumber.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CloseDeferredPaymentRequest> by ReflectiveXdrDecoder.wrapType()
+
+  abstract class CloseDeferredPaymentRequestDestination(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.CloseDeferredPaymentDestinationType): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<CloseDeferredPaymentRequestDestination> by ReflectiveXdrDecoder.wrapType()
+
+    open class Account(var accountID: org.tokend.wallet.xdr.AccountID): CloseDeferredPaymentRequestDestination(org.tokend.wallet.xdr.CloseDeferredPaymentDestinationType.ACCOUNT) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        accountID.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<Account> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class Balance(var balanceID: org.tokend.wallet.xdr.BalanceID): CloseDeferredPaymentRequestDestination(org.tokend.wallet.xdr.CloseDeferredPaymentDestinationType.BALANCE) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        balanceID.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<Balance> by ReflectiveXdrDecoder.wrapType()
+    }
+  }
+}
+
+// === xdr source ============================================================
+
 //  struct ContractRequest
 //  {
 //      AccountID customer;
@@ -22219,6 +23280,42 @@ open class DataCreationRequest(
 
     open class EmptyVersion: DataCreationRequestExt(org.tokend.wallet.xdr.LedgerVersion.EMPTY_VERSION)
   }
+}
+
+// === xdr source ============================================================
+
+//  struct CreateDeferredPaymentRequest {
+//      BalanceID sourceBalance;
+//      AccountID destination;
+//  
+//      uint64 amount;
+//      uint32 sequenceNumber;
+//  
+//      longstring creatorDetails; // details set by requester
+//  
+//      EmptyExt ext;
+//  };
+
+//  ===========================================================================
+open class CreateDeferredPaymentRequest(
+    var sourceBalance: org.tokend.wallet.xdr.BalanceID,
+    var destination: org.tokend.wallet.xdr.AccountID,
+    var amount: org.tokend.wallet.xdr.Uint64,
+    var sequenceNumber: org.tokend.wallet.xdr.Uint32,
+    var creatorDetails: org.tokend.wallet.xdr.Longstring,
+    var ext: org.tokend.wallet.xdr.EmptyExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    sourceBalance.toXdr(stream)
+    destination.toXdr(stream)
+    amount.toXdr(stream)
+    sequenceNumber.toXdr(stream)
+    creatorDetails.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<CreateDeferredPaymentRequest> by ReflectiveXdrDecoder.wrapType()
 }
 
 // === xdr source ============================================================
@@ -23252,6 +24349,15 @@ open class WithdrawalRequest(
 //          CancelDataUpdateRequestOp cancelDataUpdateRequestOp;
 //      case CANCEL_DATA_REMOVE_REQUEST:
 //          CancelDataRemoveRequestOp cancelDataRemoveRequestOp;
+//      case CREATE_DEFERRED_PAYMENT_CREATION_REQUEST:
+//          CreateDeferredPaymentCreationRequestOp createDeferredPaymentCreationRequestOp;
+//      case CANCEL_DEFERRED_PAYMENT_CREATION_REQUEST:
+//          CancelDeferredPaymentCreationRequestOp cancelDeferredPaymentCreationRequestOp;
+//      case CREATE_CLOSE_DEFERRED_PAYMENT_REQUEST:
+//          CreateCloseDeferredPaymentRequestOp createCloseDeferredPaymentRequestOp;
+//      case CANCEL_CLOSE_DEFERRED_PAYMENT_REQUEST:
+//          CancelCloseDeferredPaymentRequestOp cancelCloseDeferredPaymentRequestOp;
+//  
 //      }
 //  
 //      body;
@@ -23813,6 +24919,42 @@ open class Operation(
 
       companion object Decoder: XdrDecodable<CancelDataRemoveRequest> by ReflectiveXdrDecoder.wrapType()
     }
+
+    open class CreateDeferredPaymentCreationRequest(var createDeferredPaymentCreationRequestOp: org.tokend.wallet.xdr.CreateDeferredPaymentCreationRequestOp): OperationBody(org.tokend.wallet.xdr.OperationType.CREATE_DEFERRED_PAYMENT_CREATION_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        createDeferredPaymentCreationRequestOp.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<CreateDeferredPaymentCreationRequest> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class CancelDeferredPaymentCreationRequest(var cancelDeferredPaymentCreationRequestOp: org.tokend.wallet.xdr.CancelDeferredPaymentCreationRequestOp): OperationBody(org.tokend.wallet.xdr.OperationType.CANCEL_DEFERRED_PAYMENT_CREATION_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        cancelDeferredPaymentCreationRequestOp.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<CancelDeferredPaymentCreationRequest> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class CreateCloseDeferredPaymentRequest(var createCloseDeferredPaymentRequestOp: org.tokend.wallet.xdr.CreateCloseDeferredPaymentRequestOp): OperationBody(org.tokend.wallet.xdr.OperationType.CREATE_CLOSE_DEFERRED_PAYMENT_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        createCloseDeferredPaymentRequestOp.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<CreateCloseDeferredPaymentRequest> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class CancelCloseDeferredPaymentRequest(var cancelCloseDeferredPaymentRequestOp: org.tokend.wallet.xdr.CancelCloseDeferredPaymentRequestOp): OperationBody(org.tokend.wallet.xdr.OperationType.CANCEL_CLOSE_DEFERRED_PAYMENT_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        cancelCloseDeferredPaymentRequestOp.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<CancelCloseDeferredPaymentRequest> by ReflectiveXdrDecoder.wrapType()
+    }
   }
 }
 
@@ -24230,6 +25372,15 @@ open class AccountRuleRequirement(
 //          CancelDataUpdateRequestResult cancelDataUpdateRequestResult;
 //      case CANCEL_DATA_REMOVE_REQUEST:
 //          CancelDataRemoveRequestResult cancelDataRemoveRequestResult;
+//      case CREATE_DEFERRED_PAYMENT_CREATION_REQUEST:
+//              CreateDeferredPaymentCreationRequestResult createDeferredPaymentCreationRequestResult;
+//      case CANCEL_DEFERRED_PAYMENT_CREATION_REQUEST:
+//          CancelDeferredPaymentCreationRequestResult cancelDeferredPaymentCreationRequestResult;
+//      case CREATE_CLOSE_DEFERRED_PAYMENT_REQUEST:
+//          CreateCloseDeferredPaymentRequestResult createCloseDeferredPaymentRequestResult;
+//      case CANCEL_CLOSE_DEFERRED_PAYMENT_REQUEST:
+//          CancelCloseDeferredPaymentRequestResult cancelCloseDeferredPaymentRequestResult;
+//  
 //      }
 //      tr;
 //  case opNO_ENTRY:
@@ -24812,6 +25963,42 @@ abstract class OperationResult(@XdrDiscriminantField val discriminant: org.token
 
       companion object Decoder: XdrDecodable<CancelDataRemoveRequest> by ReflectiveXdrDecoder.wrapType()
     }
+
+    open class CreateDeferredPaymentCreationRequest(var createDeferredPaymentCreationRequestResult: org.tokend.wallet.xdr.CreateDeferredPaymentCreationRequestResult): OperationResultTr(org.tokend.wallet.xdr.OperationType.CREATE_DEFERRED_PAYMENT_CREATION_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        createDeferredPaymentCreationRequestResult.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<CreateDeferredPaymentCreationRequest> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class CancelDeferredPaymentCreationRequest(var cancelDeferredPaymentCreationRequestResult: org.tokend.wallet.xdr.CancelDeferredPaymentCreationRequestResult): OperationResultTr(org.tokend.wallet.xdr.OperationType.CANCEL_DEFERRED_PAYMENT_CREATION_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        cancelDeferredPaymentCreationRequestResult.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<CancelDeferredPaymentCreationRequest> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class CreateCloseDeferredPaymentRequest(var createCloseDeferredPaymentRequestResult: org.tokend.wallet.xdr.CreateCloseDeferredPaymentRequestResult): OperationResultTr(org.tokend.wallet.xdr.OperationType.CREATE_CLOSE_DEFERRED_PAYMENT_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        createCloseDeferredPaymentRequestResult.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<CreateCloseDeferredPaymentRequest> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class CancelCloseDeferredPaymentRequest(var cancelCloseDeferredPaymentRequestResult: org.tokend.wallet.xdr.CancelCloseDeferredPaymentRequestResult): OperationResultTr(org.tokend.wallet.xdr.OperationType.CANCEL_CLOSE_DEFERRED_PAYMENT_REQUEST) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        cancelCloseDeferredPaymentRequestResult.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<CancelCloseDeferredPaymentRequest> by ReflectiveXdrDecoder.wrapType()
+    }
   }
 }
 
@@ -25036,7 +26223,11 @@ open class TransactionResult(
 //      MOVEMENT_REQUESTS_DETAILS = 27,
 //      FIX_CRASH_CORE_WITH_PAYMENT = 28,
 //      FIX_INVEST_TO_IMMEDIATE_SALE = 29,
-//      FIX_PAYMENT_TASKS_WILDCARD_VALUE = 30
+//      FIX_PAYMENT_TASKS_WILDCARD_VALUE = 30,
+//      FIX_CHANGE_ROLE_REQUEST_REQUESTOR = 31,
+//      FIX_UNORDERED_FEE_DESTINATION = 32,
+//      ADD_DEFAULT_FEE_RECEIVER_BALANCE_KV = 33,
+//      DELETE_REDEMPTION_ZERO_TASKS_CHECKING = 34
 //  };
 
 //  ===========================================================================
@@ -25072,6 +26263,10 @@ public enum class LedgerVersion(val value: kotlin.Int): XdrEncodable {
   FIX_CRASH_CORE_WITH_PAYMENT(28),
   FIX_INVEST_TO_IMMEDIATE_SALE(29),
   FIX_PAYMENT_TASKS_WILDCARD_VALUE(30),
+  FIX_CHANGE_ROLE_REQUEST_REQUESTOR(31),
+  FIX_UNORDERED_FEE_DESTINATION(32),
+  ADD_DEFAULT_FEE_RECEIVER_BALANCE_KV(33),
+  DELETE_REDEMPTION_ZERO_TASKS_CHECKING(34),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -25247,7 +26442,8 @@ abstract class PublicKey(@XdrDiscriminantField val discriminant: org.tokend.wall
 //      INITIATE_KYC_RECOVERY = 37,
 //      SWAP = 38,
 //      DATA = 39,
-//      CUSTOM = 40
+//      CUSTOM = 40,
+//      DEFERRED_PAYMENT = 41
 //  };
 
 //  ===========================================================================
@@ -25290,6 +26486,7 @@ public enum class LedgerEntryType(val value: kotlin.Int): XdrEncodable {
   SWAP(38),
   DATA(39),
   CUSTOM(40),
+  DEFERRED_PAYMENT(41),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -25572,7 +26769,11 @@ open class Fee(
 //      CREATE_DATA_UPDATE_REQUEST = 62,
 //      CREATE_DATA_REMOVE_REQUEST = 63,
 //      CANCEL_DATA_UPDATE_REQUEST = 64,
-//      CANCEL_DATA_REMOVE_REQUEST = 65
+//      CANCEL_DATA_REMOVE_REQUEST = 65,
+//      CREATE_DEFERRED_PAYMENT_CREATION_REQUEST = 66,
+//      CANCEL_DEFERRED_PAYMENT_CREATION_REQUEST = 67,
+//      CREATE_CLOSE_DEFERRED_PAYMENT_REQUEST = 68,
+//      CANCEL_CLOSE_DEFERRED_PAYMENT_REQUEST = 69
 //  };
 
 //  ===========================================================================
@@ -25636,6 +26837,10 @@ public enum class OperationType(val value: kotlin.Int): XdrEncodable {
   CREATE_DATA_REMOVE_REQUEST(63),
   CANCEL_DATA_UPDATE_REQUEST(64),
   CANCEL_DATA_REMOVE_REQUEST(65),
+  CREATE_DEFERRED_PAYMENT_CREATION_REQUEST(66),
+  CANCEL_DEFERRED_PAYMENT_CREATION_REQUEST(67),
+  CREATE_CLOSE_DEFERRED_PAYMENT_REQUEST(68),
+  CANCEL_CLOSE_DEFERRED_PAYMENT_REQUEST(69),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
