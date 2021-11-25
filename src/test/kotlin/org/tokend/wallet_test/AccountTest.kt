@@ -5,7 +5,10 @@ import org.junit.Assert
 import org.junit.Test
 import org.tokend.wallet.Account
 import org.tokend.wallet.Base32Check
+import org.tokend.wallet.xdr.CreateSaleCreationRequestOp
+import org.tokend.wallet.xdr.ManageSaleOp
 import org.tokend.wallet.xdr.PublicKey
+import org.tokend.wallet.xdr.SaleCreationRequest
 
 class AccountTest {
     private val SEED = "SBUFJEEK7FMWXPE4HGOWQZPHZ4V5TFKGSF664RAGT24NS662MKTQ7J6S"
@@ -24,8 +27,14 @@ class AccountTest {
     @Test
     fun verifyValid() {
         val sig = "1B0EBBAE618B267668A8122ECCCD2A20480BC81951EB401E0F92B613483B798763D36AEB4B0404BC2A31FA1EAD47522BBA08705AB51BA205020E67D09AE87D0E"
-        val account = Account.fromAccountId(ACCOUNT_ID)
-        Assert.assertTrue(account.verifySignature(DATA, BaseEncoding.base16().decode(sig)))
+        Assert.assertTrue(Account.verifySignature(DATA, BaseEncoding.base16().decode(sig), ACCOUNT_ID))
+    }
+
+    @Test
+    fun verifyValidPublicKey() {
+        val sig = "1B0EBBAE618B267668A8122ECCCD2A20480BC81951EB401E0F92B613483B798763D36AEB4B0404BC2A31FA1EAD47522BBA08705AB51BA205020E67D09AE87D0E"
+        val publicKey = PublicKey.Decoder.fromBase64(XDR_PUBLIC_KEY)
+        Assert.assertTrue(Account.verifySignature(DATA, BaseEncoding.base16().decode(sig), publicKey))
     }
 
     @Test
@@ -37,14 +46,14 @@ class AccountTest {
     @Test
     fun fromSeedString() {
         val account = Account.fromSecretSeed(SEED.toCharArray())
-        Assert.assertEquals(SEED, String(account.secretSeed!!))
+        Assert.assertEquals(SEED, String(account.secretSeed))
     }
 
     @Test
     fun fromSeedBytes() {
         val seed = (0 until 32).map { it.toByte() }.toByteArray()
         val account = Account.fromSecretSeed(seed)
-        Assert.assertEquals(String(Base32Check.encodeSecretSeed(seed)), String(account.secretSeed!!))
+        Assert.assertEquals(String(Base32Check.encodeSecretSeed(seed)), String(account.secretSeed))
     }
 
     @Test()
@@ -61,6 +70,14 @@ class AccountTest {
     }
 
     @Test
+    fun xdrPublicKey() {
+        val account = Account.fromSecretSeed(SEED.toCharArray())
+        Assert.assertEquals(XDR_PUBLIC_KEY, account.xdrPublicKey.toBase64())
+        Assert.assertEquals(ACCOUNT_ID, account.accountId)
+        Assert.assertArrayEquals(Base32Check.decodeAccountId(ACCOUNT_ID), (account.xdrPublicKey as PublicKey.KeyTypeEd25519).ed25519.wrapped)
+    }
+
+    @Test
     fun signDecorated() {
         val account = Account.fromSecretSeed(SEED.toCharArray())
         val expectedSig = "W3R2wwAAAEAbDruuYYsmdmioEi7MzSogSAvIGVHrQB4PkrYTSDt5h2PTautLBAS8KjH6Hq1HUiu6CHBatRuiBQIOZ9Ca6H0O"
@@ -69,24 +86,10 @@ class AccountTest {
     }
 
     @Test
-    fun xdrPublicKey() {
-        val account = Account.fromAccountId(ACCOUNT_ID)
-        val xdrPubKey = account.xdrPublicKey
-        Assert.assertEquals(XDR_PUBLIC_KEY, xdrPubKey.toBase64())
-    }
-
-    @Test
-    fun fromXdrPublicKey() {
-        val account = Account.fromXdrPublicKey(
-                Account.fromAccountId(ACCOUNT_ID).xdrPublicKey as PublicKey.KeyTypeEd25519)
-        Assert.assertEquals(ACCOUNT_ID, account.accountId)
-    }
-
-    @Test
     fun destroy() {
         val account = Account.fromSecretSeed(SEED.toCharArray())
         account.destroy()
         Assert.assertTrue(account.isDestroyed)
-        Assert.assertNull(account.secretSeed)
+        Assert.assertFalse(account.secretSeed.any { it != '0' })
     }
 }

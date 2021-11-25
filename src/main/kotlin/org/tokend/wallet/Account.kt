@@ -2,13 +2,11 @@ package org.tokend.wallet
 
 import org.tokend.crypto.ecdsa.Curves
 import org.tokend.crypto.ecdsa.EcDSAKeyPair
-import org.tokend.crypto.ecdsa.SignUnavailableException
 import org.tokend.crypto.ecdsa.erase
 import org.tokend.wallet.xdr.DecoratedSignature
 import org.tokend.wallet.xdr.PublicKey
 import org.tokend.wallet.xdr.SignatureHint
 import org.tokend.wallet.xdr.Uint256
-import java.util.*
 import javax.security.auth.Destroyable
 
 /**
@@ -20,24 +18,23 @@ import javax.security.auth.Destroyable
  */
 class Account(private val ecDSAKeyPair: EcDSAKeyPair) : Destroyable {
     /**
-     * @return public key encoded by [Base32Check].
-     *
-     * @see <a href="https://tokend.gitbook.io/knowledge-base/technical-details/key-entities/accounts#account-id">AccountID in the Knowledge base</a>
-     */
-    val accountId: String = Base32Check.encodeAccountId(ecDSAKeyPair.publicKeyBytes)
-
-    /**
      * @return private key seed encoded by [Base32Check].
      *
      * @see <a href="https://tokend.gitbook.io/knowledge-base/technical-details/key-entities/accounts#account-secret-seed">Secret seed in the Knowledge base</a>
      */
-    val secretSeed: CharArray?
-        get() = ecDSAKeyPair.privateKeySeed?.let { Base32Check.encodeSecretSeed(it) }
+    val secretSeed: CharArray = ecDSAKeyPair.privateKeySeed.let(Base32Check::encodeSecretSeed)
 
     /**
      * @return public key bytes.
      */
     val publicKey: ByteArray = ecDSAKeyPair.publicKeyBytes
+
+    /**
+     * @return public key encoded by [Base32Check].
+     *
+     * @see <a href="https://tokend.gitbook.io/knowledge-base/technical-details/key-entities/accounts#account-id">AccountID in the Knowledge base</a>
+     */
+    val accountId: String = Base32Check.encodeAccountId(publicKey)
 
     /**
      * @return public key wrapped into XDR.
@@ -46,16 +43,7 @@ class Account(private val ecDSAKeyPair: EcDSAKeyPair) : Destroyable {
         get() = PublicKey.KeyTypeEd25519(Uint256(publicKey))
 
     /**
-     * @return [true] if this account is capable of signing, [false] otherwise.
-     */
-    fun canSign(): Boolean = ecDSAKeyPair.canSign
-
-    /**
      * Signs provided data with the account's private key.
-     *
-     * @throws SignUnavailableException if account is not capable of signing.
-     *
-     * @see canSign
      */
     fun sign(data: ByteArray): ByteArray {
         return ecDSAKeyPair.sign(data)
@@ -79,13 +67,13 @@ class Account(private val ecDSAKeyPair: EcDSAKeyPair) : Destroyable {
     }
 
     private fun getSignatureHint(): SignatureHint {
-        val signatureHintBytes = Arrays.copyOfRange(publicKey,
-                publicKey.size - 4, publicKey.size)
+        val signatureHintBytes = publicKey.copyOfRange(publicKey.size - 4, publicKey.size)
 
         return SignatureHint(signatureHintBytes)
     }
 
     override fun destroy() {
+        secretSeed.erase()
         ecDSAKeyPair.destroy()
     }
 
@@ -94,7 +82,7 @@ class Account(private val ecDSAKeyPair: EcDSAKeyPair) : Destroyable {
     }
 
     companion object {
-        private const val CURVE = Curves.ED25519_SHA512
+        private const val CURVE = Curves.ED25519
 
         /**
          * Creates an account from a secret seed.
@@ -124,50 +112,43 @@ class Account(private val ecDSAKeyPair: EcDSAKeyPair) : Destroyable {
         }
 
         /**
-         * Creates an account from an account ID.
-         * Created account can be used only for signature verification
-         * as soon as it has no private key.
-         *
-         * @param accountId [Base32Check] encoded public key.
-         *
-         * @see Base32Check
-         * @see Account.accountId
-         * @see verifySignature
-         */
-        @JvmStatic
-        fun fromAccountId(accountId: String): Account {
-            val decoded = Base32Check.decodeAccountId(accountId)
-            return fromPublicKey(decoded)
-        }
-
-        /**
-         * Creates an account from a raw 32 byte public key.
-         *
-         * @param publicKey 32 bytes of the public key.
-         *
-         * @see Account.publicKey
-         */
-        @JvmStatic
-        fun fromPublicKey(publicKey: ByteArray): Account {
-            return Account(EcDSAKeyPair.fromPublicKeyBytes(CURVE, publicKey))
-        }
-
-        /**
-         * Creates an account from an XDR-wrapped public key.
-         *
-         * @param publicKey XDR-wrapped public key.
-         */
-        @JvmStatic
-        fun fromXdrPublicKey(publicKey: PublicKey.KeyTypeEd25519): Account {
-            return Account.fromPublicKey(publicKey.ed25519.wrapped)
-        }
-
-        /**
          * Creates an account from a random private key.
          */
         @JvmStatic
         fun random(): Account {
             return Account(EcDSAKeyPair.random(CURVE))
+        }
+
+        /**
+         * Verifies [signature] for provided [data] with public key decoded from [accountId]
+         */
+        @JvmStatic
+        fun verifySignature(data: ByteArray,
+                            signature: ByteArray,
+                            accountId: String): Boolean =
+                verifySignature(data, signature, PublicKeyFactory.fromAccountId(accountId))
+
+        /**
+         * Verifies [signature] for provided [data] with [publicKey]
+         */
+        @JvmStatic
+        fun verifySignature(data: ByteArray,
+                            signature: ByteArray,
+                            publicKey: ByteArray): Boolean =
+                verifySignature(data, signature, PublicKey.KeyTypeEd25519(Uint256(publicKey)))
+
+        /**
+         * Verifies [signature] for provided [data] with [xdrPublicKey]
+         */
+        @JvmStatic
+        fun verifySignature(data: ByteArray,
+                            signature: ByteArray,
+                            xdrPublicKey: PublicKey): Boolean {
+            require(xdrPublicKey is PublicKey.KeyTypeEd25519) {
+                "Only Ed25519 keys are supported"
+            }
+
+            return EcDSAKeyPair.verify(CURVE, data, signature, xdrPublicKey.ed25519.wrapped)
         }
     }
 }
