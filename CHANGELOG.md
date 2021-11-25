@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Please check our [developers guide](https://gitlab.com/tokend/developers-guide)
 for further information about branching and tagging conventions.
 
+## [3.7.0] 2021-11-25
+
+### Added
+- `Destroyable` implementation in `Account`
+- `equal` and `hashCode` methods for `Account`
+
+### Changed
+- From now `Account` is always a complete keypair with a private key.
+To verify signatures use `Account.verifySignature` static methods
+- Updated XDR version to `7708446fd03153bf0d99b299c9df054dd9788c7c`
+- Updated Kotlin version to 1.4.10
+
+### Fixed
+- Inability to convert true `UInt64` amounts from and to precised
+
+### Removed
+- Positive number restriction on transaction salt
+- `canSign` method from account (see above)
+- `Account.fromAccountId` and `Account.fromPublicKey` methods (see above)
+
 ## [3.6.5] 2020-08-12
 
 ### Changed
@@ -122,4 +142,5 @@ of the required class in Kotlin or use `*.Decoder` static member in Java
 [3.6.3]: https://github.com/tokend/kotlin-wallet/compare/3.6.2...3.6.3
 [3.6.4]: https://github.com/tokend/kotlin-wallet/compare/3.6.3...3.6.4
 [3.6.5]: https://github.com/tokend/kotlin-wallet/compare/3.6.4...3.6.5
-[Unreleased]: https://github.com/tokend/kotlin-wallet/compare/3.6.5...HEAD
+[3.7.0]: https://github.com/tokend/kotlin-wallet/compare/3.6.5...3.7.0
+[Unreleased]: https://github.com/tokend/kotlin-wallet/compare/3.7.0...HEAD

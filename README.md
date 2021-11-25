@@ -15,7 +15,7 @@ allprojects {
 
 dependencies {
     ...
-    compile "org.tokend:wallet:3.6.5"
+    compile "org.tokend:wallet:3.7.0"
 }
 
 ```
