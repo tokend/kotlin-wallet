@@ -5,10 +5,7 @@ import org.junit.Assert
 import org.junit.Test
 import org.tokend.wallet.Account
 import org.tokend.wallet.Base32Check
-import org.tokend.wallet.xdr.CreateSaleCreationRequestOp
-import org.tokend.wallet.xdr.ManageSaleOp
 import org.tokend.wallet.xdr.PublicKey
-import org.tokend.wallet.xdr.SaleCreationRequest
 
 class AccountTest {
     private val SEED = "SBUFJEEK7FMWXPE4HGOWQZPHZ4V5TFKGSF664RAGT24NS662MKTQ7J6S"
@@ -91,5 +88,36 @@ class AccountTest {
         account.destroy()
         Assert.assertTrue(account.isDestroyed)
         Assert.assertFalse(account.secretSeed.any { it != '0' })
+    }
+
+    @Test
+    fun equals() {
+        val accountA = Account.fromSecretSeed(SEED.toCharArray())
+        val accountB = Account.fromSecretSeed(SEED.toCharArray())
+
+        Assert.assertEquals(accountA, accountB)
+        Assert.assertEquals(accountB, accountA)
+
+        val accountC = Account.random()
+
+        Assert.assertNotEquals(accountA, accountC)
+        Assert.assertNotEquals(accountB, accountC)
+
+        accountB.destroy()
+
+        Assert.assertNotEquals(accountA, accountB)
+        Assert.assertNotEquals(accountB, accountA)
+    }
+
+    @Test
+    fun hashCodee() {
+        val accountA = Account.fromSecretSeed(SEED.toCharArray())
+        val accountB = Account.fromSecretSeed(SEED.toCharArray())
+
+        Assert.assertEquals(accountA.hashCode(), accountB.hashCode())
+
+        accountB.destroy()
+
+        Assert.assertNotEquals(accountA.hashCode(), accountB.hashCode())
     }
 }
