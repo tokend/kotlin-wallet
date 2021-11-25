@@ -81,6 +81,25 @@ class Account(private val ecDSAKeyPair: EcDSAKeyPair) : Destroyable {
         return ecDSAKeyPair.isDestroyed
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Account
+
+        if (!publicKey.contentEquals(other.publicKey)) return false
+        if (isDestroyed != other.isDestroyed) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = publicKey.contentHashCode()
+        result = 31 * result + isDestroyed.hashCode()
+        return result
+    }
+
+
     companion object {
         private const val CURVE = Curves.ED25519
 
