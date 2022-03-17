@@ -1806,6 +1806,64 @@ open class LimitsV2Entry(
 
 // === xdr source ============================================================
 
+//  struct LiquidityPoolEntry
+//      {
+//          //: Unique sequential identifier of the liquidity pool
+//          uint64 id;
+//  
+//          //: Account that holds balances of the liquidity pool
+//          AccountID liquidityPoolAccount;
+//  
+//          //: Asset code of the LP token
+//          AssetCode lpTokenAssetCode;
+//  
+//          //: Balance of first asset
+//          BalanceID firstAssetBalance;
+//          //: Balance of second asset
+//          BalanceID secondAssetBalance;
+//  
+//          //: Total amount of all LP tokens
+//          uint64 lpTokensTotalCap;
+//  
+//          //: Amount of first asset stored in liquidity pool
+//          uint64 firstReserve;
+//          //: Amount of second asset stored in liquidity pool
+//          uint64 secondReserve;
+//  
+//          //: Reserved for future usage
+//          EmptyExt ext;
+//      };
+
+//  ===========================================================================
+open class LiquidityPoolEntry(
+    var id: org.tokend.wallet.xdr.Uint64,
+    var liquidityPoolAccount: org.tokend.wallet.xdr.AccountID,
+    var lpTokenAssetCode: org.tokend.wallet.xdr.AssetCode,
+    var firstAssetBalance: org.tokend.wallet.xdr.BalanceID,
+    var secondAssetBalance: org.tokend.wallet.xdr.BalanceID,
+    var lpTokensTotalCap: org.tokend.wallet.xdr.Uint64,
+    var firstReserve: org.tokend.wallet.xdr.Uint64,
+    var secondReserve: org.tokend.wallet.xdr.Uint64,
+    var ext: org.tokend.wallet.xdr.EmptyExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    id.toXdr(stream)
+    liquidityPoolAccount.toXdr(stream)
+    lpTokenAssetCode.toXdr(stream)
+    firstAssetBalance.toXdr(stream)
+    secondAssetBalance.toXdr(stream)
+    lpTokensTotalCap.toXdr(stream)
+    firstReserve.toXdr(stream)
+    secondReserve.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<LiquidityPoolEntry> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
 //  struct OfferEntry
 //  {	
 //      uint64 offerID;
@@ -1935,12 +1993,14 @@ open class PendingStatisticsEntry(
 //  //: Functional type of poll
 //  enum PollType
 //  {
-//      SINGLE_CHOICE = 0
+//      SINGLE_CHOICE = 0,
+//      CUSTOM_CHOICE = 1
 //  };
 
 //  ===========================================================================
 public enum class PollType(val value: kotlin.Int): XdrEncodable {
   SINGLE_CHOICE(0),
+  CUSTOM_CHOICE(1),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -1957,6 +2017,8 @@ public enum class PollType(val value: kotlin.Int): XdrEncodable {
 //  {
 //  case SINGLE_CHOICE:
 //      EmptyExt ext;
+//  case CUSTOM_CHOICE:
+//  	EmptyExt customChoiceExt;
 //  };
 
 //  ===========================================================================
@@ -1974,6 +2036,15 @@ abstract class PollData(@XdrDiscriminantField val discriminant: org.tokend.walle
     }
 
     companion object Decoder: XdrDecodable<SingleChoice> by ReflectiveXdrDecoder.wrapType()
+  }
+
+  open class CustomChoice(var customChoiceExt: org.tokend.wallet.xdr.EmptyExt): PollData(org.tokend.wallet.xdr.PollType.CUSTOM_CHOICE) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      customChoiceExt.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<CustomChoice> by ReflectiveXdrDecoder.wrapType()
   }
 }
 
@@ -3293,6 +3364,8 @@ open class SingleChoiceVote(
 //  {
 //  case SINGLE_CHOICE:
 //      SingleChoiceVote single;
+//  case CUSTOM_CHOICE:
+//  	longstring custom;
 //  //case MULTIPLE_CHOICE:
 //  //    MultipleChoiceVote multiple;
 //  };
@@ -3312,6 +3385,15 @@ abstract class VoteData(@XdrDiscriminantField val discriminant: org.tokend.walle
     }
 
     companion object Decoder: XdrDecodable<SingleChoice> by ReflectiveXdrDecoder.wrapType()
+  }
+
+  open class CustomChoice(var custom: org.tokend.wallet.xdr.Longstring): VoteData(org.tokend.wallet.xdr.PollType.CUSTOM_CHOICE) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      custom.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<CustomChoice> by ReflectiveXdrDecoder.wrapType()
   }
 }
 
@@ -3445,6 +3527,8 @@ public enum class ThresholdIndexes(val value: kotlin.Int): XdrEncodable {
 //          DataEntry data;
 //      case DEFERRED_PAYMENT:
 //          DeferredPaymentEntry deferredPayment;
+//      case LIQUIDITY_POOL:
+//          LiquidityPoolEntry liquidityPool;
 //      }
 //      data;
 //  
@@ -3774,6 +3858,15 @@ open class LedgerEntry(
       }
 
       companion object Decoder: XdrDecodable<DeferredPayment> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class LiquidityPool(var liquidityPool: org.tokend.wallet.xdr.LiquidityPoolEntry): LedgerEntryData(org.tokend.wallet.xdr.LedgerEntryType.LIQUIDITY_POOL) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        liquidityPool.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<LiquidityPool> by ReflectiveXdrDecoder.wrapType()
     }
   }
   abstract class LedgerEntryExt(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LedgerVersion): XdrEncodable {
@@ -4129,6 +4222,12 @@ public enum class EnvelopeType(val value: kotlin.Int): XdrEncodable {
 //  
 //          EmptyExt ext;
 //      } deferredPayment;
+//  case LIQUIDITY_POOL:
+//      struct {
+//          uint64 id;
+//  
+//          EmptyExt ext;
+//      } liquidityPool;
 //  };
 
 //  ===========================================================================
@@ -4434,6 +4533,15 @@ abstract class LedgerKey(@XdrDiscriminantField val discriminant: org.tokend.wall
     }
 
     companion object Decoder: XdrDecodable<DeferredPayment> by ReflectiveXdrDecoder.wrapType()
+  }
+
+  open class LiquidityPool(var liquidityPool: LedgerKeyLiquidityPool): LedgerKey(org.tokend.wallet.xdr.LedgerEntryType.LIQUIDITY_POOL) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      liquidityPool.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<LiquidityPool> by ReflectiveXdrDecoder.wrapType()
   }
 
   open class LedgerKeyAccount(
@@ -5109,6 +5217,18 @@ abstract class LedgerKey(@XdrDiscriminantField val discriminant: org.tokend.wall
     }
 
     companion object Decoder: XdrDecodable<LedgerKeyDeferredPayment> by ReflectiveXdrDecoder.wrapType()
+  }
+  open class LedgerKeyLiquidityPool(
+      var id: org.tokend.wallet.xdr.Uint64,
+      var ext: org.tokend.wallet.xdr.EmptyExt
+    ) : XdrEncodable {
+
+    override fun toXdr(stream: XdrDataOutputStream) {
+      id.toXdr(stream)
+      ext.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<LedgerKeyLiquidityPool> by ReflectiveXdrDecoder.wrapType()
   }
 }
 
@@ -11457,6 +11577,666 @@ abstract class LicenseResult(@XdrDiscriminantField val discriminant: org.tokend.
 
 // === xdr source ============================================================
 
+//  struct LPAddLiquidityOp
+//      {
+//          //: Balance for first asset of the pair
+//          BalanceID firstAssetBalanceID;
+//          //: Balance for second asset of the pair
+//          BalanceID secondAssetBalanceID;
+//  
+//          //: Desired amount of first asset to be provided
+//          uint64 firstAssetDesiredAmount;
+//          //: Desired amount of second asset to be provided
+//          uint64 secondAssetDesiredAmount;
+//  
+//          //: Minimal amount of first asset to be provided
+//          uint64 firstAssetMinAmount;
+//          //: Minimal amount of second asset to be provided
+//          uint64 secondAssetMinAmount;
+//  
+//          //: Reserved for future use
+//          EmptyExt ext;
+//      };
+
+//  ===========================================================================
+open class LPAddLiquidityOp(
+    var firstAssetBalanceID: org.tokend.wallet.xdr.BalanceID,
+    var secondAssetBalanceID: org.tokend.wallet.xdr.BalanceID,
+    var firstAssetDesiredAmount: org.tokend.wallet.xdr.Uint64,
+    var secondAssetDesiredAmount: org.tokend.wallet.xdr.Uint64,
+    var firstAssetMinAmount: org.tokend.wallet.xdr.Uint64,
+    var secondAssetMinAmount: org.tokend.wallet.xdr.Uint64,
+    var ext: org.tokend.wallet.xdr.EmptyExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    firstAssetBalanceID.toXdr(stream)
+    secondAssetBalanceID.toXdr(stream)
+    firstAssetDesiredAmount.toXdr(stream)
+    secondAssetDesiredAmount.toXdr(stream)
+    firstAssetMinAmount.toXdr(stream)
+    secondAssetMinAmount.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<LPAddLiquidityOp> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
+//  enum LPAddLiquidityResultCode
+//      {
+//          //: LP add liquidity was successful
+//          SUCCESS = 0,
+//  
+//          //: Assets in the pair are equal
+//          SAME_ASSETS = -1,
+//          //: Not enough funds in the source account
+//          UNDERFUNDED = -2,
+//          //: After adding liquidity, the destination balance will exceed the limit (total amount on the balance will be greater than UINT64_MAX)
+//          BALANCE_OVERFLOW = -3,
+//          //: Provided asset does not have a `SWAPPABLE` policy set
+//          NOT_ALLOWED_BY_ASSET_POLICY = -4,
+//          //: Source balance not found
+//          SRC_BALANCE_NOT_FOUND = -5,
+//          //: Zero desired amount not allowed
+//          INVALID_DESIRED_AMOUNT = -6,
+//          //: Zero min amount not allowed
+//          INVALID_MIN_AMOUNT = -7,
+//          //: Amount precision and asset precision are mismatched
+//          INCORRECT_AMOUNT_PRECISION = -8,
+//          //: Amount of first asset is insufficient to provide liquidity
+//          INSUFFICIENT_FIRST_ASSET_AMOUNT = -9,
+//          //: Amount of second asset is insufficient to provide liquidity
+//          INSUFFICIENT_SECOND_ASSET_AMOUNT = -10,
+//          //: Min amount cannot be bigger than desired amount
+//          MIN_AMOUNT_BIGGER_THAN_DESIRED = -11,
+//          //: Amount of the LP tokens to issue equals to zero
+//          INSUFFICIENT_LIQUIDITY_PROVIDED = -12,
+//          //: Source balances are equal
+//          SAME_BALANCES = -13
+//      };
+
+//  ===========================================================================
+public enum class LPAddLiquidityResultCode(val value: kotlin.Int): XdrEncodable {
+  SUCCESS(0),
+  SAME_ASSETS(-1),
+  UNDERFUNDED(-2),
+  BALANCE_OVERFLOW(-3),
+  NOT_ALLOWED_BY_ASSET_POLICY(-4),
+  SRC_BALANCE_NOT_FOUND(-5),
+  INVALID_DESIRED_AMOUNT(-6),
+  INVALID_MIN_AMOUNT(-7),
+  INCORRECT_AMOUNT_PRECISION(-8),
+  INSUFFICIENT_FIRST_ASSET_AMOUNT(-9),
+  INSUFFICIENT_SECOND_ASSET_AMOUNT(-10),
+  MIN_AMOUNT_BIGGER_THAN_DESIRED(-11),
+  INSUFFICIENT_LIQUIDITY_PROVIDED(-12),
+  SAME_BALANCES(-13),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<LPAddLiquidityResultCode> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
+//  struct LPAddLiquiditySuccess
+//      {
+//          //: Unique identifier of the liquidity pool
+//          uint64 liquidityPoolID;
+//  
+//          //: ID of the pool account
+//          AccountID poolAccount;
+//  
+//          //: ID of the first asset balance in LP
+//          BalanceID lpFirstAssetBalanceID;
+//          //: ID of the second asset balance in LP
+//          BalanceID lpSecondAssetBalanceID;
+//  
+//          //: ID of the source first asset balance
+//          BalanceID sourceFirstAssetBalanceID;
+//          //: ID of the source second asset balance
+//          BalanceID sourceSecondAssetBalanceID;
+//  
+//          //: Amount of tokens charged from source first balance
+//          uint64 firstAssetAmount;
+//          //: Amount of tokens charged from source second balance
+//          uint64 secondAssetAmount;
+//          
+//          //: ID of the LP tokens asset balance 
+//          BalanceID lpTokensBalanceID;
+//          //: Amount of LP tokens issued for provided liquidity
+//          uint64 lpTokensAmount;
+//          
+//          //: Reserved for future extension
+//          EmptyExt ext;
+//      };
+
+//  ===========================================================================
+open class LPAddLiquiditySuccess(
+    var liquidityPoolID: org.tokend.wallet.xdr.Uint64,
+    var poolAccount: org.tokend.wallet.xdr.AccountID,
+    var lpFirstAssetBalanceID: org.tokend.wallet.xdr.BalanceID,
+    var lpSecondAssetBalanceID: org.tokend.wallet.xdr.BalanceID,
+    var sourceFirstAssetBalanceID: org.tokend.wallet.xdr.BalanceID,
+    var sourceSecondAssetBalanceID: org.tokend.wallet.xdr.BalanceID,
+    var firstAssetAmount: org.tokend.wallet.xdr.Uint64,
+    var secondAssetAmount: org.tokend.wallet.xdr.Uint64,
+    var lpTokensBalanceID: org.tokend.wallet.xdr.BalanceID,
+    var lpTokensAmount: org.tokend.wallet.xdr.Uint64,
+    var ext: org.tokend.wallet.xdr.EmptyExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    liquidityPoolID.toXdr(stream)
+    poolAccount.toXdr(stream)
+    lpFirstAssetBalanceID.toXdr(stream)
+    lpSecondAssetBalanceID.toXdr(stream)
+    sourceFirstAssetBalanceID.toXdr(stream)
+    sourceSecondAssetBalanceID.toXdr(stream)
+    firstAssetAmount.toXdr(stream)
+    secondAssetAmount.toXdr(stream)
+    lpTokensBalanceID.toXdr(stream)
+    lpTokensAmount.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<LPAddLiquiditySuccess> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
+//  union LPAddLiquidityResult switch (LPAddLiquidityResultCode code)
+//      {
+//          case SUCCESS:
+//              LPAddLiquiditySuccess success;
+//          default:
+//              void;
+//      };
+
+//  ===========================================================================
+abstract class LPAddLiquidityResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LPAddLiquidityResultCode): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<LPAddLiquidityResult> by ReflectiveXdrDecoder.wrapType()
+
+  open class Success(var success: org.tokend.wallet.xdr.LPAddLiquiditySuccess): LPAddLiquidityResult(org.tokend.wallet.xdr.LPAddLiquidityResultCode.SUCCESS) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      success.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<Success> by ReflectiveXdrDecoder.wrapType()
+  }
+}
+
+// === xdr source ============================================================
+
+//  struct LPRemoveLiquidityOp
+//      {
+//          //: Balance of an LP token
+//          BalanceID lpTokenBalance;
+//          //: Amount of the LP tokens to be exchanged for assets pair
+//          uint64 lpTokensAmount;
+//  
+//          //: Minimal amount of first asset to be received
+//          uint64 firstAssetMinAmount;
+//          //: Minimal amount of second asset to be received
+//          uint64 secondAssetMinAmount;
+//  
+//          //: Reserved for future use
+//          EmptyExt ext;
+//      };
+
+//  ===========================================================================
+open class LPRemoveLiquidityOp(
+    var lpTokenBalance: org.tokend.wallet.xdr.BalanceID,
+    var lpTokensAmount: org.tokend.wallet.xdr.Uint64,
+    var firstAssetMinAmount: org.tokend.wallet.xdr.Uint64,
+    var secondAssetMinAmount: org.tokend.wallet.xdr.Uint64,
+    var ext: org.tokend.wallet.xdr.EmptyExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    lpTokenBalance.toXdr(stream)
+    lpTokensAmount.toXdr(stream)
+    firstAssetMinAmount.toXdr(stream)
+    secondAssetMinAmount.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<LPRemoveLiquidityOp> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
+//  enum LPRemoveLiquidityResultCode
+//      {
+//          //: LP remove liquidity was successful
+//          SUCCESS = 0,
+//  
+//          //: LP token balance doesn't exists
+//          LP_TOKEN_BALANCE_NOT_FOUND = -1,
+//          //: Not enough LP tokens in the source account
+//          UNDERFUNDED = -2,
+//          //: After the removing liquidity fulfillment, the destination balance will exceed the limit (total amount on the balance will be greater than UINT64_MAX)
+//          BALANCE_OVERFLOW = -3,
+//          //: Liquidity pool not found
+//          LP_NOT_FOUND = -4,
+//          //: Zero LP tokens amount not allowed
+//          INVALID_LP_TOKENS_AMOUNT = -5,
+//          //: Calculated first asset amount is less than min amount
+//          INSUFFICIENT_FIRST_AMOUNT = -6,
+//          //: Calculated second asset amount is less than min amount
+//          INSUFFICIENT_SECOND_AMOUNT = -7,
+//          //: Amount precision and asset precision are mismatched
+//          INCORRECT_AMOUNT_PRECISION = -8
+//      };
+
+//  ===========================================================================
+public enum class LPRemoveLiquidityResultCode(val value: kotlin.Int): XdrEncodable {
+  SUCCESS(0),
+  LP_TOKEN_BALANCE_NOT_FOUND(-1),
+  UNDERFUNDED(-2),
+  BALANCE_OVERFLOW(-3),
+  LP_NOT_FOUND(-4),
+  INVALID_LP_TOKENS_AMOUNT(-5),
+  INSUFFICIENT_FIRST_AMOUNT(-6),
+  INSUFFICIENT_SECOND_AMOUNT(-7),
+  INCORRECT_AMOUNT_PRECISION(-8),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<LPRemoveLiquidityResultCode> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
+//  struct LPRemoveLiquiditySuccess
+//      {
+//          //: Unique identifier of the liquidity pool
+//          uint64 liquidityPoolID;
+//  
+//          //: ID of the first asset balance in LP
+//          BalanceID lpFirstAssetBalanceID;
+//          //: ID of the second asset balance in LP
+//          BalanceID lpSecondAssetBalanceID;
+//  
+//          //: ID of the first asset balance
+//          BalanceID sourceFirstAssetBalanceID;
+//          //: ID of the second asset balance
+//          BalanceID sourceSecondAssetBalanceID;
+//  
+//          //: Amount of the first asset
+//          uint64 firstAssetAmount;
+//          //: Amount of the second asset
+//          uint64 secondAssetAmount;
+//  
+//          //: Reserved for future extension
+//          EmptyExt ext;
+//      };
+
+//  ===========================================================================
+open class LPRemoveLiquiditySuccess(
+    var liquidityPoolID: org.tokend.wallet.xdr.Uint64,
+    var lpFirstAssetBalanceID: org.tokend.wallet.xdr.BalanceID,
+    var lpSecondAssetBalanceID: org.tokend.wallet.xdr.BalanceID,
+    var sourceFirstAssetBalanceID: org.tokend.wallet.xdr.BalanceID,
+    var sourceSecondAssetBalanceID: org.tokend.wallet.xdr.BalanceID,
+    var firstAssetAmount: org.tokend.wallet.xdr.Uint64,
+    var secondAssetAmount: org.tokend.wallet.xdr.Uint64,
+    var ext: org.tokend.wallet.xdr.EmptyExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    liquidityPoolID.toXdr(stream)
+    lpFirstAssetBalanceID.toXdr(stream)
+    lpSecondAssetBalanceID.toXdr(stream)
+    sourceFirstAssetBalanceID.toXdr(stream)
+    sourceSecondAssetBalanceID.toXdr(stream)
+    firstAssetAmount.toXdr(stream)
+    secondAssetAmount.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<LPRemoveLiquiditySuccess> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
+//  union LPRemoveLiquidityResult switch (LPRemoveLiquidityResultCode code)
+//      {
+//          case SUCCESS:
+//              LPRemoveLiquiditySuccess success;
+//          default:
+//              void;
+//      };
+
+//  ===========================================================================
+abstract class LPRemoveLiquidityResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LPRemoveLiquidityResultCode): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<LPRemoveLiquidityResult> by ReflectiveXdrDecoder.wrapType()
+
+  open class Success(var success: org.tokend.wallet.xdr.LPRemoveLiquiditySuccess): LPRemoveLiquidityResult(org.tokend.wallet.xdr.LPRemoveLiquidityResultCode.SUCCESS) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      success.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<Success> by ReflectiveXdrDecoder.wrapType()
+  }
+}
+
+// === xdr source ============================================================
+
+//  enum LPSwapType
+//      {
+//          EXACT_IN_TOKENS_FOR_OUT_TOKENS = 0,
+//          EXACT_OUT_TOKENS_FOR_IN_TOKENS = 1
+//      };
+
+//  ===========================================================================
+public enum class LPSwapType(val value: kotlin.Int): XdrEncodable {
+  EXACT_IN_TOKENS_FOR_OUT_TOKENS(0),
+  EXACT_OUT_TOKENS_FOR_IN_TOKENS(1),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<LPSwapType> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
+//  struct LPSwapOp
+//      {
+//          //: Balance of the provided asset
+//          BalanceID fromBalance;
+//          //: Balance of the desired asset
+//          BalanceID toBalance;
+//  
+//          union switch(LPSwapType type)
+//          {
+//              //: Execute swap for exact output amount
+//              case EXACT_OUT_TOKENS_FOR_IN_TOKENS:
+//                  struct
+//                  {
+//                      //: Maximum amount to send in the swap
+//                      uint64 amountInMax;
+//                      //: Desired amount to be received
+//                      uint64 amountOut;
+//                  } swapExactOutTokensForInTokens;
+//              //: Execute swap for exact input amount 
+//              case EXACT_IN_TOKENS_FOR_OUT_TOKENS:
+//                  struct
+//                  {
+//                      //: Amount to send in the swap
+//                      uint64 amountIn;
+//                      //: Minimum amount to be received
+//                      uint64 amountOutMin;
+//                  } swapExactInTokensForOutTokens;
+//          } lpSwapRequest;
+//  
+//          //: Fee data for the swap
+//          PaymentFeeData feeData;
+//  
+//          //: Reserved for future use
+//          EmptyExt ext;
+//      };
+
+//  ===========================================================================
+open class LPSwapOp(
+    var fromBalance: org.tokend.wallet.xdr.BalanceID,
+    var toBalance: org.tokend.wallet.xdr.BalanceID,
+    var lpSwapRequest: LPSwapOpLpSwapRequest,
+    var feeData: org.tokend.wallet.xdr.PaymentFeeData,
+    var ext: org.tokend.wallet.xdr.EmptyExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    fromBalance.toXdr(stream)
+    toBalance.toXdr(stream)
+    lpSwapRequest.toXdr(stream)
+    feeData.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<LPSwapOp> by ReflectiveXdrDecoder.wrapType()
+
+  abstract class LPSwapOpLpSwapRequest(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LPSwapType): XdrEncodable {
+    override fun toXdr(stream: XdrDataOutputStream) {
+        discriminant.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<LPSwapOpLpSwapRequest> by ReflectiveXdrDecoder.wrapType()
+
+    open class ExactOutTokensForInTokens(var swapExactOutTokensForInTokens: LPSwapOpSwapExactOutTokensForInTokens): LPSwapOpLpSwapRequest(org.tokend.wallet.xdr.LPSwapType.EXACT_OUT_TOKENS_FOR_IN_TOKENS) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        swapExactOutTokensForInTokens.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<ExactOutTokensForInTokens> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class ExactInTokensForOutTokens(var swapExactInTokensForOutTokens: LPSwapOpSwapExactInTokensForOutTokens): LPSwapOpLpSwapRequest(org.tokend.wallet.xdr.LPSwapType.EXACT_IN_TOKENS_FOR_OUT_TOKENS) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        swapExactInTokensForOutTokens.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<ExactInTokensForOutTokens> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class LPSwapOpSwapExactOutTokensForInTokens(
+        var amountInMax: org.tokend.wallet.xdr.Uint64,
+        var amountOut: org.tokend.wallet.xdr.Uint64
+      ) : XdrEncodable {
+
+      override fun toXdr(stream: XdrDataOutputStream) {
+        amountInMax.toXdr(stream)
+        amountOut.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<LPSwapOpSwapExactOutTokensForInTokens> by ReflectiveXdrDecoder.wrapType()
+    }
+    open class LPSwapOpSwapExactInTokensForOutTokens(
+        var amountIn: org.tokend.wallet.xdr.Uint64,
+        var amountOutMin: org.tokend.wallet.xdr.Uint64
+      ) : XdrEncodable {
+
+      override fun toXdr(stream: XdrDataOutputStream) {
+        amountIn.toXdr(stream)
+        amountOutMin.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<LPSwapOpSwapExactInTokensForOutTokens> by ReflectiveXdrDecoder.wrapType()
+    }
+  }
+}
+
+// === xdr source ============================================================
+
+//  enum LPSwapResultCode
+//      {
+//          //: LP swap was successful
+//          SUCCESS = 0,
+//  
+//          //: Source and target balances are the same
+//          SAME_BALANCES = -1,
+//          //: Not enough funds in the source account
+//          UNDERFUNDED = -2,
+//          //: Sender balance asset and receiver balance asset are not equal
+//          BALANCE_ASSETS_MATCHED = -3,
+//          //: There is no balance found with ID provided in `fromBalance`
+//          FROM_BALANCE_NOT_FOUND = -4,
+//          //: There is no balance found with ID provided in `toBalance`
+//          TO_BALANCE_NOT_FOUND = -5,
+//          //: Payment asset does not have a `SWAPPABLE` policy set
+//          NOT_ALLOWED_BY_ASSET_POLICY = -6,
+//          //: Overflow during total fee calculation
+//          INVALID_DESTINATION_FEE = -7,
+//          //: Payment fee amount is insufficient
+//          INSUFFICIENT_FEE_AMOUNT = -8,
+//          //: Fee charged from destination balance is greater than the amount
+//          AMOUNT_IS_LESS_THAN_DEST_FEE = -9,
+//          //: Amount precision and asset precision are mismatched
+//          INCORRECT_AMOUNT_PRECISION = -10,
+//          //: Zero input amount not allowed
+//          INSUFFICIENT_INPUT_AMOUNT = -11,
+//          //: Output amount is less than allowed 
+//          INSUFFICIENT_OUTPUT_AMOUNT = -12,
+//          //: From and to assets are the same
+//          SAME_ASSETS = -13,
+//          //: Liquidity pool for assets from balances not found
+//          LIQUIDITY_POOL_NOT_FOUND = -14,
+//          //: Reserves of the liquidity pool are insufficient for swap
+//          INSUFFICIENT_LIQUIDITY = -15,
+//          //: Calculated input amount is greater than provided amountInMax
+//          EXCESSIVE_INPUT_AMOUNT = -16,
+//          //: The destination balance will exceed the limit (total amount on the balance will be greater than UINT64_MAX) 
+//          BALANCE_OVERFLOW = -17
+//      };
+
+//  ===========================================================================
+public enum class LPSwapResultCode(val value: kotlin.Int): XdrEncodable {
+  SUCCESS(0),
+  SAME_BALANCES(-1),
+  UNDERFUNDED(-2),
+  BALANCE_ASSETS_MATCHED(-3),
+  FROM_BALANCE_NOT_FOUND(-4),
+  TO_BALANCE_NOT_FOUND(-5),
+  NOT_ALLOWED_BY_ASSET_POLICY(-6),
+  INVALID_DESTINATION_FEE(-7),
+  INSUFFICIENT_FEE_AMOUNT(-8),
+  AMOUNT_IS_LESS_THAN_DEST_FEE(-9),
+  INCORRECT_AMOUNT_PRECISION(-10),
+  INSUFFICIENT_INPUT_AMOUNT(-11),
+  INSUFFICIENT_OUTPUT_AMOUNT(-12),
+  SAME_ASSETS(-13),
+  LIQUIDITY_POOL_NOT_FOUND(-14),
+  INSUFFICIENT_LIQUIDITY(-15),
+  EXCESSIVE_INPUT_AMOUNT(-16),
+  BALANCE_OVERFLOW(-17),
+  ;
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+      value.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<LPSwapResultCode> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
+//  struct LPSwapSuccess
+//      {
+//          //: Unique identifier of the liquidity pool
+//          uint64 liquidityPoolID;
+//  
+//          //: ID of the pool account
+//          AccountID poolAccount;
+//  
+//          //: ID of the in balance for LP
+//          BalanceID lpInBalanceID;
+//          //: ID of the out balance for LP
+//          BalanceID lpOutBalanceID;
+//  
+//          //: ID of the in balance for source
+//          BalanceID sourceInBalanceID;
+//          //: ID of the out balance for source
+//          BalanceID sourceOutBalanceID;
+//  
+//          //: Amount of the in asset used for swap
+//          uint64 swapInAmount;
+//          //: Amount of the out asset received from swap
+//          uint64 swapOutAmount;
+//  
+//          //: Fee charged from the source balance
+//          Fee actualSourcePaymentFee;
+//          //: Fee charged from the destination balance
+//          Fee actualDestinationPaymentFee;
+//  
+//          //: Reserved for future extension
+//          EmptyExt ext;
+//      };
+
+//  ===========================================================================
+open class LPSwapSuccess(
+    var liquidityPoolID: org.tokend.wallet.xdr.Uint64,
+    var poolAccount: org.tokend.wallet.xdr.AccountID,
+    var lpInBalanceID: org.tokend.wallet.xdr.BalanceID,
+    var lpOutBalanceID: org.tokend.wallet.xdr.BalanceID,
+    var sourceInBalanceID: org.tokend.wallet.xdr.BalanceID,
+    var sourceOutBalanceID: org.tokend.wallet.xdr.BalanceID,
+    var swapInAmount: org.tokend.wallet.xdr.Uint64,
+    var swapOutAmount: org.tokend.wallet.xdr.Uint64,
+    var actualSourcePaymentFee: org.tokend.wallet.xdr.Fee,
+    var actualDestinationPaymentFee: org.tokend.wallet.xdr.Fee,
+    var ext: org.tokend.wallet.xdr.EmptyExt
+  ) : XdrEncodable {
+
+  override fun toXdr(stream: XdrDataOutputStream) {
+    liquidityPoolID.toXdr(stream)
+    poolAccount.toXdr(stream)
+    lpInBalanceID.toXdr(stream)
+    lpOutBalanceID.toXdr(stream)
+    sourceInBalanceID.toXdr(stream)
+    sourceOutBalanceID.toXdr(stream)
+    swapInAmount.toXdr(stream)
+    swapOutAmount.toXdr(stream)
+    actualSourcePaymentFee.toXdr(stream)
+    actualDestinationPaymentFee.toXdr(stream)
+    ext.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<LPSwapSuccess> by ReflectiveXdrDecoder.wrapType()
+}
+
+// === xdr source ============================================================
+
+//  union LPSwapResult switch (LPSwapResultCode code)
+//      {
+//          case SUCCESS:
+//              LPSwapSuccess success;
+//          default:
+//              void;
+//      };
+
+//  ===========================================================================
+abstract class LPSwapResult(@XdrDiscriminantField val discriminant: org.tokend.wallet.xdr.LPSwapResultCode): XdrEncodable {
+  override fun toXdr(stream: XdrDataOutputStream) {
+      discriminant.toXdr(stream)
+  }
+
+  companion object Decoder: XdrDecodable<LPSwapResult> by ReflectiveXdrDecoder.wrapType()
+
+  open class Success(var success: org.tokend.wallet.xdr.LPSwapSuccess): LPSwapResult(org.tokend.wallet.xdr.LPSwapResultCode.SUCCESS) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      success.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<Success> by ReflectiveXdrDecoder.wrapType()
+  }
+}
+
+// === xdr source ============================================================
+
 //  //: Actions that can be performed with the account role
 //  enum ManageAccountRoleAction
 //  {
@@ -16474,6 +17254,7 @@ public enum class ManageSaleResultCode(val value: kotlin.Int): XdrEncodable {
 //      case CREATE_UPDATE_DETAILS_REQUEST:
 //          uint64 requestID;
 //      case CANCEL:
+//          void;
 //      case UPDATE_TIME:
 //          void;
 //      } response;
@@ -21690,6 +22471,22 @@ open class CustomRuleResource(
 //      } data;
 //  case CUSTOM:
 //      CustomRuleResource custom;
+//  case LIQUIDITY_POOL:
+//      struct
+//      {
+//          //: Code of the first asset in LP pair
+//          AssetCode firstAsset;
+//          //: Type of the first asset in LP pair
+//          uint64 firstAssetType;
+//  
+//          //: Code of the second asset in LP pair
+//          AssetCode secondAsset;
+//          //: Type of the seconds asset in LP pair
+//          uint64 secondAssetType;
+//  
+//          //: Reserved for future extension
+//          EmptyExt ext;
+//      } liquidityPool;
 //  default:
 //      //: reserved for future extension
 //      EmptyExt ext;
@@ -21820,6 +22617,15 @@ abstract class AccountRuleResource(@XdrDiscriminantField val discriminant: org.t
     }
 
     companion object Decoder: XdrDecodable<Custom> by ReflectiveXdrDecoder.wrapType()
+  }
+
+  open class LiquidityPool(var liquidityPool: AccountRuleResourceLiquidityPool): AccountRuleResource(org.tokend.wallet.xdr.LedgerEntryType.LIQUIDITY_POOL) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      liquidityPool.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<LiquidityPool> by ReflectiveXdrDecoder.wrapType()
   }
 
   open class AccountRuleResourceAsset(
@@ -22005,6 +22811,24 @@ abstract class AccountRuleResource(@XdrDiscriminantField val discriminant: org.t
 
     companion object Decoder: XdrDecodable<AccountRuleResourceData> by ReflectiveXdrDecoder.wrapType()
   }
+  open class AccountRuleResourceLiquidityPool(
+      var firstAsset: org.tokend.wallet.xdr.AssetCode,
+      var firstAssetType: org.tokend.wallet.xdr.Uint64,
+      var secondAsset: org.tokend.wallet.xdr.AssetCode,
+      var secondAssetType: org.tokend.wallet.xdr.Uint64,
+      var ext: org.tokend.wallet.xdr.EmptyExt
+    ) : XdrEncodable {
+
+    override fun toXdr(stream: XdrDataOutputStream) {
+      firstAsset.toXdr(stream)
+      firstAssetType.toXdr(stream)
+      secondAsset.toXdr(stream)
+      secondAssetType.toXdr(stream)
+      ext.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<AccountRuleResourceLiquidityPool> by ReflectiveXdrDecoder.wrapType()
+  }
 }
 
 // === xdr source ============================================================
@@ -22036,7 +22860,10 @@ abstract class AccountRuleResource(@XdrDiscriminantField val discriminant: org.t
 //      RECEIVE_REDEMPTION = 22,
 //      UPDATE = 23,
 //      UPDATE_FOR_OTHER = 24,
-//      CUSTOM = 25
+//      CUSTOM = 25,
+//      LP_ADD_LIQUIDITY = 26,
+//      LP_REMOVE_LIQUIDITY = 27,
+//      LP_SWAP = 28
 //  };
 
 //  ===========================================================================
@@ -22066,6 +22893,9 @@ public enum class AccountRuleAction(val value: kotlin.Int): XdrEncodable {
   UPDATE(23),
   UPDATE_FOR_OTHER(24),
   CUSTOM(25),
+  LP_ADD_LIQUIDITY(26),
+  LP_REMOVE_LIQUIDITY(27),
+  LP_SWAP(28),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -22249,6 +23079,22 @@ public enum class AccountRuleAction(val value: kotlin.Int): XdrEncodable {
 //      } data;
 //  case CUSTOM:
 //      CustomRuleResource custom;
+//  case LIQUIDITY_POOL:
+//      struct
+//      {
+//          //: Code of the first asset in LP pair
+//          AssetCode firstAsset;
+//          //: Type of the first asset in LP pair
+//          uint64 firstAssetType;
+//  
+//          //: Code of the second asset in LP pair
+//          AssetCode secondAsset;
+//          //: Type of the seconds asset in LP pair
+//          uint64 secondAssetType;
+//  
+//          //: Reserved for future extension
+//          EmptyExt ext;
+//      } liquidityPool;
 //  default:
 //      //: reserved for future extension
 //      EmptyExt ext;
@@ -22406,6 +23252,15 @@ abstract class SignerRuleResource(@XdrDiscriminantField val discriminant: org.to
     }
 
     companion object Decoder: XdrDecodable<Custom> by ReflectiveXdrDecoder.wrapType()
+  }
+
+  open class LiquidityPool(var liquidityPool: SignerRuleResourceLiquidityPool): SignerRuleResource(org.tokend.wallet.xdr.LedgerEntryType.LIQUIDITY_POOL) {
+    override fun toXdr(stream: XdrDataOutputStream) {
+      super.toXdr(stream)
+      liquidityPool.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<LiquidityPool> by ReflectiveXdrDecoder.wrapType()
   }
 
   open class SignerRuleResourceReviewableRequest(
@@ -22633,6 +23488,24 @@ abstract class SignerRuleResource(@XdrDiscriminantField val discriminant: org.to
 
     companion object Decoder: XdrDecodable<SignerRuleResourceData> by ReflectiveXdrDecoder.wrapType()
   }
+  open class SignerRuleResourceLiquidityPool(
+      var firstAsset: org.tokend.wallet.xdr.AssetCode,
+      var firstAssetType: org.tokend.wallet.xdr.Uint64,
+      var secondAsset: org.tokend.wallet.xdr.AssetCode,
+      var secondAssetType: org.tokend.wallet.xdr.Uint64,
+      var ext: org.tokend.wallet.xdr.EmptyExt
+    ) : XdrEncodable {
+
+    override fun toXdr(stream: XdrDataOutputStream) {
+      firstAsset.toXdr(stream)
+      firstAssetType.toXdr(stream)
+      secondAsset.toXdr(stream)
+      secondAssetType.toXdr(stream)
+      ext.toXdr(stream)
+    }
+
+    companion object Decoder: XdrDecodable<SignerRuleResourceLiquidityPool> by ReflectiveXdrDecoder.wrapType()
+  }
 }
 
 // === xdr source ============================================================
@@ -22661,7 +23534,10 @@ abstract class SignerRuleResource(@XdrDiscriminantField val discriminant: org.to
 //      REMOVE_FOR_OTHER = 19,
 //      EXCHANGE = 20,
 //      UPDATE_FOR_OTHER = 21,
-//      CUSTOM = 22
+//      CUSTOM = 22,
+//      LP_ADD_LIQUIDITY = 23,
+//      LP_REMOVE_LIQUIDITY = 24,
+//      LP_SWAP = 25
 //  };
 
 //  ===========================================================================
@@ -22688,6 +23564,9 @@ public enum class SignerRuleAction(val value: kotlin.Int): XdrEncodable {
   EXCHANGE(20),
   UPDATE_FOR_OTHER(21),
   CUSTOM(22),
+  LP_ADD_LIQUIDITY(23),
+  LP_REMOVE_LIQUIDITY(24),
+  LP_SWAP(25),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -24357,6 +25236,12 @@ open class WithdrawalRequest(
 //          CreateCloseDeferredPaymentRequestOp createCloseDeferredPaymentRequestOp;
 //      case CANCEL_CLOSE_DEFERRED_PAYMENT_REQUEST:
 //          CancelCloseDeferredPaymentRequestOp cancelCloseDeferredPaymentRequestOp;
+//      case LP_SWAP:
+//          LPSwapOp lpSwapOp;
+//      case LP_ADD_LIQUIDITY:
+//          LPAddLiquidityOp lpAddLiquidityOp;
+//      case LP_REMOVE_LIQUIDITY:
+//          LPRemoveLiquidityOp lpRemoveLiquidityOp;
 //  
 //      }
 //  
@@ -24955,6 +25840,33 @@ open class Operation(
 
       companion object Decoder: XdrDecodable<CancelCloseDeferredPaymentRequest> by ReflectiveXdrDecoder.wrapType()
     }
+
+    open class LpSwap(var lpSwapOp: org.tokend.wallet.xdr.LPSwapOp): OperationBody(org.tokend.wallet.xdr.OperationType.LP_SWAP) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        lpSwapOp.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<LpSwap> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class LpAddLiquidity(var lpAddLiquidityOp: org.tokend.wallet.xdr.LPAddLiquidityOp): OperationBody(org.tokend.wallet.xdr.OperationType.LP_ADD_LIQUIDITY) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        lpAddLiquidityOp.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<LpAddLiquidity> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class LpRemoveLiquidity(var lpRemoveLiquidityOp: org.tokend.wallet.xdr.LPRemoveLiquidityOp): OperationBody(org.tokend.wallet.xdr.OperationType.LP_REMOVE_LIQUIDITY) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        lpRemoveLiquidityOp.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<LpRemoveLiquidity> by ReflectiveXdrDecoder.wrapType()
+    }
   }
 }
 
@@ -25373,13 +26285,19 @@ open class AccountRuleRequirement(
 //      case CANCEL_DATA_REMOVE_REQUEST:
 //          CancelDataRemoveRequestResult cancelDataRemoveRequestResult;
 //      case CREATE_DEFERRED_PAYMENT_CREATION_REQUEST:
-//              CreateDeferredPaymentCreationRequestResult createDeferredPaymentCreationRequestResult;
+//          CreateDeferredPaymentCreationRequestResult createDeferredPaymentCreationRequestResult;
 //      case CANCEL_DEFERRED_PAYMENT_CREATION_REQUEST:
 //          CancelDeferredPaymentCreationRequestResult cancelDeferredPaymentCreationRequestResult;
 //      case CREATE_CLOSE_DEFERRED_PAYMENT_REQUEST:
 //          CreateCloseDeferredPaymentRequestResult createCloseDeferredPaymentRequestResult;
 //      case CANCEL_CLOSE_DEFERRED_PAYMENT_REQUEST:
 //          CancelCloseDeferredPaymentRequestResult cancelCloseDeferredPaymentRequestResult;
+//      case LP_SWAP:
+//          LPSwapResult lpSwapResult;
+//      case LP_ADD_LIQUIDITY:
+//          LPAddLiquidityResult lpAddLiquidityResult;
+//      case LP_REMOVE_LIQUIDITY:
+//          LPRemoveLiquidityResult lpRemoveLiquidityResult;
 //  
 //      }
 //      tr;
@@ -25999,6 +26917,33 @@ abstract class OperationResult(@XdrDiscriminantField val discriminant: org.token
 
       companion object Decoder: XdrDecodable<CancelCloseDeferredPaymentRequest> by ReflectiveXdrDecoder.wrapType()
     }
+
+    open class LpSwap(var lpSwapResult: org.tokend.wallet.xdr.LPSwapResult): OperationResultTr(org.tokend.wallet.xdr.OperationType.LP_SWAP) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        lpSwapResult.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<LpSwap> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class LpAddLiquidity(var lpAddLiquidityResult: org.tokend.wallet.xdr.LPAddLiquidityResult): OperationResultTr(org.tokend.wallet.xdr.OperationType.LP_ADD_LIQUIDITY) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        lpAddLiquidityResult.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<LpAddLiquidity> by ReflectiveXdrDecoder.wrapType()
+    }
+
+    open class LpRemoveLiquidity(var lpRemoveLiquidityResult: org.tokend.wallet.xdr.LPRemoveLiquidityResult): OperationResultTr(org.tokend.wallet.xdr.OperationType.LP_REMOVE_LIQUIDITY) {
+      override fun toXdr(stream: XdrDataOutputStream) {
+        super.toXdr(stream)
+        lpRemoveLiquidityResult.toXdr(stream)
+      }
+
+      companion object Decoder: XdrDecodable<LpRemoveLiquidity> by ReflectiveXdrDecoder.wrapType()
+    }
   }
 }
 
@@ -26443,7 +27388,8 @@ abstract class PublicKey(@XdrDiscriminantField val discriminant: org.tokend.wall
 //      SWAP = 38,
 //      DATA = 39,
 //      CUSTOM = 40,
-//      DEFERRED_PAYMENT = 41
+//      DEFERRED_PAYMENT = 41,
+//      LIQUIDITY_POOL = 42
 //  };
 
 //  ===========================================================================
@@ -26487,6 +27433,7 @@ public enum class LedgerEntryType(val value: kotlin.Int): XdrEncodable {
   DATA(39),
   CUSTOM(40),
   DEFERRED_PAYMENT(41),
+  LIQUIDITY_POOL(42),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
@@ -26773,7 +27720,10 @@ open class Fee(
 //      CREATE_DEFERRED_PAYMENT_CREATION_REQUEST = 66,
 //      CANCEL_DEFERRED_PAYMENT_CREATION_REQUEST = 67,
 //      CREATE_CLOSE_DEFERRED_PAYMENT_REQUEST = 68,
-//      CANCEL_CLOSE_DEFERRED_PAYMENT_REQUEST = 69
+//      CANCEL_CLOSE_DEFERRED_PAYMENT_REQUEST = 69,
+//      LP_SWAP = 70,
+//      LP_ADD_LIQUIDITY = 71,
+//      LP_REMOVE_LIQUIDITY = 72
 //  };
 
 //  ===========================================================================
@@ -26841,6 +27791,9 @@ public enum class OperationType(val value: kotlin.Int): XdrEncodable {
   CANCEL_DEFERRED_PAYMENT_CREATION_REQUEST(67),
   CREATE_CLOSE_DEFERRED_PAYMENT_REQUEST(68),
   CANCEL_CLOSE_DEFERRED_PAYMENT_REQUEST(69),
+  LP_SWAP(70),
+  LP_ADD_LIQUIDITY(71),
+  LP_REMOVE_LIQUIDITY(72),
   ;
 
   override fun toXdr(stream: XdrDataOutputStream) {
